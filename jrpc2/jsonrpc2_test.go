@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 	"encoding/json"
-	"github.com/niftynei/jrpc2"
+	"github.com/niftynei/golight/jrpc2"
 	"github.com/stretchr/testify/assert"
 )
 

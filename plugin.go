@@ -1,7 +1,8 @@
-package jrpc2
+package golight
 
 import (
 	"encoding/json"
+	"github.com/niftynei/golight/jrpc2"
 	"fmt"
 	"log"
 	"os"
@@ -58,11 +59,11 @@ func (o *Option) MarshalJSON() ([]byte, error) {
 // func (o *Option) UnmarshalJSON([]byte) error {}
 
 type RpcMethod struct {
-	Method ServerMethod
+	Method jrpc2.ServerMethod
 	Desc string
 }
 
-func NewRpcMethod(method ServerMethod, desc string) *RpcMethod {
+func NewRpcMethod(method jrpc2.ServerMethod, desc string) *RpcMethod {
 	return &RpcMethod{
 		Method: method,
 		Desc: desc,
@@ -125,7 +126,7 @@ func isBuiltInMethod(name string) bool {
 
 // Builds the manifest object that's returned from the
 // `getmanifest` method.
-func (gm GetManifestMethod) Call() (Result, error) {
+func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 	m := &Manifest{}
 	m.RpcMethods = make([]*RpcMethod, 0, len(gm.plugin.methods))
 	for _, rpc := range gm.plugin.methods {
@@ -173,7 +174,7 @@ func (im InitMethod) Name() string {
 	return "init"
 }
 
-func (im InitMethod) Call() (Result, error) {
+func (im InitMethod) Call() (jrpc2.Result, error) {
 	// fill in options
 	for name, value := range im.Options {
 		option, exists := im.plugin.options[name]
@@ -196,7 +197,7 @@ func (im InitMethod) Call() (Result, error) {
 }
 
 type Plugin struct {
-	server *Server
+	server *jrpc2.Server
 	options map[string]*Option
 	methods map[string]*RpcMethod
 	initialized bool
@@ -211,7 +212,7 @@ func (p *Plugin) SetLogfile(filename string) {
 
 func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plugin {
 	plugin := &Plugin{}
-	plugin.server = NewServer()
+	plugin.server = jrpc2.NewServer()
 	plugin.options = make(map[string]*Option)
 	plugin.methods = make(map[string]*RpcMethod)
 	plugin.initFn = initHandler
@@ -332,7 +333,7 @@ func (p *Plugin) getOptionSet() map[string]string {
 	return options
 }
 
-func getParamList(method ServerMethod) []string {
+func getParamList(method jrpc2.ServerMethod) []string {
 	paramList := make([]string, 0)
 	v := reflect.Indirect(reflect.ValueOf(method))
 

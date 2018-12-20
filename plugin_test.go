@@ -1,19 +1,20 @@
-package jrpc2_test
+package golight_test
 
 import (
 	"bufio"
 	"fmt"
 	"os"
-	"github.com/niftynei/jrpc2"
+	"github.com/niftynei/golight"
+	"github.com/niftynei/golight/jrpc2"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 type HiMethod struct {
-	plugin *jrpc2.Plugin
+	plugin *golight.Plugin
 }
 
-func NewHiMethod(p *jrpc2.Plugin) *HiMethod {
+func NewHiMethod(p *golight.Plugin) *HiMethod {
 	return &HiMethod{
 		plugin: p,
 	}
@@ -32,8 +33,8 @@ func (hi *HiMethod) Call() (jrpc2.Result, error) {
 	return fmt.Sprintf("Hello, %s", gOpt.Value()), nil
 }
 
-func getInitFunc(t *testing.T, testFn func(t *testing.T, opt map[string]string, config *jrpc2.Config)) func(*jrpc2.Plugin, map[string]string, *jrpc2.Config) {
-	return func (plugin *jrpc2.Plugin, options map[string]string, config *jrpc2.Config) {
+func getInitFunc(t *testing.T, testFn func(t *testing.T, opt map[string]string, config *golight.Config)) func(*golight.Plugin, map[string]string, *golight.Config) {
+	return func (plugin *golight.Plugin, options map[string]string, config *golight.Config) {
 		testFn(t, options, config)
 	}
 }
@@ -41,14 +42,14 @@ func getInitFunc(t *testing.T, testFn func(t *testing.T, opt map[string]string, 
 // test the plugin's handling of init
 func TestInit(t *testing.T) {
 
-	initTestFn := getInitFunc(t ,func(t *testing.T, options map[string]string, config *jrpc2.Config) {
+	initTestFn := getInitFunc(t ,func(t *testing.T, options map[string]string, config *golight.Config) {
 		assert.Equal(t, "Jenny", options["greeting"])
 		assert.Equal(t, "rpc.file", config.RpcFile)
 		assert.Equal(t, "dirforlightning", config.LightningDir)
 	})
-	plugin := jrpc2.NewPlugin(initTestFn)
-	plugin.RegisterOption(jrpc2.NewOption("greeting", "How you'd like to be called", "Mary"))
-	plugin.RegisterMethod(jrpc2.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
+	plugin := golight.NewPlugin(initTestFn)
+	plugin.RegisterOption(golight.NewOption("greeting", "How you'd like to be called", "Mary"))
+	plugin.RegisterMethod(golight.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
 
 	initJson := "{\"jsonrpc\":\"2.0\",\"method\":\"init\",\"params\":{\"options\":{\"greeting\":\"Jenny\"},\"configuration\":{\"rpc-file\":\"rpc.file\",\"lightning-dir\":\"dirforlightning\"}}}\n\n"
 
@@ -57,19 +58,19 @@ func TestInit(t *testing.T) {
 }
 
 func TestGetManifest(t *testing.T) {
-	initFn := getInitFunc(t ,func(t *testing.T, options map[string]string, config *jrpc2.Config) {
+	initFn := getInitFunc(t ,func(t *testing.T, options map[string]string, config *golight.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
-	plugin := jrpc2.NewPlugin(initFn)
-	plugin.RegisterMethod(jrpc2.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
-	plugin.RegisterOption(jrpc2.NewOption("greeting", "How you'd like to be called", "Mary"))
+	plugin := golight.NewPlugin(initFn)
+	plugin.RegisterMethod(golight.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
+	plugin.RegisterOption(golight.NewOption("greeting", "How you'd like to be called", "Mary"))
 
 	msg := "{\"jsonrpc\":\"2.0\",\"method\":\"getmanifest\",\"id\":\"aloha\"}\n\n"
 	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[{\"name\":\"greeting\",\"type\":\"string\",\"default\":\"Mary\",\"description\":\"How you'd like to be called\"}],\"rpcmethods\":[{\"name\":\"hi\",\"description\":\"Send a greeting.\"}]},\"id\":\"aloha\"}"
 	runTest(t, plugin, msg, resp)
 }
 
-func runTest(t *testing.T, plugin *jrpc2.Plugin, inputMsg, expectedMsg string) {
+func runTest(t *testing.T, plugin *golight.Plugin, inputMsg, expectedMsg string) {
 	progIn, testOut, err := os.Pipe()
 	if err != nil {
 		t.Log(err)
