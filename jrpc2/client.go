@@ -19,8 +19,24 @@ func NewClient() *Client {
 	return client
 }
 
-// methods a client needs.. ??
-func (c *Client) Send() {
+// todo: this
+func (c *Client) Connect() {
+}
+
+// Isses an RPC call. Is blocking.
+// todo: take care of an id for this 
+// todo: provide an interface to parse into?
+func (c *Client) Request(m Method, resp interface{}) (error) {
+	// todo: send the request out over the wire,
+	// with an appropriate id. i think what we really want
+	// is to create a channel/sending mapping that lets
+	// us do this in some fancy blocking/async manner
+
+	// when the response comes back, it will either have an error,
+	// that we should parse into an 'error' (depending on the code?)
+	// or a raw response, that we should json map into the 
+	// provided resp (interface)
+	return nil
 }
 
 // We need to register client functions

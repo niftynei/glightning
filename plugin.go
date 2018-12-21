@@ -54,13 +54,10 @@ func (o *Option) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// we don't need to unmarshal this, since
-// we don't expect to ever get a callback with this struct
-// func (o *Option) UnmarshalJSON([]byte) error {}
-
 type RpcMethod struct {
 	Method jrpc2.ServerMethod
 	Desc string
+	LongDesc string
 }
 
 func NewRpcMethod(method jrpc2.ServerMethod, desc string) *RpcMethod {
@@ -81,11 +78,13 @@ func (r *RpcMethod) Description() string {
 func (r *RpcMethod) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Name string		`json:"name"`
-		Description string	`json:"description"`
+		Desc string		`json:"description"`
 		Params []string		`json:"params,omitempty"`
+		LongDesc string		`json:"long_description,omitempty"`
 	}{
 		Name: r.Method.Name(),
-		Description: r.Description(),
+		Desc: r.Description(),
+		LongDesc: r.LongDesc,
 		Params: getParamList(r.Method),
 	})
 }
@@ -240,14 +239,16 @@ func checkForMonkeyPatch(out *os.File, logfile string) *os.File {
 
 	// set up the logger to redirect out to a log file (for now).
 	// todo: send the logs to the lightning-d channel instead
+	/*
 	f, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
 	if err != nil {
 		// we really don't want to start up if we can't write out 
 		panic(err.Error())
 	}
+	*/
 	// hehehe
 	log.SetOutput(os.Stderr)
-	return f
+	return nil
 }
 
 
@@ -323,6 +324,10 @@ func (p *Plugin) UnregisterOption(o *Option) error {
 
 func (p *Plugin) GetOption(name string) *Option {
 	return p.options[name]
+}
+
+func (p *Plugin) GetOptionValue(name string) string {
+	return p.GetOption(name).Val
 }
 
 func (p *Plugin) getOptionSet() map[string]string {

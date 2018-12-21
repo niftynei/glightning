@@ -111,7 +111,7 @@ func (s *Server) setupWriteQueue(outWriter io.Writer) {
 	for response := range s.outQueue {
 		data, err := json.Marshal(response)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err.Error())
 			continue
 		}
 		// append two newlines to the outgoing message
@@ -234,7 +234,7 @@ func (s *Server) Unmarshal(data[]byte, r *Request) *CodedError {
 		return NewError(nil, ParseError, "Parse error")
 	}
 	if raw.Version != specVersion {
-		return NewError(raw.Id, InvalidRequest, fmt.Sprintf("Invalid version, expected \"%s\" got \"%s\"", specVersion, raw.Version))
+		return NewError(raw.Id, InvalidRequest, fmt.Sprintf(`Invalid version, expected "%s" got "%s"`, specVersion, raw.Version))
 	}
 	if raw.Name == "" {
 		return NewError(raw.Id, InvalidRequest, "`method` cannot be empty")
