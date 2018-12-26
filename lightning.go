@@ -17,32 +17,30 @@ func RegisterLightningCmds(p *Plugin) {
 	// todo: this hashtag crying lollol
 }
 
-type GetPeerRequest struct {
+type ListPeersRequest struct {
 	PeerId string	`json:"id,omitempty"`
 	Level string	`json:"level,omitempty"`
 }
 
-func (gp *GetPeerRequest) Name() string {
+func (r *ListPeersRequest) Name() string {
 	return "listpeers"
 }
 
-// Return list of all current peers. If {level} is set, include logs
-func (l *Lightning) ListPeers(level string) (interface{}, error) {
-	var result interface{}
-	err := l.client.Request(&GetPeerRequest{Level:level,}, &result)
-	return result, err
-}
-
-// Show peer with {peerId}, if {level} is set, include logs
-// todo: enum for levels
+// Show current peer {peerId}. If {level} is set, include logs.
 func (l *Lightning) GetPeer(peerId, level string) (interface{}, error) {
 	var result interface{}
-	err := l.client.Request(&GetPeerRequest{peerId, level}, &result)
+	err := l.client.Request(&ListPeersRequest{peerId,level}, result)
 	return result, err
 }
 
+// Show current peers, if {level} is set, include logs.
+func (l *Lightning) ListPeers(level string) (interface{}, error) {
+	return l.GetPeer("", level)
+}
+
+
 type ListNodeRequest struct {
-	NodeId	string	`json:"node_id,omitempty"`
+	NodeId	string	`json:"id,omitempty"`
 }
 
 func (ln *ListNodeRequest) Name() string {
@@ -108,7 +106,7 @@ func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cl
 		PeerId: peerId,
 		MilliSatoshis: msats,
 		RiskFactor: riskfactor,
-		Cltv: int(cltv),
+		Cltv: cltv,
 		FromId: fromId,
 		FuzzPercent: fuzzpercent,
 		Seed: seed,
@@ -515,8 +513,8 @@ func (r *PayRequest) Name() string {
 	return "pay"
 }
 
-func (l *Lightning) PayBolt(bolt11 string) {
-	return Pay(&PayRequest{
+func (l *Lightning) PayBolt(bolt11 string) (interface{}, error) {
+	return l.Pay(&PayRequest{
 		Bolt11: bolt11,
 	})
 }
@@ -555,10 +553,10 @@ func (l *Lightning) Pay(req *PayRequest) (interface{}, error) {
 		return nil, fmt.Errorf("Must supply a Bolt11 to pay")
 	}
 	if req.RiskFactor < 0 {
-		return nil, fmt.Errorf("Risk factor must be postiive %d", req.RiskFactor)
+		return nil, fmt.Errorf("Risk factor must be postiive %f", req.RiskFactor)
 	}
 	if req.MaxFeePercent < 0 || req.MaxFeePercent > 100 {
-		return nil, fmt.Errorf("MaxFeePercent must be a percentage. %d", req.MaxFeePercent)
+		return nil, fmt.Errorf("MaxFeePercent must be a percentage. %f", req.MaxFeePercent)
 	}
 	var result interface{}
 	err := l.client.Request(req, result)
@@ -611,31 +609,8 @@ func (l *Lightning) Connect(peerId, host string, port uint) (interface{}, error)
 	return result, err
 }
 
-type ListPeersRequest struct {
-	PeerId string	`json:"id,omitempty"`
-	Level string	`json:"level,omitempty"`
-}
-
-func (r *ListPeersRequest) Name() string {
-	return "listpeers"
-}
-
-// Show current peer {peerId}. If {level} is set, include logs.
-func (l *Lightning) GetPeer(peerId, level string) (interface{}, error) {
-	var result interface{}
-	err := l.client.Request(&ListPeersResult{peerId,level}, result)
-	return result, err
-}
-
-// Show current peers, if {level} is set, include logs.
-func (l *Lightning) ListPeers(level string) (interface{}, error) {
-	var result interface{}
-	err := l.client.Request(&ListPeersResult{peerId,level}, result)
-	return result, err
-}
-
 type FundChannelRequest struct {
-	Id string	`json:"node_id"`
+	Id string	`json:"id"`
 	Satoshi uint64	`json:"satoshi"`
 	FeeRate float32	`json:"feerate,omitempty"`
 	Announce bool	`json:"announce,omitempty"`
@@ -650,7 +625,7 @@ func (r *FundChannelRequest) Name() string {
 // If announce is false, channel announcements will not be sent.
 func (l *Lightning) FundChannel(id string, satoshis uint64, feerate float32, announce bool) (interface{}, error) {
 	if feerate < 0 {
-		return nil, fmt.Errorf("Feerate must be positive %d", feerate)
+		return nil, fmt.Errorf("Feerate must be positive %f", feerate)
 	}
 	var result interface{}
 	err := l.client.Request(&FundChannelRequest{id,satoshis,feerate,announce}, result)
@@ -691,7 +666,7 @@ func (r *DevSignLastTxRequest) Name() string {
 // Sign and show the last commitment transaction with peer {peerId}
 func (l *Lightning) DevSignLastTx(peerId string) (interface{}, error) {
 	var result interface{}
-	err := l.client.Request(&DevSignLastTxRequest{id}, result)
+	err := l.client.Request(&DevSignLastTxRequest{peerId}, result)
 	return result, err
 }
 
@@ -737,11 +712,11 @@ func (r *PingRequest) Name() string {
 
 // Send {peerId} a ping of size 128, asking for 128 bytes in response
 func (l *Lightning) Ping(peerId string) (interface{}, error) {
-	return PingWithLen(peerId, 128, 128)
+	return l.PingWithLen(peerId, 128, 128)
 }
 
 // Send {peerId} a ping of length {pingLen} asking for bytes {pongByteLen}
-func (l *Lightning) PingWitLen(peerId string, pingLen, pongByteLen uint) (interface{}, error) {
+func (l *Lightning) PingWithLen(peerId string, pingLen, pongByteLen uint) (interface{}, error) {
 	var result interface{}
 	err := l.client.Request(&PingRequest{peerId, pingLen, pongByteLen}, result)
 	return result, err
@@ -754,7 +729,7 @@ func (r *DevMemDumpRequest) Name() string {
 }
 
 // Show memory objects currently in use
-func (l *Lightning) DevMemDump() (interface{], error) {
+func (l *Lightning) DevMemDump() (interface{}, error) {
 	var result interface{}
 	err := l.client.Request(&DevMemDumpRequest{}, result)
 	return result, err
@@ -798,11 +773,11 @@ const (
 	Slow
 )
 
-func (f FeeDirective) String() {
+func (f FeeDirective) String() string {
 	return []string{
 		"normal",
 		"urgent",
-		"slow"
+		"slow",
 	}[f]
 }
 
@@ -819,7 +794,7 @@ type FeeRate struct {
 	Directive FeeDirective
 }
 
-func (r FeeRate) String() string {
+func (r FeeRateStyle) String() string {
 	return []string{"perkb","perkw"}[r]
 }
 
@@ -878,7 +853,7 @@ const (
 	P2SHSegwit
 )
 
-func (a AddressType) String() {
+func (a AddressType) String() string {
 	return []string{"bech32", "p2sh-segwit"}[a]
 }
 
@@ -890,7 +865,7 @@ func (l *Lightning) NewAddr() (interface{}, error) {
 // Get new address of type {addrType} of the internal wallet.
 func (l *Lightning) NewAddressOfType(addrType AddressType) (interface{}, error) {
 	var result interface{}
-	err := l.client.Request(&NewAddrRequest{addressType.String()}, result)
+	err := l.client.Request(&NewAddrRequest{addrType.String()}, result)
 	return result, err
 }
 
@@ -920,14 +895,14 @@ func (l *Lightning) ListForwards() (interface{}, error) {
 	return result, err
 }
 
-type DevRescanOutputsRequest {}
+type DevRescanOutputsRequest struct {}
 
 func (r *DevRescanOutputsRequest) Name() string {
 	return "dev-rescan-outputs"
 }
 
 // Synchronize the state of our funds with bitcoind
-func (l *Lightning) DevRescanOutputs() (interface{], error) {
+func (l *Lightning) DevRescanOutputs() (interface{}, error) {
 	var result interface{}
 	err := l.client.Request(&DevRescanOutputsRequest{}, result)
 	return result, err
@@ -944,7 +919,7 @@ func (r *DevForgetChannelRequest) Name() string {
 
 // Forget channel with id {peerId}. Optionally {force} if has active channel.
 // Caution, this might lose you funds.
-func (l *Lightning) DevForgetChannel(peerId string, force bool) (interface{], error) {
+func (l *Lightning) DevForgetChannel(peerId string, force bool) (interface{}, error) {
 	var result interface{}
 	err := l.client.Request(&DevForgetChannelRequest{peerId, force}, result)
 	return result, err

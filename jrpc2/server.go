@@ -106,7 +106,6 @@ func (s *Server) listen(in io.Reader) error {
 
 func (s *Server) setupWriteQueue(outWriter io.Writer) {
 	out := bufio.NewWriter(outWriter)
-	defer out.Flush()
 	twoNewlines := []byte("\n\n")
 	for response := range s.outQueue {
 		data, err := json.Marshal(response)

@@ -47,7 +47,7 @@ func (id *Id) UnmarshalJSON(data []byte) error {
 		}
 		id.strVal = string(data[1:len(data)-1])
 		return nil
-	case '0','1','2','3','4','5','6','7','8','9':
+	case '-','0','1','2','3','4','5','6','7','8','9':
 		val, err := strconv.ParseInt(string(data), 10, 64)
 		if err != nil {
 			return NewError(nil, InvalidRequest, fmt.Sprintf("Invalid Id value: %s", string(data)))
@@ -121,6 +121,10 @@ type Error struct {
 // provide your own object to parse this with! ehehe
 func (e *Error) ParseData(into interface{}) error {
 	return json.Unmarshal(e.Data, into)
+}
+
+func (e *Error) ToErr() error {
+	return fmt.Errorf("%d:%s",e.Code,e.Message)
 }
 
 // What we really want is the parameter values off of
