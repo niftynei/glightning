@@ -99,7 +99,7 @@ func TestClientNoId(t *testing.T) {
 	defer resetLogger()
 
 	client := jrpc2.NewClient()
-	client.SetTimeout(5)
+	client.SetTimeout(1)
 	go client.StartUp(in, out)
 
 	ok := make(chan bool, 1)
@@ -173,7 +173,7 @@ func TestClientShutdown(t *testing.T) {
 	in, out, serverIn, serverOut := setupWritePipes(t)
 
 	client := jrpc2.NewClient()
-	client.SetTimeout(3)
+	client.SetTimeout(1)
 	go client.StartUp(in, out)
 
 	ok := make(chan bool, 1)
