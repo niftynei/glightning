@@ -2,11 +2,13 @@ package jrpc2
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"sync/atomic"
 	"encoding/json"
 	"log"
+	"time"
 )
 
 // a client needs to be able to ...
@@ -16,32 +18,44 @@ import (
 // bonus round: 
 //    - send and receive in batches 
 type Client struct {
-	registry map[string]Method
 	requestQueue chan *Request
 	pendingReq map[string]chan *RawResponse
 	requestCounter int64
 	shutdown bool
+	timeout time.Duration
 }
 
 func NewClient() *Client {
 	client := &Client{}
-	client.registry = make(map[string]Method)
 	client.requestQueue = make(chan *Request)
 	client.pendingReq = make(map[string]chan *RawResponse)
+	client.timeout = time.Duration(20)
 	return client
 }
 
+func (c *Client) SetTimeout(secs uint) {
+	c.timeout = time.Duration(secs)
+}
+
 func (c *Client) StartUp(in, out *os.File) {
+	c.shutdown = false
 	go c.setupWriteQueue(out)
 	c.readQueue(in)
 }
 
 func (c *Client) Shutdown() {
 	c.shutdown = true
+	close(c.requestQueue)
+	for _, v := range c.pendingReq {
+		close(v)
+	}
+	c.pendingReq = make(map[string]chan *RawResponse)
+	c.requestQueue = make(chan *Request)
 }
 
 func (c *Client) setupWriteQueue(outW io.Writer) {
 	out := bufio.NewWriter(outW)
+	defer out.Flush()
 	twoNewlines := []byte("\n\n")
 	for request := range c.requestQueue {
 		data, err := json.Marshal(request)
@@ -96,19 +110,34 @@ func (c *Client) sendResponse(id string, resp *RawResponse) {
 	delete(c.pendingReq, id)
 }
 
-// Isses an RPC call. Is blocking.
+// Isses an RPC call. Is blocking. Times out after {timeout}
+// seconds (set on client).
 func (c *Client) Request(m Method, resp interface{}) (error) {
+	if c.shutdown {
+		return fmt.Errorf("Client is shutdown")
+	}
 	id := c.NextId()
 	// set up to get a response back
-	replyChan := make(chan *RawResponse)
+	replyChan := make(chan *RawResponse, 1)
 	c.pendingReq[id.Val()] = replyChan
 
 	// send the request out
 	req := &Request{id, m}
 	c.requestQueue <- req
 
-	// todo: can we have a timer so this returns...eventually?
-	rawResp := <-replyChan
+	select {
+	case rawResp := <-replyChan:
+		return handleReply(rawResp, resp)
+	case <- time.After(c.timeout * time.Second):
+		delete(c.pendingReq, id.Val())
+		return fmt.Errorf("Request timed out")
+	}
+}
+
+func handleReply(rawResp *RawResponse, resp interface{}) error {
+	if rawResp == nil {
+		return fmt.Errorf("Pipe closed unexpectedly, nil result")
+	}
 
 	// when the response comes back, it will either have an error,
 	// that we should parse into an 'error' (depending on the code?)
