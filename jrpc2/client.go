@@ -110,6 +110,17 @@ func (c *Client) sendResponse(id string, resp *RawResponse) {
 	delete(c.pendingReq, id)
 }
 
+// Sends a notification to the server. No response is expected,
+// and no ID is assigned to the request.
+func (c *Client) Notify(m Method) error {
+	if c.shutdown {
+		return fmt.Errorf("Client is shutdown")
+	}
+	req := &Request{nil,m}
+	c.requestQueue <- req
+	return nil
+}
+
 // Isses an RPC call. Is blocking. Times out after {timeout}
 // seconds (set on client).
 func (c *Client) Request(m Method, resp interface{}) (error) {

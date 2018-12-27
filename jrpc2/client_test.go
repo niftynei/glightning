@@ -207,6 +207,26 @@ func TestClientShutdown(t *testing.T) {
 	}
 }
 
+// a notification should:
+//  - not have an id
+//  - return immediately
+func TestClientNotification(t *testing.T) {
+	in, out, serverIn, _ := setupWritePipes(t)
+
+	client := jrpc2.NewClient()
+	client.SetTimeout(1)
+	go client.StartUp(in, out)
+
+	err := client.Notify(&ClientSubtract{5,1})
+	assert.Nil(t, err)
+
+	// read out from pipe
+	reader := bufio.NewReader(serverIn)
+	resp, err := reader.ReadString('\n')
+	assert.Nil(t, err)
+	assert.Equal(t ,"{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1}}\n", resp)
+}
+
 func TestClientNoResponse(t *testing.T) {
 	in, out, _, _ := setupWritePipes(t)
 
