@@ -1,12 +1,15 @@
 package golight
 
 import (
+	"bufio"
 	"encoding/json"
 	"github.com/niftynei/golight/jrpc2"
+	"io"
 	"fmt"
 	"log"
 	"os"
 	"reflect"
+	"strings"
 )
 
 type Option struct {
@@ -195,18 +198,30 @@ func (im InitMethod) Call() (jrpc2.Result, error) {
 	return "ok", nil
 }
 
+type LogNotification struct {
+	Level string	`json:"level"`
+	Message string	`json:"message"`
+}
+
+func (r *LogNotification) Name() string {
+	return "log"
+}
+
+func (p *Plugin) Log(message string, level LogLevel) {
+	for _, line := range strings.Split(message, "\n") {
+		p.client.Notify(&LogNotification{level.String(),line})
+	}
+}
+
 type Plugin struct {
 	server *jrpc2.Server
 	options map[string]*Option
 	methods map[string]*RpcMethod
 	initialized bool
 	initFn func(plugin *Plugin, options map[string]string, c *Config)
-	logFile string
 	Config *Config
-}
-
-func (p *Plugin) SetLogfile(filename string) {
-	p.logFile = filename
+	client *jrpc2.Client
+	stopped bool
 }
 
 func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plugin {
@@ -215,40 +230,49 @@ func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plu
 	plugin.options = make(map[string]*Option)
 	plugin.methods = make(map[string]*RpcMethod)
 	plugin.initFn = initHandler
-	plugin.logFile = "golightning.log"
+	plugin.client = jrpc2.NewClient()
 	return plugin
 }
 
 func (p *Plugin) Start(in, out *os.File) error {
-	logFile := checkForMonkeyPatch(out, p.logFile)
-	if logFile != nil {
-		defer logFile.Close()
-	}
+	p.checkForMonkeyPatch()
 	// register the init & getmanifest commands
 	p.RegisterMethod(NewManifestRpcMethod(p))
 	p.RegisterMethod(NewInitRpcMethod(p))
+
+	// um... what's going to happen here?
+	go p.client.StartUp(in, out)
 	return p.server.StartUp(in, out)
 }
 
-// Remaps stdout to a logfile, if configured to run over stdout
-func checkForMonkeyPatch(out *os.File, logfile string) *os.File {
+func (p *Plugin) Stop() {
+	p.stopped = true
+	p.server.Shutdown()
+	p.client.Shutdown()
+}
+
+// Remaps stdout to print logs to c-lightning via notifications
+func (p *Plugin) checkForMonkeyPatch() {
 	_, isLN := os.LookupEnv("LIGHTNINGD_PLUGIN")
-	if out.Fd() != os.Stdout.Fd() || !isLN {
-		return nil
+	if !isLN {
+		return
 	}
 
-	// set up the logger to redirect out to a log file (for now).
-	// todo: send the logs to the lightning-d channel instead
-	/*
-	f, err := os.OpenFile(logfile, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
-	if err != nil {
-		// we really don't want to start up if we can't write out 
-		panic(err.Error())
-	}
-	*/
-	// hehehe
-	log.SetOutput(os.Stderr)
-	return nil
+	in, out := io.Pipe()
+	go func(in io.Reader, plugin *Plugin) {
+		// everytime we get a new message, log it thru c-lightning
+		scanner := bufio.NewScanner(in)
+		for scanner.Scan() && !p.stopped {
+			plugin.Log(scanner.Text(), Info)
+		}
+		if err := scanner.Err(); err != nil {
+			// print errors with logging to stderr
+			fmt.Fprintln(os.Stderr, "error with logging pipe:", err)
+		}
+	}(in, p)
+	log.SetFlags(log.Ltime|log.Lshortfile)
+	log.SetOutput(out)
+	return
 }
 
 
