@@ -6,14 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
+	"os"
 	"sync"
 	"testing"
 	"time"
-	"os"
 )
 
 type ClientSubtract struct {
-	Minuend int
+	Minuend    int
 	Subtrahend int
 }
 
@@ -60,7 +60,7 @@ func TestClientBadResponse(t *testing.T) {
 }
 
 type ServerSubtractString struct {
-	Minuend int
+	Minuend    int
 	Subtrahend int
 }
 
@@ -77,7 +77,7 @@ func (s *ServerSubtractString) Call() (jrpc2.Result, error) {
 }
 
 // send a response with a result of a different type than
-// what's expected 
+// what's expected
 func TestClientWrongResponseType(t *testing.T) {
 	// set up a server with a function we can call
 	s, in, out := setupServer(t)
@@ -114,9 +114,9 @@ func TestClientNoId(t *testing.T) {
 	reader := bufio.NewReader(serverIn)
 	resp, err := reader.ReadString('\n')
 	assert.Nil(t, err)
-	assert.Equal(t ,"{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1},\"id\":1}\n", resp)
+	assert.Equal(t, "{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1},\"id\":1}\n", resp)
 
-	jsonback :="{\"jsonrpc\":\"2.0\",\"result\":22,\"id\":2}\n\n"
+	jsonback := "{\"jsonrpc\":\"2.0\",\"result\":22,\"id\":2}\n\n"
 	// write out response with wrong id
 	writer := bufio.NewWriter(serverOut)
 	writer.Write([]byte(jsonback))
@@ -131,11 +131,11 @@ func TestClientNoId(t *testing.T) {
 		assert.Equal(t, "No return channel found for response with id 2\n", string(buf[20:n]))
 		return
 	case <-time.After(10 * time.Second):
-		t.Errorf("test timed out after %d", 10);
+		t.Errorf("test timed out after %d", 10)
 	}
 }
 
-// double check that we're sending out requests with 
+// double check that we're sending out requests with
 // incremented ids
 func TestClientCheckIdIncrement(t *testing.T) {
 	in, out, serverIn, _ := setupWritePipes(t)
@@ -158,12 +158,12 @@ func TestClientCheckIdIncrement(t *testing.T) {
 	reader := bufio.NewReader(serverIn)
 	resp, err := reader.ReadString('\n')
 	assert.Nil(t, err)
-	assert.Equal(t ,"{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1},\"id\":1}\n", resp)
+	assert.Equal(t, "{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1},\"id\":1}\n", resp)
 	// eat the extra \n between lines
 	reader.ReadString('\n')
 	resp, err = reader.ReadString('\n')
 	assert.Nil(t, err)
-	assert.Equal(t ,"{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1},\"id\":2}\n", resp)
+	assert.Equal(t, "{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1},\"id\":2}\n", resp)
 
 	wg.Wait()
 }
@@ -190,10 +190,10 @@ func TestClientShutdown(t *testing.T) {
 	reader := bufio.NewReader(serverIn)
 	resp, err := reader.ReadString('\n')
 	assert.Nil(t, err)
-	assert.Equal(t ,"{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1},\"id\":1}\n", resp)
+	assert.Equal(t, "{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1},\"id\":1}\n", resp)
 
 	client.Shutdown()
-	jsonback :="{\"jsonrpc\":\"2.0\",\"result\":22,\"id\":1}\n\n"
+	jsonback := "{\"jsonrpc\":\"2.0\",\"result\":22,\"id\":1}\n\n"
 	writer := bufio.NewWriter(serverOut)
 	writer.Write([]byte(jsonback))
 	writer.Flush()
@@ -203,7 +203,7 @@ func TestClientShutdown(t *testing.T) {
 	case <-ok:
 		return
 	case <-time.After(10 * time.Second):
-		t.Errorf("test timed out after %d", 10);
+		t.Errorf("test timed out after %d", 10)
 	}
 }
 
@@ -217,14 +217,14 @@ func TestClientNotification(t *testing.T) {
 	client.SetTimeout(1)
 	go client.StartUp(in, out)
 
-	err := client.Notify(&ClientSubtract{5,1})
+	err := client.Notify(&ClientSubtract{5, 1})
 	assert.Nil(t, err)
 
 	// read out from pipe
 	reader := bufio.NewReader(serverIn)
 	resp, err := reader.ReadString('\n')
 	assert.Nil(t, err)
-	assert.Equal(t ,"{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1}}\n", resp)
+	assert.Equal(t, "{\"jsonrpc\":\"2.0\",\"method\":\"subtract\",\"params\":{\"minuend\":5,\"subtrahend\":1}}\n", resp)
 }
 
 func TestClientNoResponse(t *testing.T) {
@@ -241,11 +241,11 @@ func TestClientNoResponse(t *testing.T) {
 
 func subtract(client *jrpc2.Client, minuend, subtrahend int) (int, error) {
 	var response int
-	err := client.Request(&ClientSubtract{minuend,subtrahend}, &response)
+	err := client.Request(&ClientSubtract{minuend, subtrahend}, &response)
 	return response, err
 }
 
-func overrideLogger(t *testing.T) (io.Reader) {
+func overrideLogger(t *testing.T) io.Reader {
 	logIn, logOut := io.Pipe()
 	log.SetOutput(logOut)
 	return logIn

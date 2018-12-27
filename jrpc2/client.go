@@ -2,27 +2,27 @@ package jrpc2
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sync/atomic"
-	"encoding/json"
-	"log"
 	"time"
 )
 
 // a client needs to be able to ...
 // - 'call' a method which is really...
-// - fire off a request 
+// - fire off a request
 // - receive a result back (& match that result to outbound request)
-// bonus round: 
-//    - send and receive in batches 
+// bonus round:
+//    - send and receive in batches
 type Client struct {
-	requestQueue chan *Request
-	pendingReq map[string]chan *RawResponse
+	requestQueue   chan *Request
+	pendingReq     map[string]chan *RawResponse
 	requestCounter int64
-	shutdown bool
-	timeout time.Duration
+	shutdown       bool
+	timeout        time.Duration
 }
 
 func NewClient() *Client {
@@ -118,14 +118,14 @@ func (c *Client) Notify(m Method) error {
 	if c.shutdown {
 		return fmt.Errorf("Client is shutdown")
 	}
-	req := &Request{nil,m}
+	req := &Request{nil, m}
 	c.requestQueue <- req
 	return nil
 }
 
 // Isses an RPC call. Is blocking. Times out after {timeout}
 // seconds (set on client).
-func (c *Client) Request(m Method, resp interface{}) (error) {
+func (c *Client) Request(m Method, resp interface{}) error {
 	if c.shutdown {
 		return fmt.Errorf("Client is shutdown")
 	}
@@ -141,7 +141,7 @@ func (c *Client) Request(m Method, resp interface{}) (error) {
 	select {
 	case rawResp := <-replyChan:
 		return handleReply(rawResp, resp)
-	case <- time.After(c.timeout * time.Second):
+	case <-time.After(c.timeout * time.Second):
 		delete(c.pendingReq, id.Val())
 		return fmt.Errorf("Request timed out")
 	}
@@ -158,7 +158,7 @@ func handleReply(rawResp *RawResponse, resp interface{}) error {
 		return rawResp.Error.ToErr()
 	}
 
-	// or a raw response, that we should json map into the 
+	// or a raw response, that we should json map into the
 	// provided resp (interface)
 	return json.Unmarshal(rawResp.Raw, resp)
 }

@@ -3,9 +3,9 @@ package golight
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"github.com/niftynei/golight/jrpc2"
 	"io"
-	"fmt"
 	"log"
 	"os"
 	"reflect"
@@ -13,16 +13,16 @@ import (
 )
 
 type Option struct {
-	Name string
-	Default string
+	Name        string
+	Default     string
 	description string
-	Val string
+	Val         string
 }
 
 func NewOption(name, description, defaultValue string) *Option {
 	return &Option{
-		Name: name,
-		Default: defaultValue,
+		Name:        name,
+		Default:     defaultValue,
 		description: description,
 	}
 }
@@ -45,28 +45,28 @@ func (o *Option) Value() string {
 
 func (o *Option) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Name string		`json:"name"`
-		Type string		`json:"type"`
-		Default string		`json:"default,omitempty"`
-		Description string	`json:"description"`
+		Name        string `json:"name"`
+		Type        string `json:"type"`
+		Default     string `json:"default,omitempty"`
+		Description string `json:"description"`
 	}{
-		Name: o.Name,
-		Type: "string", // all options are type string atm
-		Default: o.Default,
+		Name:        o.Name,
+		Type:        "string", // all options are type string atm
+		Default:     o.Default,
 		Description: o.Description(),
 	})
 }
 
 type RpcMethod struct {
-	Method jrpc2.ServerMethod
-	Desc string
+	Method   jrpc2.ServerMethod
+	Desc     string
 	LongDesc string
 }
 
 func NewRpcMethod(method jrpc2.ServerMethod, desc string) *RpcMethod {
 	return &RpcMethod{
 		Method: method,
-		Desc: desc,
+		Desc:   desc,
 	}
 }
 
@@ -80,15 +80,15 @@ func (r *RpcMethod) Description() string {
 
 func (r *RpcMethod) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Name string		`json:"name"`
-		Desc string		`json:"description"`
-		Params []string		`json:"params,omitempty"`
-		LongDesc string		`json:"long_description,omitempty"`
+		Name     string   `json:"name"`
+		Desc     string   `json:"description"`
+		Params   []string `json:"params,omitempty"`
+		LongDesc string   `json:"long_description,omitempty"`
 	}{
-		Name: r.Method.Name(),
-		Desc: r.Description(),
+		Name:     r.Method.Name(),
+		Desc:     r.Description(),
 		LongDesc: r.LongDesc,
-		Params: getParamList(r.Method),
+		Params:   getParamList(r.Method),
 	})
 }
 
@@ -112,7 +112,7 @@ func NewManifestRpcMethod(p *Plugin) *RpcMethod {
 }
 
 type Manifest struct {
-	Options []*Option `json:"options"`
+	Options    []*Option    `json:"options"`
 	RpcMethods []*RpcMethod `json:"rpcmethods"`
 }
 
@@ -148,20 +148,20 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 }
 
 type Config struct {
-	LightningDir string	`json:"lightning-dir"`
-	RpcFile string		`json:"rpc-file"`
+	LightningDir string `json:"lightning-dir"`
+	RpcFile      string `json:"rpc-file"`
 }
 
 type InitMethod struct {
-	Options map[string]string	`json:"options"`
-	Configuration *Config		`json:"configuration"`
-	plugin *Plugin
+	Options       map[string]string `json:"options"`
+	Configuration *Config           `json:"configuration"`
+	plugin        *Plugin
 }
 
 func NewInitRpcMethod(p *Plugin) *RpcMethod {
 	return &RpcMethod{
 		Method: &InitMethod{
-			plugin:  p,
+			plugin: p,
 		},
 	}
 }
@@ -199,8 +199,8 @@ func (im InitMethod) Call() (jrpc2.Result, error) {
 }
 
 type LogNotification struct {
-	Level string	`json:"level"`
-	Message string	`json:"message"`
+	Level   string `json:"level"`
+	Message string `json:"message"`
 }
 
 func (r *LogNotification) Name() string {
@@ -209,19 +209,19 @@ func (r *LogNotification) Name() string {
 
 func (p *Plugin) Log(message string, level LogLevel) {
 	for _, line := range strings.Split(message, "\n") {
-		p.client.Notify(&LogNotification{level.String(),line})
+		p.client.Notify(&LogNotification{level.String(), line})
 	}
 }
 
 type Plugin struct {
-	server *jrpc2.Server
-	options map[string]*Option
-	methods map[string]*RpcMethod
+	server      *jrpc2.Server
+	options     map[string]*Option
+	methods     map[string]*RpcMethod
 	initialized bool
-	initFn func(plugin *Plugin, options map[string]string, c *Config)
-	Config *Config
-	client *jrpc2.Client
-	stopped bool
+	initFn      func(plugin *Plugin, options map[string]string, c *Config)
+	Config      *Config
+	client      *jrpc2.Client
+	stopped     bool
 }
 
 func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plugin {
@@ -270,11 +270,10 @@ func (p *Plugin) checkForMonkeyPatch() {
 			fmt.Fprintln(os.Stderr, "error with logging pipe:", err)
 		}
 	}(in, p)
-	log.SetFlags(log.Ltime|log.Lshortfile)
+	log.SetFlags(log.Ltime | log.Lshortfile)
 	log.SetOutput(out)
 	return
 }
-
 
 func (p *Plugin) RegisterMethod(m *RpcMethod) error {
 	err := p.server.Register(m.Method)
@@ -299,7 +298,6 @@ func (p *Plugin) registerRpcMethod(rpc *RpcMethod) error {
 	p.methods[m.Name()] = rpc
 	return nil
 }
-
 
 func (p *Plugin) UnregisterMethod(rpc *RpcMethod) error {
 	// potentially munges the error code from server

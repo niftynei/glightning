@@ -76,7 +76,7 @@ func scanDoubleNewline(data []byte, atEOF bool) (advance int, token []byte, err 
 			return i + 2, data[:i], nil
 		}
 	}
-	// this trashes anything left over in 
+	// this trashes anything left over in
 	// the buffer if we're at EOF, with no /n/n present
 	return 0, nil, nil
 }
@@ -93,7 +93,7 @@ func (s *Server) listen(in io.Reader) error {
 		msg := scanner.Bytes()
 		// todo: send this over a channel
 		// for processing, so the number
-		// of things we process at once 
+		// of things we process at once
 		// is more easy to control
 		go processMsg(s, msg)
 	}
@@ -125,7 +125,7 @@ func processMsg(s *Server, data []byte) {
 	if len(data) == 0 {
 		s.outQueue <- (&Response{
 			Error: &Error{
-				Code: InvalidRequest,
+				Code:    InvalidRequest,
 				Message: "Invalid Request",
 			},
 		})
@@ -137,7 +137,7 @@ func processMsg(s *Server, data []byte) {
 	if data[0] == '[' {
 		s.outQueue <- &Response{
 			Error: &Error{
-				Code: InternalErr,
+				Code:    InternalErr,
 				Message: "This server can't handle batch requests",
 			},
 		}
@@ -151,7 +151,7 @@ func processMsg(s *Server, data []byte) {
 		s.outQueue <- &Response{
 			Id: err.Id,
 			Error: &Error{
-				Code: err.Code,
+				Code:    err.Code,
 				Message: err.Msg,
 			},
 		}
@@ -177,7 +177,6 @@ func Execute(id *Id, method ServerMethod) *Response {
 	return resp
 }
 
-
 func (s *Server) Register(method ServerMethod) error {
 	name := method.Name()
 	if _, exists := s.registry[name]; exists {
@@ -191,7 +190,7 @@ func (s *Server) Register(method ServerMethod) error {
 func (s *Server) GetMethodMap() []ServerMethod {
 	list := make([]ServerMethod, len(s.registry))
 	i := 0
-	for _,v := range s.registry {
+	for _, v := range s.registry {
 		list[i] = v
 		i++
 	}
@@ -213,17 +212,17 @@ func (s *Server) Unregister(method ServerMethod) error {
 func constructError(err error) *Error {
 	// todo: specify return data?
 	return &Error{
-		Code: -1,
+		Code:    -1,
 		Message: err.Error(),
 	}
 }
 
-func (s *Server) Unmarshal(data[]byte, r *Request) *CodedError {
+func (s *Server) Unmarshal(data []byte, r *Request) *CodedError {
 	type Alias Request
 	raw := &struct {
-		Version string	`json:"jsonrpc"`
-		Params json.RawMessage `json:"params,omitempty"`
-		Name string	`json:"method"`
+		Version string          `json:"jsonrpc"`
+		Params  json.RawMessage `json:"params,omitempty"`
+		Name    string          `json:"method"`
 		*Alias
 	}{
 		Alias: (*Alias)(r),

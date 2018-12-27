@@ -1,9 +1,9 @@
 package jrpc2_test
 
 import (
-	"net"
 	"github.com/niftynei/golight/jrpc2"
 	"github.com/stretchr/testify/assert"
+	"net"
 	"os"
 	"strings"
 	"testing"
@@ -12,7 +12,7 @@ import (
 
 // Test methods
 type Subtract struct {
-	Minuend int
+	Minuend    int
 	Subtrahend int
 }
 
@@ -28,28 +28,27 @@ func (s Subtract) Name() string {
 	return "subtract"
 }
 
-
 // Test vectors
 var vectors = []struct {
-	In string
+	In  string
 	Out string
 }{
 	{`{"jsonrpc":"2.0","method":"subtract","params":[42,23],"id":1}\n\n`,
-	`{"jsonrpc":"2.0","result":19,"id":1}`},
+		`{"jsonrpc":"2.0","result":19,"id":1}`},
 	{`{"jsonrpc":"2.0","method":"subtract","params":[23,42],"id":2}\n\n`,
-	`{"jsonrpc":"2.0","result":-19,"id":2}`},
+		`{"jsonrpc":"2.0","result":-19,"id":2}`},
 	{`{"jsonrpc":"2.0","method":"subtract","params":{"subtrahend":23,"minuend":42},"id":3}\n\n`,
-	`{"jsonrpc":"2.0","result":19,"id":3}`},
+		`{"jsonrpc":"2.0","result":19,"id":3}`},
 	{`{"jsonrpc":"2.0","method":"subtract","params":{"minuend":42,"subtrahend":23},"id":4}\n\n`,
-	`{"jsonrpc":"2.0","result":19,"id":4}`},
+		`{"jsonrpc":"2.0","result":19,"id":4}`},
 	{`{"jsonrpc":"2.0","method":"foobar","id":"1"}\n\n`,
-	`{"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"1"}`},
+		`{"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":"1"}`},
 	{`{"jsonrpc":"2.0","method":"foobar,"params":"bar","baz]\n\n`,
-	`{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}`},
+		`{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}`},
 	{`{"jsonrpc":"2.0","method":1,"params":"bar"}\n\n`,
-	`{"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null}`},
+		`{"jsonrpc":"2.0","error":{"code":-32600,"message":"Invalid Request"},"id":null}`},
 	{`[{"jsonrpc":"2.0","method":"subtract","params":[42,23],"id":1}]\n\n`,
-	`{"jsonrpc":"2.0","error":{"code":-32603,"message":"This server can't handle batch requests"},"id":null}`},
+		`{"jsonrpc":"2.0","error":{"code":-32603,"message":"This server can't handle batch requests"},"id":null}`},
 }
 
 func setupFiles(t *testing.T, fileName string) (socket *os.File) {
@@ -96,4 +95,3 @@ func TestVectors(t *testing.T) {
 	// verify that this works
 	assert.Nil(t, nil)
 }
-

@@ -2,13 +2,13 @@ package golight
 
 import (
 	"fmt"
-	"reflect"
 	"github.com/niftynei/golight/jrpc2"
 	"os"
+	"reflect"
 )
 
-// This file's the one that holds all the objects for the 
-// c-lightning RPC commands 
+// This file's the one that holds all the objects for the
+// c-lightning RPC commands
 
 type Lightning struct {
 	client *jrpc2.Client
@@ -29,8 +29,8 @@ func (l *Lightning) Shutdown() {
 }
 
 type ListPeersRequest struct {
-	PeerId string	`json:"id,omitempty"`
-	Level string	`json:"level,omitempty"`
+	PeerId string `json:"id,omitempty"`
+	Level  string `json:"level,omitempty"`
 }
 
 func (r *ListPeersRequest) Name() string {
@@ -38,65 +38,65 @@ func (r *ListPeersRequest) Name() string {
 }
 
 type PeersResponse struct {
-	Peers []Peer	`json:"peers"`
+	Peers []Peer `json:"peers"`
 }
 
 type Peer struct {
-	Id string	`json:"id"`
-	Connected bool	`json:"connected"`
-	NetAddresses []string	`json:"netaddr"`
-	GlobalFeatures string	`json:"globalfeatures"`
-	LocalFeatures string	`json:"localfeatures"`
-	Channels []PeerChannel	`json:"channels"`
-	Logs []Log	`json:"log,omitempty"`
+	Id             string        `json:"id"`
+	Connected      bool          `json:"connected"`
+	NetAddresses   []string      `json:"netaddr"`
+	GlobalFeatures string        `json:"globalfeatures"`
+	LocalFeatures  string        `json:"localfeatures"`
+	Channels       []PeerChannel `json:"channels"`
+	Logs           []Log         `json:"log,omitempty"`
 }
 
 type PeerChannel struct {
-	State string	`json:"state"`
-	ScratchTxId string	`json:"scratch_txid"`
-	Owner string	`json:"owner"`
-	ShortChannelId string	`json:"short_channel_id"`
-	ChannelId string	`json:"channel_id"`
-	FundingTxId string	`json:"funding_txid"`
-	Funding string	`json:"funding"`
-	Status []string	`json:"status"`
-	MilliSatoshiToUs uint64	`json:"msatoshi_to_us"`
-	MilliSatoshiToUsMin uint64	`json:"msatoshi_to_us_min"`
-	MilliSatoshiToUsMax uint64	`json:"msatoshi_to_us_max"`
-	MilliSatoshiTotal uint64	`json:"msatoshi_total"`
-	DustLimitSatoshi uint64		`json:"dust_limit_satoshis"`
-	MaxHtlcValueInFlightMilliSatoshi uint64	`json:"max_htlc_value_in_flight_msat"`
-	TheirChannelReserveSatoshi uint64	`json:"their_channel_reserve_satoshis"`
-	OurChannelReserveSatoshi uint64	`json:"our_channel_reserve_satoshis"`
-	SpendableMilliSatoshi uint64	`json:"spendable_msatoshis"`
-	HtlcMinMilliSatoshi uint64	`json:"htlc_minimum_msat"`
-	TheirToSelfDelay uint	`json:"their_to_self_delay"`
-	OurToSelfDelay uint	`json:"our_to_self_delay"`
-	MaxAcceptedHtlcs uint	`json:"max_accepted_htlcs"`
-	InPaymentsOffered uint64	`json:"in_payments_offered"`
-	InMilliSatoshiOffered uint64	`json:"in_msatoshi_offered"`
-	InPaymentsFulfilled uint64	`json:"in_payments_fulfilled"`
-	InMilliSatoshiFulfilled uint64	`json:"in_msatoshi_fulfilled"`
-	OutPaymentsOffered uint64	`json:"out_payments_offered"`
-	OutMilliSatoshiOffered uint64	`json:"out_msatoshi_offered"`
-	OutPaymentsFulfilled uint64	`json:"out_payments_fulfilled"`
-	OutMilliSatoshiFulfilled uint64	`json:"out_msatoshi_fulfilled"`
-	Htlcs []Htlc	`json:"htlcs"`
+	State                            string   `json:"state"`
+	ScratchTxId                      string   `json:"scratch_txid"`
+	Owner                            string   `json:"owner"`
+	ShortChannelId                   string   `json:"short_channel_id"`
+	ChannelId                        string   `json:"channel_id"`
+	FundingTxId                      string   `json:"funding_txid"`
+	Funding                          string   `json:"funding"`
+	Status                           []string `json:"status"`
+	MilliSatoshiToUs                 uint64   `json:"msatoshi_to_us"`
+	MilliSatoshiToUsMin              uint64   `json:"msatoshi_to_us_min"`
+	MilliSatoshiToUsMax              uint64   `json:"msatoshi_to_us_max"`
+	MilliSatoshiTotal                uint64   `json:"msatoshi_total"`
+	DustLimitSatoshi                 uint64   `json:"dust_limit_satoshis"`
+	MaxHtlcValueInFlightMilliSatoshi uint64   `json:"max_htlc_value_in_flight_msat"`
+	TheirChannelReserveSatoshi       uint64   `json:"their_channel_reserve_satoshis"`
+	OurChannelReserveSatoshi         uint64   `json:"our_channel_reserve_satoshis"`
+	SpendableMilliSatoshi            uint64   `json:"spendable_msatoshis"`
+	HtlcMinMilliSatoshi              uint64   `json:"htlc_minimum_msat"`
+	TheirToSelfDelay                 uint     `json:"their_to_self_delay"`
+	OurToSelfDelay                   uint     `json:"our_to_self_delay"`
+	MaxAcceptedHtlcs                 uint     `json:"max_accepted_htlcs"`
+	InPaymentsOffered                uint64   `json:"in_payments_offered"`
+	InMilliSatoshiOffered            uint64   `json:"in_msatoshi_offered"`
+	InPaymentsFulfilled              uint64   `json:"in_payments_fulfilled"`
+	InMilliSatoshiFulfilled          uint64   `json:"in_msatoshi_fulfilled"`
+	OutPaymentsOffered               uint64   `json:"out_payments_offered"`
+	OutMilliSatoshiOffered           uint64   `json:"out_msatoshi_offered"`
+	OutPaymentsFulfilled             uint64   `json:"out_payments_fulfilled"`
+	OutMilliSatoshiFulfilled         uint64   `json:"out_msatoshi_fulfilled"`
+	Htlcs                            []Htlc   `json:"htlcs"`
 }
 
 type Htlc struct {
-	Direction string	`json:"direction"`
-	Id uint64	`json:"id"`
-	MilliSatoshi uint64	`json:"msatoshi"`
-	Expiry uint64	`json:"expiry"`
-	PaymentHash string	`json:"payment_hash"`
-	State string	`json:"state"`
+	Direction    string `json:"direction"`
+	Id           uint64 `json:"id"`
+	MilliSatoshi uint64 `json:"msatoshi"`
+	Expiry       uint64 `json:"expiry"`
+	PaymentHash  string `json:"payment_hash"`
+	State        string `json:"state"`
 }
 
 // Show current peer {peerId}. If {level} is set, include logs.
 func (l *Lightning) GetPeer(peerId string, level LogLevel) (*PeersResponse, error) {
 	var result PeersResponse
-	err := l.client.Request(&ListPeersRequest{peerId,level.String()}, result)
+	err := l.client.Request(&ListPeersRequest{peerId, level.String()}, result)
 	return &result, err
 }
 
@@ -105,9 +105,8 @@ func (l *Lightning) ListPeers(level LogLevel) (*PeersResponse, error) {
 	return l.GetPeer("", level)
 }
 
-
 type ListNodeRequest struct {
-	NodeId	string	`json:"id,omitempty"`
+	NodeId string `json:"id,omitempty"`
 }
 
 func (ln *ListNodeRequest) Name() string {
@@ -115,23 +114,23 @@ func (ln *ListNodeRequest) Name() string {
 }
 
 type Nodes struct {
-	Nodes []Node	`json:"nodes"`
+	Nodes []Node `json:"nodes"`
 }
 
 type Node struct {
-	Id string	`json:"nodeid"`
-	Alias string	`json:"alias"`
-	Color string	`json:"color"`
-	LastTimestamp uint	`json:"last_timestamp"`
-	GlobalFeatures string	`json:"globalfeatures"`
-	Addresses []Address	`json:"addresses"`
+	Id             string    `json:"nodeid"`
+	Alias          string    `json:"alias"`
+	Color          string    `json:"color"`
+	LastTimestamp  uint      `json:"last_timestamp"`
+	GlobalFeatures string    `json:"globalfeatures"`
+	Addresses      []Address `json:"addresses"`
 }
 
 type Address struct {
 	// todo: map to enum (ipv4, ipv6, torv2, torv3)
-	Type string	`json:"type"`
-	Address string	`json:"address"`
-	Port int	`json:"port"`
+	Type    string `json:"type"`
+	Address string `json:"address"`
+	Port    int    `json:"port"`
 }
 
 // Get all nodes in our local network view, filter on node {id},
@@ -148,24 +147,24 @@ func (l *Lightning) ListNodes() (*Nodes, error) {
 }
 
 type RouteRequest struct {
-	PeerId string		`json:"id"`
-	MilliSatoshis uint64	`json:"msatoshi"`
-	RiskFactor float32	`json:"riskfactor"`
-	Cltv	uint		`json:"cltv"`
-	FromId	string		`json:"fromid,omitempty"`
-	FuzzPercent float32	`json:"fuzzpercent"`
-	Seed	string		`json:"seed,omitempty'`
+	PeerId        string  `json:"id"`
+	MilliSatoshis uint64  `json:"msatoshi"`
+	RiskFactor    float32 `json:"riskfactor"`
+	Cltv          uint    `json:"cltv"`
+	FromId        string  `json:"fromid,omitempty"`
+	FuzzPercent   float32 `json:"fuzzpercent"`
+	Seed          string  `json:"seed,omitempty'`
 }
 
 type Route struct {
-	Route []RouteHop	`json:"route"`
+	Route []RouteHop `json:"route"`
 }
 
 type RouteHop struct {
-	Id string	`json:"id"`
-	ShortChannelId string	`json:"channel"`
-	MilliSatoshi uint64	`json:"msatoshi"`
-	Delay uint	`json:"delay"`
+	Id             string `json:"id"`
+	ShortChannelId string `json:"channel"`
+	MilliSatoshi   uint64 `json:"msatoshi"`
+	Delay          uint   `json:"delay"`
 }
 
 func (rr *RouteRequest) Name() string {
@@ -201,19 +200,19 @@ func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cl
 
 	var result Route
 	err := l.client.Request(&RouteRequest{
-		PeerId: peerId,
+		PeerId:        peerId,
 		MilliSatoshis: msats,
-		RiskFactor: riskfactor,
-		Cltv: cltv,
-		FromId: fromId,
-		FuzzPercent: fuzzpercent,
-		Seed: seed,
+		RiskFactor:    riskfactor,
+		Cltv:          cltv,
+		FromId:        fromId,
+		FuzzPercent:   fuzzpercent,
+		Seed:          seed,
 	}, &result)
 	return &result, err
 }
 
 type ListChannelRequest struct {
-	ShortChannelId string	`json:"short_channel_id"`
+	ShortChannelId string `json:"short_channel_id"`
 }
 
 func (lc *ListChannelRequest) Name() string {
@@ -221,22 +220,22 @@ func (lc *ListChannelRequest) Name() string {
 }
 
 type ChannelResponse struct {
-	Channels []Channel	`json:"channels"`
+	Channels []Channel `json:"channels"`
 }
 
 type Channel struct {
-	Source string	`json:"source"`
-	Destination string	`json:"destination"`
-	ShortChannelId string	`json:"short_channel_id"`
-	IsPublic bool	`json:"public"`
-	Satoshis uint64	`json:"satoshis"`
-	MessageFlags uint	`json:"message_flags"`
-	ChannelFlags uint	`json:"channel_flags"`
-	IsActive bool	`json:"active"`
-	LastUpdate uint	`json:"last_update"`
-	BaseFeeMillisatoshi uint64	`json:"base_fee_millisatoshi"`
-	FeePerMillionth float64	`json:"fee_per_millionth"`
-	Delay uint	`json:"delay"`
+	Source              string  `json:"source"`
+	Destination         string  `json:"destination"`
+	ShortChannelId      string  `json:"short_channel_id"`
+	IsPublic            bool    `json:"public"`
+	Satoshis            uint64  `json:"satoshis"`
+	MessageFlags        uint    `json:"message_flags"`
+	ChannelFlags        uint    `json:"channel_flags"`
+	IsActive            bool    `json:"active"`
+	LastUpdate          uint    `json:"last_update"`
+	BaseFeeMillisatoshi uint64  `json:"base_fee_millisatoshi"`
+	FeePerMillionth     float64 `json:"fee_per_millionth"`
+	Delay               uint    `json:"delay"`
 }
 
 // Get channel by {shortChanId}
@@ -253,12 +252,12 @@ func (l *Lightning) ListChannels() (interface{}, error) {
 }
 
 type InvoiceRequest struct {
-	MilliSatoshis string	`json:"msatoshi"`
-	Label string	`json:"label"`
-	Description string	`json:"description"`
-	ExpirySeconds uint32	`json:"expiry,omitempty"`
-	Fallbacks []string	`json:"fallbacks,omitempty"`
-	PreImage string	`json:"preimage,omitempty"`
+	MilliSatoshis string   `json:"msatoshi"`
+	Label         string   `json:"label"`
+	Description   string   `json:"description"`
+	ExpirySeconds uint32   `json:"expiry,omitempty"`
+	Fallbacks     []string `json:"fallbacks,omitempty"`
+	PreImage      string   `json:"preimage,omitempty"`
 }
 
 func (ir *InvoiceRequest) Name() string {
@@ -266,11 +265,11 @@ func (ir *InvoiceRequest) Name() string {
 }
 
 type Invoice struct {
-	PaymentHash string	`json:"payment_hash"`
-	ExpiresAt uint64	`json:"expires_at"`
-	Bolt11 string	`json:"bolt11"`
-	WarningOffline string	`json:"warning_offline"`
-	WarningCapacity string	`json:"warning_capacity"`
+	PaymentHash     string `json:"payment_hash"`
+	ExpiresAt       uint64 `json:"expires_at"`
+	Bolt11          string `json:"bolt11"`
+	WarningOffline  string `json:"warning_offline"`
+	WarningCapacity string `json:"warning_capacity"`
 }
 
 // Creates an invoice with a value of "any", that can be paid with any amount
@@ -281,26 +280,26 @@ func (l *Lightning) CreateInvoiceAny(label, description string, expirySeconds ui
 // Creates an invoice with a value of `msat`. Label and description must be set.
 //
 // The 'label' is a unique string or number (which is treated as a string); it is
-// never revealed to other nodes, but it can be used to query the status of this 
+// never revealed to other nodes, but it can be used to query the status of this
 // invoice.
 //
-// The 'description' is a short description of purpose of payment. It is encoded 
+// The 'description' is a short description of purpose of payment. It is encoded
 // into the invoice. Must be UTF-8, cannot use '\n' JSON escape codes.
 //
 // The 'expiry' is optionally the number of seconds the invoice is valid for.
 // Defaults to 3600 (1 hour).
-// 
+//
 // 'fallbacks' is one or more fallback addresses to include in the invoice. They
 // should be ordered from most preferred to least. Noe that these are not
 // currently tracked to fulfill the invoice.
 //
-// The 'preimage' is a 64-digit hex string to be used as payment preimage for 
-// the created invoice. By default, c-lightning will generate a secure 
-// pseudorandom preimage seeded from an appropriate entropy source on your 
-// system. **NOTE**: if you specify the 'preimage', you are responsible for 
-// both ensuring that a suitable psuedorandom generator with sufficient entropy 
-// was used in its creation and keeping it secret. 
-// This parameter is an advanced feature intended for use with cutting-edge 
+// The 'preimage' is a 64-digit hex string to be used as payment preimage for
+// the created invoice. By default, c-lightning will generate a secure
+// pseudorandom preimage seeded from an appropriate entropy source on your
+// system. **NOTE**: if you specify the 'preimage', you are responsible for
+// both ensuring that a suitable psuedorandom generator with sufficient entropy
+// was used in its creation and keeping it secret.
+// This parameter is an advanced feature intended for use with cutting-edge
 // cryptographic protocols and should not be used unless explicitly needed.
 func (l *Lightning) CreateInvoice(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string) (*Invoice, error) {
 
@@ -323,17 +322,17 @@ func createInvoice(l *Lightning, msat, label, description string, expirySeconds 
 	var result Invoice
 	err := l.client.Request(&InvoiceRequest{
 		MilliSatoshis: msat,
-		Label: label,
-		Description: description,
+		Label:         label,
+		Description:   description,
 		ExpirySeconds: expirySeconds,
-		Fallbacks: fallbacks,
-		PreImage: preimage,
+		Fallbacks:     fallbacks,
+		PreImage:      preimage,
 	}, &result)
 	return &result, err
 }
 
 type ListInvoiceRequest struct {
-	Label string	`json:"label,omitempty"`
+	Label string `json:"label,omitempty"`
 }
 
 func (r *ListInvoiceRequest) Name() string {
@@ -355,8 +354,8 @@ func (l *Lightning) GetInvoice(label string) ([]Invoice, error) {
 }
 
 type DeleteInvoiceRequest struct {
-	Label string	`json:"label"`
-	Status string	`json:"status"`
+	Label  string `json:"label"`
+	Status string `json:"status"`
 }
 
 func (r *DeleteInvoiceRequest) Name() string {
@@ -366,22 +365,22 @@ func (r *DeleteInvoiceRequest) Name() string {
 // Delete unpaid invoice {label} with {status}
 func (l *Lightning) DeleteInvoice(label, status string) (*Invoice, error) {
 	var result Invoice
-	err := l.client.Request(&DeleteInvoiceRequest{label,status}, &result)
+	err := l.client.Request(&DeleteInvoiceRequest{label, status}, &result)
 	return &result, err
 }
 
 type WaitAnyInvoiceRequest struct {
-	LastPayIndex uint	`json:"lastpay_index"`
+	LastPayIndex uint `json:"lastpay_index"`
 }
 
 func (r *WaitAnyInvoiceRequest) Name() string {
 	return "waitanyinvoice"
 }
 
-// Waits until an invoice is paid, then returns a single entry. 
-// Will not return or provide any invoices paid prior to or including 
+// Waits until an invoice is paid, then returns a single entry.
+// Will not return or provide any invoices paid prior to or including
 // the lastPayIndex.
-// 
+//
 // The 'pay index' is a monotonically-increasing number assigned to
 // an invoice when it gets paid. The first valid 'pay index' is 1.
 func (l *Lightning) WaitAnyInvoice(lastPayIndex uint) (interface{}, error) {
@@ -391,7 +390,7 @@ func (l *Lightning) WaitAnyInvoice(lastPayIndex uint) (interface{}, error) {
 }
 
 type WaitInvoiceRequest struct {
-	Label string	`json:"label"`
+	Label string `json:"label"`
 }
 
 func (r *WaitInvoiceRequest) Name() string {
@@ -409,8 +408,8 @@ func (l *Lightning) WaitInvoice(label string) (*Invoice, error) {
 }
 
 type DecodePayRequest struct {
-	Bolt11 string	`json:"bolt11"`
-	Description string	`json:"description,omitempty"`
+	Bolt11      string `json:"bolt11"`
+	Description string `json:"description,omitempty"`
 }
 
 func (r *DecodePayRequest) Name() string {
@@ -418,39 +417,39 @@ func (r *DecodePayRequest) Name() string {
 }
 
 type DecodedBolt11 struct {
-	Currency string	`json:"currency"`
-	CreatedAt uint64	`json:"created_at"`
-	Expiry uint64	`json:"expiry"`
-	Payee string	`json:"payee"`
-	MilliSatoshis uint64	`json:"msatoshi"`
-	Description string	`json:"description"`
-	DescriptionHash string	`json:"description_hash"`
-	MinFinalCltvExpiry float64	`json:"min_final_cltv_expiry"`
-	Fallbacks []Fallback	`json:"fallbacks"`
-	Routes []BoltRoute	`json:"routes"`
-	Extra []BoltExtra	`json:"extra"`
-	PaymentHash string	`json:"payment_hash"`
-	Signature string	`json:"signature"`
+	Currency           string      `json:"currency"`
+	CreatedAt          uint64      `json:"created_at"`
+	Expiry             uint64      `json:"expiry"`
+	Payee              string      `json:"payee"`
+	MilliSatoshis      uint64      `json:"msatoshi"`
+	Description        string      `json:"description"`
+	DescriptionHash    string      `json:"description_hash"`
+	MinFinalCltvExpiry float64     `json:"min_final_cltv_expiry"`
+	Fallbacks          []Fallback  `json:"fallbacks"`
+	Routes             []BoltRoute `json:"routes"`
+	Extra              []BoltExtra `json:"extra"`
+	PaymentHash        string      `json:"payment_hash"`
+	Signature          string      `json:"signature"`
 }
 
 type Fallback struct {
 	// fixme: use enum (P2PKH,P2SH,P2WPKH,P2WSH)
-	Type string	`json:"type"`
-	Address string	`json:"addr"`
-	Hex string	`json:"hex"`
+	Type    string `json:"type"`
+	Address string `json:"addr"`
+	Hex     string `json:"hex"`
 }
 
 type BoltRoute struct {
-	Pubkey string	`json:"pubkey"`
-	ShortChannelId string	`json:"short_channel_id"`
-	FeeBaseMilliSatoshis uint64	`json:"fee_base_msat"`
-	FeeProportionalMillionths uint64	`json:"fee_proportional_millionths"`
-	CltvExpiryDelta uint	`json:"cltv_expiry_delta"`
+	Pubkey                    string `json:"pubkey"`
+	ShortChannelId            string `json:"short_channel_id"`
+	FeeBaseMilliSatoshis      uint64 `json:"fee_base_msat"`
+	FeeProportionalMillionths uint64 `json:"fee_proportional_millionths"`
+	CltvExpiryDelta           uint   `json:"cltv_expiry_delta"`
 }
 
 type BoltExtra struct {
-	Tag string	`json:"tag"`
-	Data string	`json:"data"`
+	Tag  string `json:"tag"`
+	Data string `json:"data"`
 }
 
 // Decode the {bolt11}, using the provided 'description' if necessary.*
@@ -467,28 +466,28 @@ func (l *Lightning) DecodePay(bolt11, desc string) (*DecodedBolt11, error) {
 	return &result, err
 }
 
-type HelpRequest struct {}
+type HelpRequest struct{}
 
 func (r *HelpRequest) Name() string {
 	return "help"
 }
 
 type Command struct {
-	NameAndUsage  string	`json:"command"`
-	Description string	`json:"description"`
-	Verbose string	`json:"verbose"`
+	NameAndUsage string `json:"command"`
+	Description  string `json:"description"`
+	Verbose      string `json:"verbose"`
 }
 
 // Show available c-lightning RPC commands
 func (l *Lightning) Help() ([]Command, error) {
 	var result struct {
-		Commands []Command	`json:"help"`
+		Commands []Command `json:"help"`
 	}
 	err := l.client.Request(&HelpRequest{}, &result)
 	return result.Commands, err
 }
 
-type StopRequest struct {}
+type StopRequest struct{}
 
 func (r *StopRequest) Name() string {
 	return "stop"
@@ -521,7 +520,7 @@ func (l LogLevel) String() string {
 }
 
 type LogRequest struct {
-	Level string	`json:"level,omitempty"`
+	Level string `json:"level,omitempty"`
 }
 
 func (r *LogRequest) Name() string {
@@ -529,18 +528,18 @@ func (r *LogRequest) Name() string {
 }
 
 type LogResponse struct {
-	CreatedAt string	`json:"created_at"`
-	BytesUsed uint64	`json:"bytes_used"`
-	BytesMax uint64		`json:"bytes_max"`
-	Logs []Log		`json:"log"`
+	CreatedAt string `json:"created_at"`
+	BytesUsed uint64 `json:"bytes_used"`
+	BytesMax  uint64 `json:"bytes_max"`
+	Logs      []Log  `json:"log"`
 }
 
 type Log struct {
-	Type string	`json:"type"`
-	Time string	`json:"time,omitempty"`
-	Source string	`json:"source,omitempty"`
-	Message string	`json:"log,omitempty"`
-	NumSkipped uint	`json:"num_skipped,omitempty"`
+	Type       string `json:"type"`
+	Time       string `json:"time,omitempty"`
+	Source     string `json:"source,omitempty"`
+	Message    string `json:"log,omitempty"`
+	NumSkipped uint   `json:"num_skipped,omitempty"`
 }
 
 // Show logs, with optional log {level} (info|unusual|debug|io)
@@ -551,7 +550,7 @@ func (l *Lightning) GetLog(level LogLevel) (*LogResponse, error) {
 }
 
 type DevRHashRequest struct {
-	Secret string	`json:"secret"`
+	Secret string `json:"secret"`
 }
 
 func (r *DevRHashRequest) Name() string {
@@ -559,7 +558,7 @@ func (r *DevRHashRequest) Name() string {
 }
 
 type DevHashResult struct {
-	RHash string	`json:"rhash"`
+	RHash string `json:"rhash"`
 }
 
 // Show SHA256 of {secret}
@@ -573,7 +572,7 @@ func (l *Lightning) DevHash(secret string) (*DevHashResult, error) {
 	return &result, err
 }
 
-type DevCrashRequest struct {}
+type DevCrashRequest struct{}
 
 func (r *DevCrashRequest) Name() string {
 	return "dev-crash"
@@ -586,8 +585,8 @@ func (l *Lightning) DevCrash() (interface{}, error) {
 }
 
 type DevQueryShortChanIdsRequest struct {
-	PeerId string	`json:"id"`
-	ShortChanIds []string	`json:"scids"`
+	PeerId       string   `json:"id"`
+	ShortChanIds []string `json:"scids"`
 }
 
 func (r *DevQueryShortChanIdsRequest) Name() string {
@@ -595,7 +594,7 @@ func (r *DevQueryShortChanIdsRequest) Name() string {
 }
 
 type QueryShortChannelIdsResponse struct {
-	IsComplete bool	`json:"complete"`
+	IsComplete bool `json:"complete"`
 }
 
 // Ask a peer for a particular set of short channel ids
@@ -613,33 +612,33 @@ func (l *Lightning) DevQueryShortChanIds(peerId string, shortChanIds []string) (
 	return &result, err
 }
 
-type GetInfoRequest struct {}
+type GetInfoRequest struct{}
 
 func (r *GetInfoRequest) Name() string {
 	return "getinfo"
 }
 
 type NodeInfo struct {
-	Id string	`json:"id"`
-	Alias string	`json:"alias"`
-	Color string	`json:"color"`
-	PeerCount int	`json:"num_peers"`
-	PendingChannelCount int	`json:"num_pending_channels"`
-	ActiveChannelCount int	`json:"num_active_channels"`
-	InactiveChannelCount int	`json:"num_inactive_channels"`
-	Addresses []Address	`json:"address"`
-	Binding []AddressInternal	`json:"binding"`
-	Version	string	`json:"version"`
-	Blockheight int	`json:"blockheight"`
-	Network string	`json:"network"`
-	FeesCollectedMilliSatoshis uint64	`json:"msatoshi_fees_collected"`
+	Id                         string            `json:"id"`
+	Alias                      string            `json:"alias"`
+	Color                      string            `json:"color"`
+	PeerCount                  int               `json:"num_peers"`
+	PendingChannelCount        int               `json:"num_pending_channels"`
+	ActiveChannelCount         int               `json:"num_active_channels"`
+	InactiveChannelCount       int               `json:"num_inactive_channels"`
+	Addresses                  []Address         `json:"address"`
+	Binding                    []AddressInternal `json:"binding"`
+	Version                    string            `json:"version"`
+	Blockheight                int               `json:"blockheight"`
+	Network                    string            `json:"network"`
+	FeesCollectedMilliSatoshis uint64            `json:"msatoshi_fees_collected"`
 }
 
 type AddressInternal struct {
 	Address
-	Socket string	`json:"socket"`
-	Service Address	`json:"service"`
-	Name string	`json:"name"`
+	Socket  string  `json:"socket"`
+	Service Address `json:"service"`
+	Name    string  `json:"name"`
 }
 
 func (l *Lightning) GetInfo() (*NodeInfo, error) {
@@ -649,10 +648,10 @@ func (l *Lightning) GetInfo() (*NodeInfo, error) {
 }
 
 type SendPayRequest struct {
-	Route interface{} `json:"route"`
-	PaymentHash string `json:"payment_hash"`
-	Desc string	`json:"description,omitempty"`
-	MilliSatoshis uint64 `json:"msatoshi,omitempty"`
+	Route         interface{} `json:"route"`
+	PaymentHash   string      `json:"payment_hash"`
+	Desc          string      `json:"description,omitempty"`
+	MilliSatoshis uint64      `json:"msatoshi,omitempty"`
 }
 
 func (r *SendPayRequest) Name() string {
@@ -660,25 +659,25 @@ func (r *SendPayRequest) Name() string {
 }
 
 type PaymentFields struct {
-	Id uint64	`json:"id"`
-	PaymentHash string	`json:"payment_hash"`
-	Destination string	`json:"destination"`
-	MilliSatoshi uint64	`json:"msatoshi"`
-	MilliSatoshiSent uint64	`json:"msatoshi_sent"`
-	CreatedAt uint64	`json:"created_at"`
-	Status string	`json:"status"`
-	PaymentPreimage string	`json:"payment_preimage"`
-	Description string	`json:"description"`
+	Id               uint64 `json:"id"`
+	PaymentHash      string `json:"payment_hash"`
+	Destination      string `json:"destination"`
+	MilliSatoshi     uint64 `json:"msatoshi"`
+	MilliSatoshiSent uint64 `json:"msatoshi_sent"`
+	CreatedAt        uint64 `json:"created_at"`
+	Status           string `json:"status"`
+	PaymentPreimage  string `json:"payment_preimage"`
+	Description      string `json:"description"`
 }
 
 type SendPayResult struct {
-	Message string	`json:"message"`
+	Message string `json:"message"`
 	PaymentFields
 }
 
 // Send along {route} in return for preimage of {paymentHash}
 //  Description and msat are optional.
-// Generally a client would call GetRoute to resolve a route, then 
+// Generally a client would call GetRoute to resolve a route, then
 // use SendPay to send it.  If it fails, it would call GetRoute again
 // to retry.
 //
@@ -690,14 +689,14 @@ type SendPayResult struct {
 // 'listpayments' results.
 //
 // 'msat', if provided, is the amount that will be recorded as the target
-// payment value. If not specified, it will be the final amount to the 
+// payment value. If not specified, it will be the final amount to the
 // destination (specified in route).  If specified, then the final amount
 // at the destination must be from the specified 'msat' to twice that
 // value, inclusive. This is inteded to obscure payments by overpaying
-// slightly at the destination -- the acutal target paymnt is what 
+// slightly at the destination -- the acutal target paymnt is what
 // should be specified as the 'msat' argument.
-// 
-// Once a payment has succeeded, calls to 'SendPay' with the same 
+//
+// Once a payment has succeeded, calls to 'SendPay' with the same
 // 'paymentHash' but a different 'msat' or destination will fail; this
 // prevents accidental multiple payments. Calls with the same 'paymentHash',
 // 'msat' and destination as a previous successful payment will return
@@ -713,24 +712,24 @@ func (l *Lightning) SendPay(route interface{}, paymentHash, description string, 
 
 	var result SendPayResult
 	err := l.client.Request(&SendPayRequest{
-		Route: route,
-		PaymentHash: paymentHash,
-		Desc: description,
+		Route:         route,
+		PaymentHash:   paymentHash,
+		Desc:          description,
 		MilliSatoshis: msat,
 	}, &result)
 	return &result, err
 }
 
 type WaitSendPayRequest struct {
-	PaymentHash string	`json:"payment_hash"`
-	Timeout uint		`json:"timeout"`
+	PaymentHash string `json:"payment_hash"`
+	Timeout     uint   `json:"timeout"`
 }
 
 func (r *WaitSendPayRequest) Name() string {
 	return "waitsendpay"
 }
 
-// Polls or waits for the status of an outgoing payment that was 
+// Polls or waits for the status of an outgoing payment that was
 // initiated by a previous 'SendPay' invocation.
 //
 // May provide a 'timeout, in seconds. When provided, will return a
@@ -749,40 +748,40 @@ func (l *Lightning) WaitSendPay(paymentHash string, timeout uint) (*PaymentField
 }
 
 type PayRequest struct {
-	Bolt11 string	`json:"bolt11"`
-	MilliSatoshi uint64	`json:"msatoshi,omitempty"`
-	Desc string	`json:"description,omitempty"`
-	RiskFactor float32	`json:"riskfactor,omitempty"`
-	MaxFeePercent float32	`json:"maxfeeprecent,omitempty"`
-	RetryFor uint	`json:"retry_for,omitempty"`
-	MaxDelay uint	`json:"maxdelay,omitempty"`
-	ExemptFee bool	`json:"exemptfee,omitempty"`
+	Bolt11        string  `json:"bolt11"`
+	MilliSatoshi  uint64  `json:"msatoshi,omitempty"`
+	Desc          string  `json:"description,omitempty"`
+	RiskFactor    float32 `json:"riskfactor,omitempty"`
+	MaxFeePercent float32 `json:"maxfeeprecent,omitempty"`
+	RetryFor      uint    `json:"retry_for,omitempty"`
+	MaxDelay      uint    `json:"maxdelay,omitempty"`
+	ExemptFee     bool    `json:"exemptfee,omitempty"`
 }
 
 func (r *PayRequest) Name() string {
 	return "pay"
 }
 
-// todo: there's lots of different data that comes back for 
+// todo: there's lots of different data that comes back for
 // payment failures, that for now we totally lose
 type PaymentSuccess struct {
 	PaymentFields
-	GetRouteTries int	`json:"getroute_tries"`
-	SendPayTries int	`json:"sendpay_tries"`
-	Route []RouteHop	`json:"route"`
-	Failures []PayFailures	`json:"failures"`
+	GetRouteTries int           `json:"getroute_tries"`
+	SendPayTries  int           `json:"sendpay_tries"`
+	Route         []RouteHop    `json:"route"`
+	Failures      []PayFailures `json:"failures"`
 }
 
 type PayFailures struct {
-	Message string	`json:"message"`
-	Type string	`json:"type"`
-	OnionReply string	`json:"onionreply"`
-	ErringIndex int	`json:"erring_index"`
-	FailCode int	`json:"failcode"`
-	ErringNode string	`json:"erring_node"`
-	ErringShortChannelId string	`json:"erring_channel"`
-	ChannelUpdate string	`json:"channel_update"`
-	Route []RouteHop	`json:"route"`
+	Message              string     `json:"message"`
+	Type                 string     `json:"type"`
+	OnionReply           string     `json:"onionreply"`
+	ErringIndex          int        `json:"erring_index"`
+	FailCode             int        `json:"failcode"`
+	ErringNode           string     `json:"erring_node"`
+	ErringShortChannelId string     `json:"erring_channel"`
+	ChannelUpdate        string     `json:"channel_update"`
+	Route                []RouteHop `json:"route"`
 }
 
 func (l *Lightning) PayBolt(bolt11 string) (*PaymentSuccess, error) {
@@ -795,28 +794,28 @@ func (l *Lightning) PayBolt(bolt11 string) (*PaymentSuccess, error) {
 // (Millisatoshis amount is ignored if the 'Bolt11' includes an amount).
 //
 // 'description' is required if the 'bolt11' includes a description hash.
-// 
+//
 // 'riskfactor' is optional, defaults to 1.0
 // Briefly, the 'riskfactor' is the estimated annual cost of your funds
-// being stuck (as a percentage), multiplied by the percent change of 
+// being stuck (as a percentage), multiplied by the percent change of
 // each node failing. Ex: 1% chance of node failure and a 20% annual cost
 // would give you a risk factor of 20. c-lightning defaults to 1.0
 //
-// 'MaxFeePercent' is the max percentage of a payment that can be paid 
+// 'MaxFeePercent' is the max percentage of a payment that can be paid
 // in fees. c-lightning defaults to 0.5.
-// 
-// 'ExemptFee' can be used for tiny paymetns which would otherwise be 
-// dominated by the fee leveraged by forwarding nodes. Setting 'ExemptFee' 
+//
+// 'ExemptFee' can be used for tiny paymetns which would otherwise be
+// dominated by the fee leveraged by forwarding nodes. Setting 'ExemptFee'
 // allows 'MaxFeePercent' check to be skipped on fees that are smaller than
 // 'ExemptFee'. c-lightning default is 5000 millisatoshi.
 //
 // c-lightning will keep finding routes and retrying payment until it succeeds
-// or the given 'RetryFor' seconds have elapsed.  Note that the command may 
+// or the given 'RetryFor' seconds have elapsed.  Note that the command may
 // stop retrying while payment is pending. You can continuing monitoring
 // payment status with the ListPayments or WaitSendPay. 'RetryFor' defaults
 // to 60 seconds.
-// 
-// 'MaxDelay' is used when determining whether a route incurs an acceptable 
+//
+// 'MaxDelay' is used when determining whether a route incurs an acceptable
 // delay. A route will not be used if the estimated delay is above this.
 // Defaults to the configured locktime max (--max-locktime-blocks)
 // Units is in blocks.
@@ -836,8 +835,8 @@ func (l *Lightning) Pay(req *PayRequest) (*PaymentSuccess, error) {
 }
 
 type ListPaymentRequest struct {
-	Bolt11 string	`json:"bolt11,omitempty"`
-	PaymentHash string	`json:"payment_hash,omitempty"`
+	Bolt11      string `json:"bolt11,omitempty"`
+	PaymentHash string `json:"payment_hash,omitempty"`
 }
 
 func (r *ListPaymentRequest) Name() string {
@@ -860,16 +859,16 @@ func (l *Lightning) ListPaymentsHash(paymentHash string) ([]PaymentFields, error
 
 func (l *Lightning) listPayments(req *ListPaymentRequest) ([]PaymentFields, error) {
 	var result struct {
-		Payments []PaymentFields	`json:"payments"`
+		Payments []PaymentFields `json:"payments"`
 	}
 	err := l.client.Request(req, &result)
 	return result.Payments, err
 }
 
 type ConnectRequest struct {
-	PeerId string	`json:"id"`
-	Host string	`json:"host"`
-	Port uint	`json:"port"`
+	PeerId string `json:"id"`
+	Host   string `json:"host"`
+	Port   uint   `json:"port"`
 }
 
 func (r *ConnectRequest) Name() string {
@@ -877,23 +876,23 @@ func (r *ConnectRequest) Name() string {
 }
 
 type ConnectSuccess struct {
-	PeerId string	`json:"id"`
+	PeerId string `json:"id"`
 }
 
 // Connect to {peerId} at {host}:{port}. Returns peer id on success
 func (l *Lightning) Connect(peerId, host string, port uint) (string, error) {
 	var result struct {
-		Id string	`json:"id"`
+		Id string `json:"id"`
 	}
-	err := l.client.Request(&ConnectRequest{peerId,host,port}, &result)
+	err := l.client.Request(&ConnectRequest{peerId, host, port}, &result)
 	return result.Id, err
 }
 
 type FundChannelRequest struct {
-	Id string	`json:"id"`
-	Satoshi uint64	`json:"satoshi"`
-	FeeRate float32	`json:"feerate,omitempty"`
-	Announce bool	`json:"announce,omitempty"`
+	Id       string  `json:"id"`
+	Satoshi  uint64  `json:"satoshi"`
+	FeeRate  float32 `json:"feerate,omitempty"`
+	Announce bool    `json:"announce,omitempty"`
 }
 
 func (r *FundChannelRequest) Name() string {
@@ -901,27 +900,27 @@ func (r *FundChannelRequest) Name() string {
 }
 
 type FundChannelResult struct {
-	FundingTx string	`json:"tx"`
-	FundingTxId string	`json:"txid"`
-	ChannelId string	`json:"channel_id"`
+	FundingTx   string `json:"tx"`
+	FundingTxId string `json:"txid"`
+	ChannelId   string `json:"channel_id"`
 }
 
 // Fund channel with node {id} using {satoshi} satoshis, with feerate of {feerate}. Uses
-// default feerate if unset. 
+// default feerate if unset.
 // If announce is false, channel announcements will not be sent.
 func (l *Lightning) FundChannel(id string, satoshis uint64, feerate float32, announce bool) (*FundChannelResult, error) {
 	if feerate < 0 {
 		return nil, fmt.Errorf("Feerate must be positive %f", feerate)
 	}
 	var result FundChannelResult
-	err := l.client.Request(&FundChannelRequest{id,satoshis,feerate,announce}, &result)
+	err := l.client.Request(&FundChannelRequest{id, satoshis, feerate, announce}, &result)
 	return &result, err
 }
 
 type CloseRequest struct {
-	PeerId string	`json:"id"`
-	Force bool	`json:"force,omitempty"`
-	Timeout uint	`json:"timeout,omitempty"`
+	PeerId  string `json:"id"`
+	Force   bool   `json:"force,omitempty"`
+	Timeout uint   `json:"timeout,omitempty"`
 }
 
 func (r *CloseRequest) Name() string {
@@ -929,15 +928,15 @@ func (r *CloseRequest) Name() string {
 }
 
 type CloseResult struct {
-	Tx string	`json:"tx"`
-	TxId string	`json:"txid"`
+	Tx   string `json:"tx"`
+	TxId string `json:"txid"`
 	// todo: enum (mutual, unilateral)
-	Type string	`json:'type"`
+	Type string `json:'type"`
 }
 
-// Close the channel with peer {id}, timing out with {timeout} seconds. 
-// If unspecified, times out in 30 seconds. 
-// 
+// Close the channel with peer {id}, timing out with {timeout} seconds.
+// If unspecified, times out in 30 seconds.
+//
 // If {force} is set, and close attempt times out, the channel will be closed
 // unilaterally from our side.
 //
@@ -951,7 +950,7 @@ func (l *Lightning) Close(id string, force bool, timeout uint) (*CloseResult, er
 }
 
 type DevSignLastTxRequest struct {
-	PeerId string	`json:"id"`
+	PeerId string `json:"id"`
 }
 
 func (r *DevSignLastTxRequest) Name() string {
@@ -962,14 +961,14 @@ func (r *DevSignLastTxRequest) Name() string {
 // Returns the signed tx on success
 func (l *Lightning) DevSignLastTx(peerId string) (string, error) {
 	var result struct {
-		Tx string	`json:"tx"`
+		Tx string `json:"tx"`
 	}
 	err := l.client.Request(&DevSignLastTxRequest{peerId}, &result)
 	return result.Tx, err
 }
 
 type DevFailRequest struct {
-	PeerId string	`json:"id"`
+	PeerId string `json:"id"`
 }
 
 func (r *DevFailRequest) Name() string {
@@ -984,7 +983,7 @@ func (l *Lightning) DevFail(peerId string) error {
 }
 
 type DevReenableCommitRequest struct {
-	PeerId string	`json:"id"`
+	PeerId string `json:"id"`
 }
 
 func (r *DevReenableCommitRequest) Name() string {
@@ -999,9 +998,9 @@ func (l *Lightning) DevReenableCommit(id string) error {
 }
 
 type PingRequest struct {
-	Id string	`json:"id"`
-	Len uint	`json:"len"`
-	PongBytes uint	`json:"pongbytes"`
+	Id        string `json:"id"`
+	Len       uint   `json:"len"`
+	PongBytes uint   `json:"pongbytes"`
 }
 
 func (r *PingRequest) Name() string {
@@ -1009,7 +1008,7 @@ func (r *PingRequest) Name() string {
 }
 
 type Pong struct {
-	TotalLen int	`json:"totlen"`
+	TotalLen int `json:"totlen"`
 }
 
 // Send {peerId} a ping of size 128, asking for 128 bytes in response
@@ -1024,17 +1023,17 @@ func (l *Lightning) PingWithLen(peerId string, pingLen, pongByteLen uint) (*Pong
 	return &result, err
 }
 
-type DevMemDumpRequest struct { }
+type DevMemDumpRequest struct{}
 
 func (r *DevMemDumpRequest) Name() string {
 	return "dev-memdump"
 }
 
 type MemDumpEntry struct {
-	ParentPtr string	`json:"parent"`
-	ValuePtr string		`json:"value"`
-	Label string	`json:"label"`
-	Children []*MemDumpEntry	`json:"children"`
+	ParentPtr string          `json:"parent"`
+	ValuePtr  string          `json:"value"`
+	Label     string          `json:"label"`
+	Children  []*MemDumpEntry `json:"children"`
 }
 
 // Show memory objects currently in use
@@ -1044,22 +1043,21 @@ func (l *Lightning) DevMemDump() ([]*MemDumpEntry, error) {
 	return result, err
 }
 
-type DevMemLeakRequest struct {}
+type DevMemLeakRequest struct{}
 
 func (r *DevMemLeakRequest) Name() string {
 	return "dev-memleak"
 }
 
 type MemLeakResult struct {
-	Leaks []*MemLeak	`json:"leaks"`
-
+	Leaks []*MemLeak `json:"leaks"`
 }
 
 type MemLeak struct {
-	PointerValue string	`json:"value"`
-	Label string	`json:"label"`
-	Backtrace []string	`json:"backtrace"`
-	Parents []string	`json:"parents"`
+	PointerValue string   `json:"value"`
+	Label        string   `json:"label"`
+	Backtrace    []string `json:"backtrace"`
+	Parents      []string `json:"parents"`
 }
 
 // Show unreferenced memory objects
@@ -1070,13 +1068,13 @@ func (l *Lightning) DevMemLeak() (*MemLeakResult, error) {
 }
 
 type WithdrawRequest struct {
-	Destination string	`json:"destination"`
-	Satoshi string		`json:"satoshi"`
-	FeeRate string		`json:"feerate,omitempty"`
+	Destination string `json:"destination"`
+	Satoshi     string `json:"satoshi"`
+	FeeRate     string `json:"feerate,omitempty"`
 }
 
 type SatoshiAmount struct {
-	Amount uint64
+	Amount  uint64
 	SendAll bool
 }
 
@@ -1088,6 +1086,7 @@ func (s *SatoshiAmount) String() string {
 }
 
 type FeeDirective int
+
 const (
 	Normal FeeDirective = iota
 	Urgent
@@ -1110,13 +1109,13 @@ const (
 )
 
 type FeeRate struct {
-	Rate uint
-	Style FeeRateStyle
+	Rate      uint
+	Style     FeeRateStyle
 	Directive FeeDirective
 }
 
 func (r FeeRateStyle) String() string {
-	return []string{"perkb","perkw"}[r]
+	return []string{"perkb", "perkw"}[r]
 }
 
 func (f *FeeRate) String() string {
@@ -1132,8 +1131,8 @@ func (r *WithdrawRequest) Name() string {
 }
 
 type WithdrawResult struct {
-	Tx string	`json:"tx"`
-	TxId string	`json:"txid"`
+	Tx   string `json:"tx"`
+	TxId string `json:"txid"`
 }
 
 // Withdraw sends funds from c-lightning's internal wallet to the
@@ -1141,7 +1140,7 @@ type WithdrawResult struct {
 // accepted type, including bech32.
 //
 // {satoshi} is the amount to be withdrawn from the wallet.
-// 
+//
 // {feerate} is an optional feerate to use. Can be either a directive
 // (urgent, normal, or slow) or a number with an optional suffix.
 // 'perkw' means the number is interpreted as satoshi-per-kilosipa (weight)
@@ -1154,7 +1153,7 @@ func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate 
 	}
 	request := &WithdrawRequest{
 		Destination: destination,
-		Satoshi: amount.String(),
+		Satoshi:     amount.String(),
 	}
 	if feerate != nil {
 		request.FeeRate = feerate.String()
@@ -1165,7 +1164,7 @@ func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate 
 }
 
 type NewAddrRequest struct {
-	AddressType string	`json:"addresstype,omitempty"`
+	AddressType string `json:"addresstype,omitempty"`
 }
 
 func (r *NewAddrRequest) Name() string {
@@ -1191,37 +1190,37 @@ func (l *Lightning) NewAddr() (interface{}, error) {
 // Get new address of type {addrType} of the internal wallet.
 func (l *Lightning) NewAddressOfType(addrType AddressType) (string, error) {
 	var result struct {
-		Address string	`json:"address"`
+		Address string `json:"address"`
 	}
 	err := l.client.Request(&NewAddrRequest{addrType.String()}, &result)
 	return result.Address, err
 }
 
-type ListFundsRequest struct {}
+type ListFundsRequest struct{}
 
 func (r *ListFundsRequest) Name() string {
 	return "listfunds"
 }
 
 type FundsResult struct {
-	Outputs []*FundOutput	`json:"outputs"`
-	Channels []*FundingChannel	`json:"channels"`
+	Outputs  []*FundOutput     `json:"outputs"`
+	Channels []*FundingChannel `json:"channels"`
 }
 
 type FundOutput struct {
-	TxId string	`json:"txid"`
-	Output int	`json:"output"`
-	Value uint64	`json:"value"`
-	Address string	`json:"address"`
-	Status string	`json:"status"`
+	TxId    string `json:"txid"`
+	Output  int    `json:"output"`
+	Value   uint64 `json:"value"`
+	Address string `json:"address"`
+	Status  string `json:"status"`
 }
 
 type FundingChannel struct {
-	Id string	`json:"peer_id"`
-	ShortChannelId string	`json:"short_channel_id"`
-	ChannelSatoshi uint64	`json:"channel_sat"`
-	ChannelTotalSatoshi uint64	`json:"channel_total_sat"`
-	FundingTxId string	`json:"funding_txid"`
+	Id                  string `json:"peer_id"`
+	ShortChannelId      string `json:"short_channel_id"`
+	ChannelSatoshi      uint64 `json:"channel_sat"`
+	ChannelTotalSatoshi uint64 `json:"channel_total_sat"`
+	FundingTxId         string `json:"funding_txid"`
 }
 
 // Show funds available for opening channels
@@ -1231,55 +1230,55 @@ func (l *Lightning) ListFunds() (*FundsResult, error) {
 	return &result, err
 }
 
-type ListForwardsRequest struct {}
+type ListForwardsRequest struct{}
 
 func (r *ListForwardsRequest) Name() string {
 	return "listforwards"
 }
 
 type Forwarding struct {
-	InChannel string	`json:"in_channel"`
-	OutChannel string	`json:"out_channel"`
-	MilliSatoshiIn uint64	`json:"in_msatoshi"`
-	MilliSatoshiOut uint64	`json:"out_msathosi"`
-	Fee uint64	`json:"fee"`
-	Status string	`json:"status"`
+	InChannel       string `json:"in_channel"`
+	OutChannel      string `json:"out_channel"`
+	MilliSatoshiIn  uint64 `json:"in_msatoshi"`
+	MilliSatoshiOut uint64 `json:"out_msathosi"`
+	Fee             uint64 `json:"fee"`
+	Status          string `json:"status"`
 }
 
 // List all forwarded payments and their information
 func (l *Lightning) ListForwards() ([]Forwarding, error) {
 	var result struct {
-		Forwards []Forwarding	`json:"forwards"`
+		Forwards []Forwarding `json:"forwards"`
 	}
 	err := l.client.Request(&ListForwardsRequest{}, result)
 	return result.Forwards, err
 }
 
-type DevRescanOutputsRequest struct {}
+type DevRescanOutputsRequest struct{}
 
 func (r *DevRescanOutputsRequest) Name() string {
 	return "dev-rescan-outputs"
 }
 
 type Output struct {
-	TxId string	`json:"txid"`
-	Output uint	`json:"output"`
-	OldState uint	`json:"oldstate"`
-	NewState uint	`json:"newstate'`
+	TxId     string `json:"txid"`
+	Output   uint   `json:"output"`
+	OldState uint   `json:"oldstate"`
+	NewState uint   `json:"newstate'`
 }
 
 // Synchronize the state of our funds with bitcoind
 func (l *Lightning) DevRescanOutputs() ([]Output, error) {
 	var result struct {
-		Outputs []Output	`json:"outputs"`
+		Outputs []Output `json:"outputs"`
 	}
 	err := l.client.Request(&DevRescanOutputsRequest{}, &result)
 	return result.Outputs, err
 }
 
 type DevForgetChannelRequest struct {
-	PeerId string	`json:"id"`
-	Force bool	`json:"force"`
+	PeerId string `json:"id"`
+	Force  bool   `json:"force"`
 }
 
 func (r *DevForgetChannelRequest) Name() string {
@@ -1287,9 +1286,9 @@ func (r *DevForgetChannelRequest) Name() string {
 }
 
 type ForgetChannelResult struct {
-	WasForced bool	`json:"forced"`
-	IsFundingUnspent bool	`json:"funding_unspent"`
-	FundingTxId string	`json:"funding_txid"`
+	WasForced        bool   `json:"forced"`
+	IsFundingUnspent bool   `json:"funding_unspent"`
+	FundingTxId      string `json:"funding_txid"`
 }
 
 // Forget channel with id {peerId}. Optionally {force} if has active channel.
@@ -1301,8 +1300,8 @@ func (l *Lightning) DevForgetChannel(peerId string, force bool) (*ForgetChannelR
 }
 
 type DisconnectRequest struct {
-	PeerId string	`json:"id"`
-	Force bool	`json:"force"`
+	PeerId string `json:"id"`
+	Force  bool   `json:"force"`
 }
 
 func (r *DisconnectRequest) Name() string {
@@ -1318,7 +1317,7 @@ func (l *Lightning) Disconnect(peerId string, force bool) error {
 }
 
 type FeeRatesRequest struct {
-	Style string	`json:"style"`
+	Style string `json:"style"`
 }
 
 func (r *FeeRatesRequest) Name() string {
@@ -1326,33 +1325,33 @@ func (r *FeeRatesRequest) Name() string {
 }
 
 type FeeRateEstimate struct {
-	Style FeeRateStyle
-	Details *FeeRateDetails
-	OnchainEstimate *OnchainEstimate	`json:"onchain_fee_estimates"`
-	Warning string	`json:"warning"`
+	Style           FeeRateStyle
+	Details         *FeeRateDetails
+	OnchainEstimate *OnchainEstimate `json:"onchain_fee_estimates"`
+	Warning         string           `json:"warning"`
 }
 
 type OnchainEstimate struct {
-	OpeningChannelSatoshis	uint64	`json:"opening_channel_satoshis"`
-	MutualCloseSatoshis uint64	`json:"mutual_close_satoshis"`
-	UnilateralCloseSatoshis uint64	`json:"unilateral_close_satoshis'`
+	OpeningChannelSatoshis  uint64 `json:"opening_channel_satoshis"`
+	MutualCloseSatoshis     uint64 `json:"mutual_close_satoshis"`
+	UnilateralCloseSatoshis uint64 `json:"unilateral_close_satoshis'`
 }
 
 type FeeRateDetails struct {
-	Urgent int	`json:"urgent"`
-	Normal int	`json:"normal"`
-	Slow int	`json:"slow"`
-	MinAcceptable int	`json:'min_acceptable"`
-	MaxAcceptable int	`json:"max_acceptable"`
+	Urgent        int `json:"urgent"`
+	Normal        int `json:"normal"`
+	Slow          int `json:"slow"`
+	MinAcceptable int `json:'min_acceptable"`
+	MaxAcceptable int `json:"max_acceptable"`
 }
 
 // Return feerate estimates, either satoshi-per-kw or satoshi-per-kb {style}
 func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 	var result struct {
-		PerKw *FeeRateDetails	`json:"perkw"`
-		PerKb *FeeRateDetails	`json:"perkb"`
-		OnchainEstimate *OnchainEstimate	`json:"onchain_fee_estimates"`
-		Warning string	`json:"warning"`
+		PerKw           *FeeRateDetails  `json:"perkw"`
+		PerKb           *FeeRateDetails  `json:"perkb"`
+		OnchainEstimate *OnchainEstimate `json:"onchain_fee_estimates"`
+		Warning         string           `json:"warning"`
 	}
 	err := l.client.Request(&FeeRatesRequest{style.String()}, &result)
 	if err != nil {
@@ -1360,7 +1359,7 @@ func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 	}
 
 	var details *FeeRateDetails
-	switch (style) {
+	switch style {
 	case SatPerKiloByte:
 		details = result.PerKb
 	case SatPerKiloSipa:
@@ -1368,9 +1367,9 @@ func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 	}
 
 	return &FeeRateEstimate{
-		Style: style,
-		Details: details,
+		Style:           style,
+		Details:         details,
 		OnchainEstimate: result.OnchainEstimate,
-		Warning: result.Warning,
+		Warning:         result.Warning,
 	}, nil
 }

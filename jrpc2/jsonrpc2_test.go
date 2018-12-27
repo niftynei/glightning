@@ -1,24 +1,24 @@
 package jrpc2_test
 
 import (
-	"fmt"
-	"reflect"
-	"testing"
 	"encoding/json"
+	"fmt"
 	"github.com/niftynei/golight/jrpc2"
 	"github.com/stretchr/testify/assert"
+	"reflect"
+	"testing"
 )
 
 //// This section (below) is for method json marshalling,
 // with special emphasis on how the parameters get marshalled
 // and unmarshalled to/from 'Method' objects
 type HelloMethod struct {
-	First	int64	`json:"first"`
-	Second	int64	`json:"second"`
+	First  int64 `json:"first"`
+	Second int64 `json:"second"`
 }
 
 type HelloResult struct {
-	Result	int64
+	Result int64
 }
 
 func (hm HelloMethod) New() interface{} {
@@ -72,9 +72,9 @@ func TestJsonId(t *testing.T) {
 	assert.NotNil(t, errFive)
 }
 
-type EmptyMethod struct {}
+type EmptyMethod struct{}
 
-type EmptyResult struct {}
+type EmptyResult struct{}
 
 func (hm EmptyMethod) New() interface{} {
 	return &EmptyMethod{}
@@ -147,7 +147,7 @@ func TestSimpleNamedParamParsing(t *testing.T) {
 }
 
 type Outer struct {
-	Method HelloMethod	`json:"method"`
+	Method HelloMethod `json:"method"`
 }
 
 func (o Outer) Name() string {
@@ -157,7 +157,7 @@ func (o Outer) Name() string {
 func TestStructNamedParamParsing(t *testing.T) {
 	first := int64(2)
 	second := int64(3)
-	out := &Outer{HelloMethod{first,second}}
+	out := &Outer{HelloMethod{first, second}}
 	params := jrpc2.GetNamedParams(out)
 
 	outTwo := &Outer{}
@@ -167,14 +167,14 @@ func TestStructNamedParamParsing(t *testing.T) {
 }
 
 type Inside struct {
-	Blah string	`json:"blah"`
-	Tadah string	`json:"tadah"`
+	Blah  string `json:"blah"`
+	Tadah string `json:"tadah"`
 }
 
 type OuterP struct {
-	Method *HelloMethod	`json:"method"`
-	Inline  string		`json:"inline"`
-	Inside *Inside		`json:"inside"`
+	Method *HelloMethod `json:"method"`
+	Inline string       `json:"inline"`
+	Inside *Inside      `json:"inside"`
 }
 
 func (o OuterP) New() interface{} {
@@ -193,14 +193,14 @@ func TestPtrsNamedParamParsing(t *testing.T) {
 	first := int64(2)
 	second := int64(3)
 	str := "outero"
-	out := &OuterP{&HelloMethod{first,second}, str,&Inside{"hi","bye"}}
+	out := &OuterP{&HelloMethod{first, second}, str, &Inside{"hi", "bye"}}
 	params := jrpc2.GetNamedParams(out)
 
 	assert.Equal(t, reflect.TypeOf(params["method"]), reflect.TypeOf(&HelloMethod{}))
 	assert.Equal(t, first, params["method"].(*HelloMethod).First)
 
 	outJson, err := json.Marshal(&jrpc2.Request{
-		Id: nil,
+		Id:     nil,
 		Method: *out,
 	})
 	assert.Nil(t, err, "Problem parsing outer request")
@@ -221,12 +221,12 @@ func TestNilPtrInterior(t *testing.T) {
 	first := int64(2)
 	second := int64(3)
 	str := "outero"
-	out := &OuterP{&HelloMethod{first,second}, str,&Inside{"hi","bye"}}
+	out := &OuterP{&HelloMethod{first, second}, str, &Inside{"hi", "bye"}}
 
 	// set pointer to nil heheh
 	out.Method = nil
 	outJson, err := json.Marshal(&jrpc2.Request{
-		Id: nil,
+		Id:     nil,
 		Method: *out,
 	})
 	assert.Nil(t, err, "Problem parsing outer request")
@@ -243,11 +243,11 @@ func TestNilPtrInterior(t *testing.T) {
 }
 
 type A struct {
-	B int64	`json:"b"`
+	B int64 `json:"b"`
 }
 
 type B struct {
-	Inner A	`json:"inner"`
+	Inner A `json:"inner"`
 }
 
 func (o B) New() interface{} {
@@ -265,9 +265,9 @@ func (o B) Call() (jrpc2.Result, error) {
 func TestStructFilledIn(t *testing.T) {
 	four := int64(4)
 	a := &A{four}
-	ab := &B{ *a }
+	ab := &B{*a}
 	outJson, err := json.Marshal(&jrpc2.Request{
-		Id: jrpc2.NewId("abc"),
+		Id:     jrpc2.NewId("abc"),
 		Method: *ab,
 	})
 	assert.Nil(t, err, "Problem parsing struct request")
@@ -283,7 +283,7 @@ func TestStructFilledIn(t *testing.T) {
 }
 
 type C struct {
-	Inner []*A	`json:"inner"`
+	Inner []*A `json:"inner"`
 }
 
 func (o C) New() interface{} {
@@ -306,7 +306,7 @@ func TestSliceFilled(t *testing.T) {
 	}
 
 	outJson, err := json.Marshal(&jrpc2.Request{
-		Id: jrpc2.NewId("ccc"),
+		Id:     jrpc2.NewId("ccc"),
 		Method: *c,
 	})
 	assert.Nil(t, err, "Problem parsing slice request")
@@ -322,7 +322,7 @@ func TestSliceFilled(t *testing.T) {
 }
 
 type D struct {
-	Inner map[string]A	`json:"inner"`
+	Inner map[string]A `json:"inner"`
 }
 
 func (o D) New() interface{} {
@@ -344,7 +344,7 @@ func TestMapFilled(t *testing.T) {
 	d.Inner["two"] = A{int64(2)}
 
 	outJson, err := json.Marshal(&jrpc2.Request{
-		Id: jrpc2.NewId("dmap"),
+		Id:     jrpc2.NewId("dmap"),
 		Method: *d,
 	})
 	assert.Nil(t, err, "Problem marshalling map request")
@@ -360,7 +360,7 @@ func TestMapFilled(t *testing.T) {
 }
 
 type E struct {
-	Inner map[string]string	`json:"inner"`
+	Inner map[string]string `json:"inner"`
 }
 
 func (o E) New() interface{} {
@@ -382,7 +382,7 @@ func TestMapFilledPrimitive(t *testing.T) {
 	e.Inner["two"] = "two_"
 
 	outJson, err := json.Marshal(&jrpc2.Request{
-		Id: jrpc2.NewId("dmapsimple"),
+		Id:     jrpc2.NewId("dmapsimple"),
 		Method: *e,
 	})
 	assert.Nil(t, err, "Problem marshalling map request")
@@ -399,7 +399,7 @@ func TestMapFilledPrimitive(t *testing.T) {
 }
 
 type Anon struct {
-	Value string	`json:"value"`
+	Value string `json:"value"`
 }
 
 type WithAnon struct {
@@ -425,7 +425,7 @@ func TestAnonField(t *testing.T) {
 	wa.Field = "yep"
 
 	outJson, err := json.Marshal(&jrpc2.Request{
-		Id: jrpc2.NewId("abcde"),
+		Id:     jrpc2.NewId("abcde"),
 		Method: *wa,
 	})
 	s := jrpc2.NewServer()
@@ -439,18 +439,17 @@ func TestAnonField(t *testing.T) {
 	assert.Equal(t, "hello", unWa.Value)
 }
 
-
 /// now tests for the Result side of things
 // this is a bit less involved than the Method parameter
 // parsing, since we can effectively pass the marshalling
 // responsibility to the Call method on the function, i think
 
 type ArbitraryData struct {
-	Item A
-	Map map[string]A
-	Ptr *A
+	Item  A
+	Map   map[string]A
+	Ptr   *A
 	Slice []A
-	Name string
+	Name  string
 }
 
 func TestResponseMarshalling(t *testing.T) {
@@ -459,20 +458,20 @@ func TestResponseMarshalling(t *testing.T) {
 	slis := make([]A, 1)
 	slis[0] = A{4}
 	arbitData := ArbitraryData{
-		Item: A{1},
-		Map: merp,
-		Ptr: &A{3},
+		Item:  A{1},
+		Map:   merp,
+		Ptr:   &A{3},
 		Slice: slis,
-		Name: "arbit",
+		Name:  "arbit",
 	}
 	arbitBytes, err := json.Marshal(arbitData)
 	erro := &jrpc2.Error{
-		Code: 2,
+		Code:    2,
 		Message: "omg",
-		Data: arbitBytes,
+		Data:    arbitBytes,
 	}
 	resp := &jrpc2.Response{
-		Id: jrpc2.NewId("id"),
+		Id:    jrpc2.NewId("id"),
 		Error: erro,
 	}
 
@@ -514,7 +513,7 @@ func TestResponseRawResult(t *testing.T) {
 
 func TestReponseFancyRaw(t *testing.T) {
 	initResponse := &jrpc2.Response{
-		Id: jrpc2.NewId("hello"),
+		Id:     jrpc2.NewId("hello"),
 		Result: &A{2},
 	}
 	out, err := json.Marshal(initResponse)
@@ -541,7 +540,7 @@ func TestInvalidRawResult(t *testing.T) {
 /// starting with the server because it feels more tractable
 // from an implementation perspective
 
-// what needs to happen? 
+// what needs to happen?
 // the server receives an inbound method call
 //  the server validates that it's a valid method call
 //    - if not the server returns an error
@@ -552,7 +551,7 @@ func TestInvalidRawResult(t *testing.T) {
 
 type SubtractMethod struct {
 	Subtrahend int
-	Minuend int
+	Minuend    int
 }
 
 func (s SubtractMethod) New() interface{} {
@@ -567,7 +566,7 @@ func (s SubtractMethod) Name() string {
 	return "subtract"
 }
 
-type ErroringMethod struct {}
+type ErroringMethod struct{}
 
 func (e ErroringMethod) New() interface{} {
 	return &ErroringMethod{}
@@ -581,7 +580,7 @@ func (e ErroringMethod) Name() string {
 }
 
 func TestInboundServer(t *testing.T) {
-	sub := &SubtractMethod{5,2}
+	sub := &SubtractMethod{5, 2}
 	// when the server gets an inbound message, it makes the call
 	// and then returns an answer
 	// for now, let's pretend this is synchronous

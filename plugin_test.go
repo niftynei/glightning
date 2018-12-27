@@ -2,13 +2,13 @@ package golight_test
 
 import (
 	"bufio"
-	"io"
 	"fmt"
-	"os"
 	"github.com/niftynei/golight"
 	"github.com/niftynei/golight/jrpc2"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"log"
+	"os"
 	"testing"
 	"time"
 )
@@ -37,7 +37,7 @@ func (hi *HiMethod) Call() (jrpc2.Result, error) {
 }
 
 func getInitFunc(t *testing.T, testFn func(t *testing.T, opt map[string]string, config *golight.Config)) func(*golight.Plugin, map[string]string, *golight.Config) {
-	return func (plugin *golight.Plugin, options map[string]string, config *golight.Config) {
+	return func(plugin *golight.Plugin, options map[string]string, config *golight.Config) {
 		testFn(t, options, config)
 	}
 }
@@ -46,7 +46,7 @@ func nullInitFunc(plugin *golight.Plugin, options map[string]string, config *gol
 	// does nothing
 }
 
-// check that we're sending all our logs out 
+// check that we're sending all our logs out
 // over the wire
 func TestLoggingRedirect(t *testing.T) {
 	if testing.Short() {
@@ -89,7 +89,7 @@ func TestLoggingRedirect(t *testing.T) {
 func TestLogsGeneralInfra(t *testing.T) {
 	plugin := golight.NewPlugin(nullInitFunc)
 
-	progIn, _ , _ := os.Pipe()
+	progIn, _, _ := os.Pipe()
 	testIn, progOut, _ := os.Pipe()
 
 	go func(in, out *os.File, t *testing.T) {
@@ -136,7 +136,7 @@ func TestLogsGeneralInfra(t *testing.T) {
 // test the plugin's handling of init
 func TestInit(t *testing.T) {
 
-	initTestFn := getInitFunc(t ,func(t *testing.T, options map[string]string, config *golight.Config) {
+	initTestFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *golight.Config) {
 		assert.Equal(t, "Jenny", options["greeting"])
 		assert.Equal(t, "rpc.file", config.RpcFile)
 		assert.Equal(t, "dirforlightning", config.LightningDir)
@@ -152,7 +152,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestGetManifest(t *testing.T) {
-	initFn := getInitFunc(t ,func(t *testing.T, options map[string]string, config *golight.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *golight.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := golight.NewPlugin(initFn)
@@ -185,7 +185,7 @@ func runTest(t *testing.T, plugin *golight.Plugin, inputMsg, expectedMsg string)
 
 	// call the method
 	// would using a client implementation be nice here?
-	// the pylightning plugin handler probably uses regular 
+	// the pylightning plugin handler probably uses regular
 	testOut.Write([]byte(inputMsg))
 
 	scanner := bufio.NewScanner(testIn)

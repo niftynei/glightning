@@ -17,18 +17,17 @@ const MethodNotFound = -32601
 const InvalidParams = -32603
 const InternalErr = -32603
 
-
 // ids for JSON-RPC v2 can be a string, an integer
-// or null. We use the pointer type in Request to 
+// or null. We use the pointer type in Request to
 // simulate a null value for JSON mapping; this
 // struct manages the rest.  for giggles, we map all Ids
-// to strings, but in the case of this being something 
+// to strings, but in the case of this being something
 // that's populated from an incoming request, we need to maintain the
-// 'actual' type of it so when we send it back over the 
+// 'actual' type of it so when we send it back over the
 // wire, we don't confuse the other side.
 type Id struct {
-	intVal	int64
-	strVal	string
+	intVal int64
+	strVal string
 }
 
 func (id Id) MarshalJSON() ([]byte, error) {
@@ -45,9 +44,9 @@ func (id *Id) UnmarshalJSON(data []byte) error {
 		if data[len(data)-1] != '"' {
 			return NewError(nil, ParseError, "Parse error")
 		}
-		id.strVal = string(data[1:len(data)-1])
+		id.strVal = string(data[1 : len(data)-1])
 		return nil
-	case '-','0','1','2','3','4','5','6','7','8','9':
+	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		val, err := strconv.ParseInt(string(data), 10, 64)
 		if err != nil {
 			return NewError(nil, InvalidRequest, fmt.Sprintf("Invalid Id value: %s", string(data)))
@@ -84,8 +83,8 @@ func NewIdAsInt(val int64) *Id {
 
 // Models for the model gods
 type Request struct {
-	Id	*Id		`json:"id,omitempty"`
-	Method	Method		`json:"-"`
+	Id     *Id    `json:"id,omitempty"`
+	Method Method `json:"-"`
 }
 
 type Method interface {
@@ -94,9 +93,9 @@ type Method interface {
 
 // Responses are sent by the Server
 type Response struct {
-	Result	Result		`json:"result,omitempty"`
-	Error	*Error		`json:"error,omitempty"`
-	Id	*Id		`json:"id"`
+	Result Result `json:"result,omitempty"`
+	Error  *Error `json:"error,omitempty"`
+	Id     *Id    `json:"id"`
 }
 
 // RawResponses are what the client gets back
@@ -105,17 +104,17 @@ type Response struct {
 // until you realize how clean it is from a parsing
 // perspective
 type RawResponse struct {
-	Id	*Id		`json:"id"`
-	Raw	json.RawMessage	`json:"-"`
-	Error	*Error		`json:"error,omitempty"`
+	Id    *Id             `json:"id"`
+	Raw   json.RawMessage `json:"-"`
+	Error *Error          `json:"error,omitempty"`
 }
 
-type Result interface {}
+type Result interface{}
 
 type Error struct {
-	Code	int		`json:"code"`
-	Message	string		`json:"message"`
-	Data	json.RawMessage	`json:"data,omitempty"` // parse your own adventure
+	Code    int             `json:"code"`
+	Message string          `json:"message"`
+	Data    json.RawMessage `json:"data,omitempty"` // parse your own adventure
 }
 
 // provide your own object to parse this with! ehehe
@@ -124,7 +123,7 @@ func (e *Error) ParseData(into interface{}) error {
 }
 
 func (e *Error) ToErr() error {
-	return fmt.Errorf("%d:%s",e.Code,e.Message)
+	return fmt.Errorf("%d:%s", e.Code, e.Message)
 }
 
 // What we really want is the parameter values off of
@@ -133,22 +132,22 @@ func (e *Error) ToErr() error {
 func (r *Request) MarshalJSON() ([]byte, error) {
 	type Alias Request
 	return json.Marshal(&struct {
-		Version	string		`json:"jsonrpc"`
-		Name	string		`json:"method"`
-		Params	map[string]interface{}	`json:"params,omitempty"`
+		Version string                 `json:"jsonrpc"`
+		Name    string                 `json:"method"`
+		Params  map[string]interface{} `json:"params,omitempty"`
 		*Alias
 	}{
-		Alias: (*Alias)(r),
-		Params:	GetNamedParams(r.Method),
+		Alias:   (*Alias)(r),
+		Params:  GetNamedParams(r.Method),
 		Version: specVersion,
-		Name: r.Method.Name(),
+		Name:    r.Method.Name(),
 	})
 }
 
 type CodedError struct {
-	Id *Id
+	Id   *Id
 	Code int
-	Msg string
+	Msg  string
 }
 
 func (e CodedError) Error() string {
@@ -156,7 +155,7 @@ func (e CodedError) Error() string {
 }
 
 func NewError(id *Id, code int, msg string) *CodedError {
-	return &CodedError{id,code,msg}
+	return &CodedError{id, code, msg}
 }
 
 func (r *Request) UnmarshalJSON(data []byte) error {
@@ -166,18 +165,18 @@ func (r *Request) UnmarshalJSON(data []byte) error {
 func (r *Response) MarshalJSON() ([]byte, error) {
 	type Alias Response
 	return json.Marshal(&struct {
-		Version string		`json:"jsonrpc"`
+		Version string `json:"jsonrpc"`
 		*Alias
 	}{
 		Version: specVersion,
-		Alias: (*Alias)(r),
+		Alias:   (*Alias)(r),
 	})
 }
 
 func (r *Response) UnmarshalJSON(data []byte) error {
 	type Alias Response
 	raw := &struct {
-		Version string			`json:"jsonrpc"`
+		Version string `json:"jsonrpc"`
 		*Alias
 	}{
 		Alias: (*Alias)(r),
@@ -190,30 +189,30 @@ func (r *Response) UnmarshalJSON(data []byte) error {
 		return errors.New("Must send either a result or an error in a response")
 	}
 	return nil
-	// note that I can't really do anything wrt 
+	// note that I can't really do anything wrt
 	// the Result type at this stage, because
-	// I no longer have access to the Method, 
+	// I no longer have access to the Method,
 	// which contains the Result's type info
 }
 
 func (r *RawResponse) MarshalJSON() ([]byte, error) {
 	type Alias RawResponse
 	return json.Marshal(&struct {
-		Version string		`json:"jsonrpc"`
-		Result json.RawMessage	`json:"result,omitempty"`
+		Version string          `json:"jsonrpc"`
+		Result  json.RawMessage `json:"result,omitempty"`
 		*Alias
 	}{
 		Version: specVersion,
-		Result: r.Raw,
-		Alias: (*Alias)(r),
+		Result:  r.Raw,
+		Alias:   (*Alias)(r),
 	})
 }
 
 func (r *RawResponse) UnmarshalJSON(data []byte) error {
 	type Alias RawResponse
 	raw := &struct {
-		Version string			`json:"jsonrpc"`
-		Result json.RawMessage		`json:"result,omitempty"`
+		Version string          `json:"jsonrpc"`
+		Result  json.RawMessage `json:"result,omitempty"`
 		*Alias
 	}{
 		Alias: (*Alias)(r),
@@ -273,11 +272,11 @@ func ParseParamArray(target Method, params []interface{}) error {
 	for i := range params {
 		// it's possible that there's a mismatch between
 		// 'settable' fields on the target and the params
-		// that we've received. for simplicity's sake, 
+		// that we've received. for simplicity's sake,
 		// if you don't put all of your param names at the top
 		// of your object, well that's your problem.
 		// ideally these Method objects will be magically (?)
-		// generated by some Thing, and this won't really be 
+		// generated by some Thing, and this won't really be
 		// an issue for humans any more.
 		fVal := targetValue.Field(i)
 		value := params[i]
@@ -337,14 +336,14 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 	v := reflect.ValueOf(value)
 	if fVal.Kind() == v.Kind() &&
 		fVal.Kind() != reflect.Map &&
-			fVal.Kind() != reflect.Slice {
+		fVal.Kind() != reflect.Slice {
 		fVal.Set(v)
 		return nil
 	}
 	switch fVal.Kind() {
 	case reflect.Map:
 		fVal.Set(reflect.MakeMap(fVal.Type()))
-		// the only types of maps that we can get thru the json 
+		// the only types of maps that we can get thru the json
 		// parser are map[string]interface{} ones
 		mapVal := value.(map[string]interface{})
 		keyType := fVal.Type().Key()
@@ -375,11 +374,11 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 		case reflect.Float64:
 			// Since our json parser (encoding/json) automatically defaults any
 			// 'number' field to a float64, here we mangle mash it back into
-			// an int field, since that's what we ostensibly wanted. 
+			// an int field, since that's what we ostensibly wanted.
 			//
 			// there's probably a nicer way to do this but
 			// the json/encoding lib checks for 'fitablilty' while
-			// decoding so we don't have to worry about 
+			// decoding so we don't have to worry about
 			// an overflow here :D
 			fVal.SetInt(int64(value.(float64)))
 			return nil
