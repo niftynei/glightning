@@ -60,6 +60,8 @@ func (c *Client) setupWriteQueue(outW io.Writer) {
 	for request := range c.requestQueue {
 		data, err := json.Marshal(request)
 		if err != nil {
+			// todo: send error back to waiting response
+			// iff it's got an id associated with it
 			log.Println(err.Error())
 			continue
 		}
