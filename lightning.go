@@ -648,7 +648,7 @@ func (l *Lightning) GetInfo() (*NodeInfo, error) {
 }
 
 type SendPayRequest struct {
-	Route         interface{} `json:"route"`
+	Route         *Route	  `json:"route"`
 	PaymentHash   string      `json:"payment_hash"`
 	Desc          string      `json:"description,omitempty"`
 	MilliSatoshis uint64      `json:"msatoshi,omitempty"`
@@ -701,7 +701,7 @@ type SendPayResult struct {
 // prevents accidental multiple payments. Calls with the same 'paymentHash',
 // 'msat' and destination as a previous successful payment will return
 // immediately with a success, even if the route is different.
-func (l *Lightning) SendPay(route interface{}, paymentHash, description string, msat uint64) (*SendPayResult, error) {
+func (l *Lightning) SendPay(route *Route, paymentHash, description string, msat uint64) (*SendPayResult, error) {
 	if paymentHash == "" {
 		return nil, fmt.Errorf("Must specify a paymentHash to pay")
 	}
