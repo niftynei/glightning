@@ -54,10 +54,6 @@ func (r *ListPeersRequest) Name() string {
 	return "listpeers"
 }
 
-type PeersResponse struct {
-	Peers []Peer `json:"peers"`
-}
-
 type Peer struct {
 	Id             string        `json:"id"`
 	Connected      bool          `json:"connected"`
@@ -98,7 +94,7 @@ type PeerChannel struct {
 	OutMilliSatoshiOffered           uint64   `json:"out_msatoshi_offered"`
 	OutPaymentsFulfilled             uint64   `json:"out_payments_fulfilled"`
 	OutMilliSatoshiFulfilled         uint64   `json:"out_msatoshi_fulfilled"`
-	Htlcs                            []Htlc   `json:"htlcs"`
+	Htlcs                            []*Htlc   `json:"htlcs"`
 }
 
 type Htlc struct {
@@ -111,15 +107,30 @@ type Htlc struct {
 }
 
 // Show current peer {peerId}. If {level} is set, include logs.
-func (l *Lightning) GetPeer(peerId string, level LogLevel) (*PeersResponse, error) {
-	var result PeersResponse
-	err := l.client.Request(&ListPeersRequest{peerId, level.String()}, result)
-	return &result, err
+func (l *Lightning) GetPeer(peerId string, level LogLevel) ([]Peer, error) {
+	var result struct {
+		Peers []Peer `json:"peers"`
+	}
+
+	request := &ListPeersRequest{
+		PeerId: peerId,
+	}
+	if level != None {
+		request.Level = level.String()
+	}
+
+	err := l.client.Request(request, &result)
+	return result.Peers, err
 }
 
 // Show current peers, if {level} is set, include logs.
-func (l *Lightning) ListPeers(level LogLevel) (*PeersResponse, error) {
+func (l *Lightning) ListPeersWithLogs(level LogLevel) ([]Peer, error) {
 	return l.GetPeer("", level)
+}
+
+// Show current peers
+func (l *Lightning) ListPeers() ([]Peer, error) {
+	return l.GetPeer("", None)
 }
 
 type ListNodeRequest struct {
@@ -236,10 +247,6 @@ func (lc *ListChannelRequest) Name() string {
 	return "listchannels"
 }
 
-type ChannelResponse struct {
-	Channels []Channel `json:"channels"`
-}
-
 type Channel struct {
 	Source              string  `json:"source"`
 	Destination         string  `json:"destination"`
@@ -256,16 +263,16 @@ type Channel struct {
 }
 
 // Get channel by {shortChanId}
-func (l *Lightning) GetChannel(shortChanId string) (*ChannelResponse, error) {
-	var result ChannelResponse
+func (l *Lightning) GetChannel(shortChanId string) ([]Channel, error) {
+	var result struct {
+		Channels []Channel `json:"channels"`
+	}
 	err := l.client.Request(&ListChannelRequest{shortChanId}, &result)
-	return &result, err
+	return result.Channels, err
 }
 
-func (l *Lightning) ListChannels() (interface{}, error) {
-	var result interface{}
-	err := l.client.Request(&ListChannelRequest{}, result)
-	return result, err
+func (l *Lightning) ListChannels() ([]Channel, error) {
+	return l.GetChannel("")
 }
 
 type InvoiceRequest struct {
@@ -521,7 +528,8 @@ func (l *Lightning) Stop() (string, error) {
 type LogLevel int
 
 const (
-	Info LogLevel = iota
+	None LogLevel = iota
+	Info
 	Unusual
 	Debug
 	Io
@@ -529,6 +537,7 @@ const (
 
 func (l LogLevel) String() string {
 	return []string{
+		"",
 		"info",
 		"unusual",
 		"debug",
