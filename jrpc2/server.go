@@ -164,6 +164,11 @@ func processMsg(s *Server, data []byte) {
 		return
 	}
 
+	// this is a subscription. we won't call you back.
+	if request.Id  == nil {
+		request.Method.(ServerMethod).Call()
+		return
+	}
 	// ok we've successfully gotten the method call out..
 	s.outQueue <- Execute(request.Id, request.Method.(ServerMethod))
 }
