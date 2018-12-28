@@ -48,9 +48,9 @@ func (s *Server) StartUpSingle(in string) {
 		inConn, err := ln.Accept()
 		if err != nil {
 			log.Print(err.Error())
+			continue
 		}
 		go func() {
-			defer inConn.Close()
 			s.listen(inConn)
 		}()
 		go func() {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"os"
 	"sync/atomic"
 	"time"
@@ -43,6 +44,26 @@ func (c *Client) StartUp(in, out *os.File) {
 	c.readQueue(in)
 }
 
+// Start up on a socket, instead of using pipes
+// This method blocks. The up channel is an optional
+// channel to receive  notification when the connection is set up
+func (c *Client) SocketStart(socket string, up chan bool) error {
+	c.shutdown = false
+	conn, err := net.Dial("unix", socket)
+	if err != nil {
+		return fmt.Errorf("Unable to dial socket %s:%s", socket, err.Error())
+	}
+	defer conn.Close()
+	go func(conn net.Conn, up chan bool) {
+		if up != nil {
+			up<-true
+		}
+		c.readQueue(conn)
+	}(conn, up)
+	c.setupWriteQueue(conn)
+	return nil
+}
+
 func (c *Client) Shutdown() {
 	c.shutdown = true
 	close(c.requestQueue)
@@ -51,6 +72,10 @@ func (c *Client) Shutdown() {
 	}
 	c.pendingReq = make(map[string]chan *RawResponse)
 	c.requestQueue = make(chan *Request)
+}
+
+func (c *Client) IsUp() bool {
+	return !c.shutdown
 }
 
 func (c *Client) setupWriteQueue(outW io.Writer) {
@@ -81,7 +106,7 @@ func (c *Client) readQueue(in io.Reader) {
 }
 
 func processResponse(c *Client, msg []byte) {
-	var rawResp *RawResponse
+	var rawResp RawResponse
 	err := json.Unmarshal(msg, &rawResp)
 	if err != nil {
 		log.Printf("Error parsing response %s", err.Error())
@@ -99,7 +124,7 @@ func processResponse(c *Client, msg []byte) {
 	// look up 'reply channel' via the
 	// client (should have a registry of
 	// resonses that are waiting...)
-	c.sendResponse(rawResp.Id.Val(), rawResp)
+	c.sendResponse(rawResp.Id.Val(), &rawResp)
 }
 
 func (c *Client) sendResponse(id string, resp *RawResponse) {

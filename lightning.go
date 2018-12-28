@@ -3,7 +3,8 @@ package golight
 import (
 	"fmt"
 	"github.com/niftynei/golight/jrpc2"
-	"os"
+	"log"
+	"path/filepath"
 	"reflect"
 )
 
@@ -12,6 +13,7 @@ import (
 
 type Lightning struct {
 	client *jrpc2.Client
+	isUp bool
 }
 
 func NewLightning() *Lightning {
@@ -20,12 +22,27 @@ func NewLightning() *Lightning {
 	return ln
 }
 
-func (l *Lightning) StartUp(in, out *os.File) {
-	l.client.StartUp(in, out)
+func (l *Lightning) SetTimeout(secs uint) {
+	l.client.SetTimeout(secs)
+}
+
+func (l *Lightning) StartUp(rpcfile, lightningDir string) {
+	up := make(chan bool)
+	go func(up chan bool, l *Lightning) {
+		l.isUp = <-up
+	}(up, l)
+	err := l.client.SocketStart(filepath.Join(lightningDir, rpcfile), up)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func (l *Lightning) Shutdown() {
 	l.client.Shutdown()
+}
+
+func (l *Lightning) IsUp() bool {
+	return l.isUp && l.client.IsUp()
 }
 
 type ListPeersRequest struct {
