@@ -134,7 +134,7 @@ func (r *Request) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Version string                 `json:"jsonrpc"`
 		Name    string                 `json:"method"`
-		Params  map[string]interface{} `json:"params,omitempty"`
+		Params  map[string]interface{} `json:"params"`
 		*Alias
 	}{
 		Alias:   (*Alias)(r),
@@ -236,14 +236,37 @@ func GetParams(target Method) []interface{} {
 	if v.Kind() == reflect.Ptr {
 		v = v.Elem()
 	}
+	typeOf := v.Type()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
+		fType := typeOf.Field(i)
 		if !field.CanInterface() {
+			continue
+		}
+		tag, _ := fType.Tag.Lookup("json")
+		if _, omit := parseTag(tag); omit && isZero(field.Interface()) {
 			continue
 		}
 		params = append(params, field.Interface())
 	}
 	return params
+}
+
+func parseTag(tag string) (name string, omitempty bool) {
+	omitempty = false
+	name = ""
+	if tag == "" || tag == "-" {
+		return name, omitempty
+	}
+	for i, field := range strings.Split(tag, ",") {
+		if field == "omitempty" {
+			omitempty = true
+		}
+		if i == 0 && field != "omitempty" {
+			name = field
+		}
+	}
+	return name, omitempty
 }
 
 func GetNamedParams(target Method) map[string]interface{} {
@@ -255,12 +278,32 @@ func GetNamedParams(target Method) map[string]interface{} {
 	typeOf := v.Type()
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Field(i)
+		fType := typeOf.Field(i)
 		if !field.CanInterface() {
 			continue
 		}
-		params[strings.ToLower(typeOf.Field(i).Name)] = field.Interface()
+		// if field is empty and has an 'omitempty' tag, leave it out
+		var name string
+		tag, ok := fType.Tag.Lookup("json")
+		if ok {
+			var omit bool
+			name, omit = parseTag(tag)
+			if omit && isZero(field.Interface()) {
+				continue
+			}
+			if name == "" {
+				name = strings.ToLower(fType.Name)
+			}
+		} else {
+			name = strings.ToLower(fType.Name)
+		}
+		params[name] = field.Interface()
 	}
 	return params
+}
+
+func isZero(x interface{}) bool {
+	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
 
 // These should map to the fields on the method, in order...

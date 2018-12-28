@@ -229,7 +229,7 @@ func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cl
 }
 
 type ListChannelRequest struct {
-	ShortChannelId string `json:"short_channel_id"`
+	ShortChannelId string `json:"short_channel_id,omitempty"`
 }
 
 func (lc *ListChannelRequest) Name() string {
