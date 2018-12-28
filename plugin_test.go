@@ -10,7 +10,6 @@ import (
 	"log"
 	"os"
 	"testing"
-	"time"
 )
 
 type HiMethod struct {
@@ -44,46 +43,6 @@ func getInitFunc(t *testing.T, testFn func(t *testing.T, opt map[string]string, 
 
 func nullInitFunc(plugin *golight.Plugin, options map[string]string, config *golight.Config) {
 	// does nothing
-}
-
-// check that we're sending all our logs out
-// over the wire
-func TestLoggingRedirect(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode")
-	}
-
-	os.Setenv("LIGHTNINGD_PLUGIN", "")
-	plugin := golight.NewPlugin(nullInitFunc)
-
-	progIn, _, _ := os.Pipe()
-	testIn, progOut, _ := os.Pipe()
-
-	go func(in, out *os.File, t *testing.T) {
-		err := plugin.Start(in, out)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}(progIn, progOut, t)
-
-	time.Sleep(1)
-	log.Print("this is a log line")
-
-	scanner := bufio.NewScanner(testIn)
-	scanner.Split(func(data []byte, eof bool) (advance int, token []byte, err error) {
-		for i := 0; i < len(data); i++ {
-			if data[i] == '\n' && (i+1) < len(data) && data[i+1] == '\n' {
-				return i + 2, data[:i], nil
-			}
-		}
-		return 0, nil, nil
-	})
-	if !scanner.Scan() {
-		t.Log(scanner.Err())
-		t.FailNow()
-	}
-	bytesRead := scanner.Bytes()
-	assert.Equal(t, "", string(bytesRead))
 }
 
 func TestLogsGeneralInfra(t *testing.T) {
