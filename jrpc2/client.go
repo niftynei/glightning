@@ -18,6 +18,10 @@ import (
 // - receive a result back (& match that result to outbound request)
 // bonus round:
 //    - send and receive in batches
+
+const (
+	MaxIntakeBuffer = 500 * 1024 * 1023
+)
 type Client struct {
 	requestQueue   chan *Request
 	pendingReq     map[string]chan *RawResponse
@@ -98,6 +102,8 @@ func (c *Client) setupWriteQueue(outW io.Writer) {
 
 func (c *Client) readQueue(in io.Reader) {
 	scanner := bufio.NewScanner(in)
+	buf := make([]byte, 1024)
+	scanner.Buffer(buf, MaxIntakeBuffer)
 	scanner.Split(scanDoubleNewline)
 	for scanner.Scan() && !c.shutdown {
 		msg := scanner.Bytes()
