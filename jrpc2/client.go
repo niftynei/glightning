@@ -101,39 +101,32 @@ func (c *Client) setupWriteQueue(outW io.Writer) {
 }
 
 func (c *Client) readQueue(in io.Reader) {
-	scanner := bufio.NewScanner(in)
-	buf := make([]byte, 1024)
-	scanner.Buffer(buf, MaxIntakeBuffer)
-	scanner.Split(scanDoubleNewline)
-	for scanner.Scan() && !c.shutdown {
-		msg := scanner.Bytes()
-		go processResponse(c, msg)
+	decoder := json.NewDecoder(in)
+	for {
+		var rawResp RawResponse
+		if err := decoder.Decode(&rawResp); err == io.EOF {
+			break
+		} else if err != nil {
+			c.Shutdown()
+			log.Fatal(err)
+		}
+		go processResponse(c, &rawResp)
 	}
 }
 
-func processResponse(c *Client, msg []byte) {
-	var rawResp RawResponse
-	err := json.Unmarshal(msg, &rawResp)
-	if err != nil {
-		log.Printf("Error parsing response %s", err.Error())
-		return
-	}
-
+func processResponse(c *Client, resp *RawResponse) {
 	// the response should have an ID
-	if rawResp.Id == nil || rawResp.Id.Val() == "" {
+	if resp.Id == nil || resp.Id.Val() == "" {
 		// no id means there's no one listening
 		// for this to come back through ...
-		log.Printf("No Id provided %v", rawResp)
+		log.Printf("No Id provided %v", resp)
 		return
 	}
 
+	id := resp.Id.Val()
 	// look up 'reply channel' via the
 	// client (should have a registry of
 	// resonses that are waiting...)
-	c.sendResponse(rawResp.Id.Val(), &rawResp)
-}
-
-func (c *Client) sendResponse(id string, resp *RawResponse) {
 	respChan, exists := c.pendingReq[id]
 	if !exists {
 		log.Printf("No return channel found for response with id %s", id)
