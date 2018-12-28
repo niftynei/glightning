@@ -28,14 +28,14 @@ type ServerMethod interface {
 //   - respond to batched requests
 type Server struct {
 	registry map[string]ServerMethod
-	outQueue chan *Response
+	outQueue chan interface{}
 	shutdown bool
 }
 
 func NewServer() *Server {
 	server := &Server{}
 	server.registry = make(map[string]ServerMethod)
-	server.outQueue = make(chan *Response)
+	server.outQueue = make(chan interface{})
 	server.shutdown = false
 	return server
 }
@@ -186,6 +186,18 @@ func Execute(id *Id, method ServerMethod) *Response {
 	}
 
 	return resp
+}
+
+// Technically, this is a client side method but we're monkey
+// patching it on here because c-lightning acts both as a server
+// and a client.
+func (s *Server) Notify(m Method) error {
+	if s.shutdown {
+		return fmt.Errorf("Server is shutdown")
+	}
+	req := &Request{nil, m}
+	s.outQueue <- req
+	return nil
 }
 
 func (s *Server) Register(method ServerMethod) error {

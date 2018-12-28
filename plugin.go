@@ -209,7 +209,7 @@ func (r *LogNotification) Name() string {
 
 func (p *Plugin) Log(message string, level LogLevel) {
 	for _, line := range strings.Split(message, "\n") {
-		p.client.Notify(&LogNotification{level.String(), line})
+		p.server.Notify(&LogNotification{level.String(), line})
 	}
 }
 
@@ -220,7 +220,6 @@ type Plugin struct {
 	initialized bool
 	initFn      func(plugin *Plugin, options map[string]string, c *Config)
 	Config      *Config
-	client      *jrpc2.Client
 	stopped     bool
 }
 
@@ -230,7 +229,6 @@ func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plu
 	plugin.options = make(map[string]*Option)
 	plugin.methods = make(map[string]*RpcMethod)
 	plugin.initFn = initHandler
-	plugin.client = jrpc2.NewClient()
 	return plugin
 }
 
@@ -240,15 +238,12 @@ func (p *Plugin) Start(in, out *os.File) error {
 	p.RegisterMethod(NewManifestRpcMethod(p))
 	p.RegisterMethod(NewInitRpcMethod(p))
 
-	// um... what's going to happen here?
-	go p.client.StartUp(in, out)
 	return p.server.StartUp(in, out)
 }
 
 func (p *Plugin) Stop() {
 	p.stopped = true
 	p.server.Shutdown()
-	p.client.Shutdown()
 }
 
 // Remaps stdout to print logs to c-lightning via notifications
