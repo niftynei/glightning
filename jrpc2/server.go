@@ -11,6 +11,10 @@ import (
 	"os"
 )
 
+const (
+	MaxIntakeBuffer = 500 * 1024 * 1023
+)
+
 // method type to register on the server side
 type ServerMethod interface {
 	Method
@@ -88,6 +92,8 @@ func (s *Server) listen(in io.Reader) error {
 	// we use the double newline character
 	// to break out new messages
 	scanner := bufio.NewScanner(in)
+	buf := make([]byte, 1024)
+	scanner.Buffer(buf, MaxIntakeBuffer)
 	scanner.Split(scanDoubleNewline)
 	for scanner.Scan() && !s.shutdown {
 		msg := scanner.Bytes()

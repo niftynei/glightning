@@ -19,9 +19,6 @@ import (
 // bonus round:
 //    - send and receive in batches
 
-const (
-	MaxIntakeBuffer = 500 * 1024 * 1023
-)
 type Client struct {
 	requestQueue   chan *Request
 	pendingReq     map[string]chan *RawResponse
