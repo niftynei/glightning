@@ -12,6 +12,36 @@ import (
 	"strings"
 )
 
+const (
+	Connect string = "connect"
+	Disconnect string = "disconnect"
+)
+
+type ConnectSubscription struct {
+	PeerId string	`json:"id"`
+	Address string	`json:"address"`
+}
+
+func (s *ConnectSubscription) Name() string {
+	return Connect
+}
+
+func (s *ConnectSubscription) New() interface{} {
+	return &ConnectSubscription{}
+}
+
+type DisconnectSubscription struct {
+	PeerId string	`json:"id"`
+}
+
+func (s *DisconnectSubscription) Name() string {
+	return Disconnect
+}
+
+func (s *DisconnectSubscription) New() interface{} {
+	return &DisconnectSubscription{}
+}
+
 type Option struct {
 	Name        string
 	Default     string
@@ -114,6 +144,7 @@ func NewManifestRpcMethod(p *Plugin) *RpcMethod {
 type Manifest struct {
 	Options    []*Option    `json:"options"`
 	RpcMethods []*RpcMethod `json:"rpcmethods"`
+	Subscriptions []string	`json:"subscriptions,omitempty"`
 }
 
 func (gm GetManifestMethod) Name() string {
@@ -142,6 +173,10 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 	for _, option := range gm.plugin.options {
 		m.Options[i] = option
 		i++
+	}
+	m.Subscriptions = make([]string, len(gm.plugin.subscriptions))
+	for i, sub := range gm.plugin.subscriptions {
+		m.Subscriptions[i] = sub
 	}
 
 	return m, nil
@@ -217,6 +252,7 @@ type Plugin struct {
 	server      *jrpc2.Server
 	options     map[string]*Option
 	methods     map[string]*RpcMethod
+	subscriptions []string
 	initialized bool
 	initFn      func(plugin *Plugin, options map[string]string, c *Config)
 	Config      *Config
@@ -353,6 +389,11 @@ func (p *Plugin) getOptionSet() map[string]string {
 		options[key] = option.Value()
 	}
 	return options
+}
+
+func (p *Plugin) Subscribe(subscription jrpc2.ServerMethod) {
+	p.server.Register(subscription)
+	p.subscriptions = append(p.subscriptions, subscription.Name())
 }
 
 func getParamList(method jrpc2.ServerMethod) []string {

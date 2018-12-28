@@ -110,6 +110,14 @@ func TestInit(t *testing.T) {
 	runTest(t, plugin, initJson, expectedJson)
 }
 
+type Connect struct {
+	golight.ConnectSubscription
+}
+
+func (c *Connect) Call() (jrpc2.Result, error) {
+	return nil, nil
+}
+
 func TestGetManifest(t *testing.T) {
 	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *golight.Config) {
 		t.Error("Should not have called init when calling get manifest")
@@ -117,9 +125,10 @@ func TestGetManifest(t *testing.T) {
 	plugin := golight.NewPlugin(initFn)
 	plugin.RegisterMethod(golight.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
 	plugin.RegisterOption(golight.NewOption("greeting", "How you'd like to be called", "Mary"))
+	plugin.Subscribe(&Connect{})
 
 	msg := "{\"jsonrpc\":\"2.0\",\"method\":\"getmanifest\",\"id\":\"aloha\"}\n\n"
-	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[{\"name\":\"greeting\",\"type\":\"string\",\"default\":\"Mary\",\"description\":\"How you'd like to be called\"}],\"rpcmethods\":[{\"name\":\"hi\",\"description\":\"Send a greeting.\"}]},\"id\":\"aloha\"}"
+	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[{\"name\":\"greeting\",\"type\":\"string\",\"default\":\"Mary\",\"description\":\"How you'd like to be called\"}],\"rpcmethods\":[{\"name\":\"hi\",\"description\":\"Send a greeting.\"}],\"subscriptions\":[\"connect\"]},\"id\":\"aloha\"}"
 	runTest(t, plugin, msg, resp)
 }
 
