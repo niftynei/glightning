@@ -114,7 +114,7 @@ After your plugin's manifest has been parsed by c-lightning, c-lightning will ca
 The init function has the following signature:
 
 ```
-func onInit(plugin *golight.Plugin, options map[stirng]string, config *golight.Config)
+func onInit(plugin *golight.Plugin, options map[string]string, config *golight.Config)
 ```
 
 ### Wiring into Lightning's RPC
