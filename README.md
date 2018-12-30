@@ -131,11 +131,7 @@ After the connection has been opened, `lightning.IsUp()` will flip to `true`.
 You can make any calls provided on the Lightning RPC then. 
 
 ```
-	go lightning.StartUp(config.RpcFile, config.LightningDir)
-	for !lightning.IsUp() {
-		// spin...
-		time.Sleep(10 * time.Millisecond)
-	}
+	lightning.StartUp(config.RpcFile, config.LightningDir)
 	channels, _ := lightning.ListChannels()
 	log.Printf("You know about %d channels", len(channels))
 ```

@@ -28,13 +28,13 @@ func (l *Lightning) SetTimeout(secs uint) {
 
 func (l *Lightning) StartUp(rpcfile, lightningDir string) {
 	up := make(chan bool)
-	go func(up chan bool, l *Lightning) {
-		l.isUp = <-up
-	}(up, l)
-	err := l.client.SocketStart(filepath.Join(lightningDir, rpcfile), up)
-	if err != nil {
-		log.Fatal(err)
-	}
+	go func(l *Lightning, rpcfile, lightningDir string, up chan bool) {
+		err := l.client.SocketStart(filepath.Join(lightningDir, rpcfile), up)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(l, rpcfile, lightningDir, up)
+	l.isUp = <-up
 }
 
 func (l *Lightning) Shutdown() {
