@@ -181,7 +181,7 @@ type RouteRequest struct {
 	Cltv          uint    `json:"cltv"`
 	FromId        string  `json:"fromid,omitempty"`
 	FuzzPercent   float32 `json:"fuzzpercent"`
-	Seed          string  `json:"seed,omitempty'`
+	Seed          string  `json:"seed,omitempty"`
 }
 
 type Route struct {
@@ -448,9 +448,9 @@ type DecodedBolt11 struct {
 	MilliSatoshis      uint64      `json:"msatoshi"`
 	Description        string      `json:"description"`
 	DescriptionHash    string      `json:"description_hash"`
-	MinFinalCltvExpiry float64     `json:"min_final_cltv_expiry"`
+	MinFinalCltvExpiry int	       `json:"min_final_cltv_expiry"`
 	Fallbacks          []Fallback  `json:"fallbacks"`
-	Routes             []BoltRoute `json:"routes"`
+	Routes             [][]BoltRoute `json:"routes"`
 	Extra              []BoltExtra `json:"extra"`
 	PaymentHash        string      `json:"payment_hash"`
 	Signature          string      `json:"signature"`
@@ -957,7 +957,7 @@ type CloseResult struct {
 	Tx   string `json:"tx"`
 	TxId string `json:"txid"`
 	// todo: enum (mutual, unilateral)
-	Type string `json:'type"`
+	Type string `json:"type"`
 }
 
 // Close the channel with peer {id}, timing out with {timeout} seconds.
@@ -1209,7 +1209,7 @@ func (a AddressType) String() string {
 }
 
 // Get new Bech32 address for the internal wallet.
-func (l *Lightning) NewAddr() (interface{}, error) {
+func (l *Lightning) NewAddr() (string, error) {
 	return l.NewAddressOfType(Bech32)
 }
 
@@ -1290,7 +1290,7 @@ type Output struct {
 	TxId     string `json:"txid"`
 	Output   uint   `json:"output"`
 	OldState uint   `json:"oldstate"`
-	NewState uint   `json:"newstate'`
+	NewState uint   `json:"newstate"`
 }
 
 // Synchronize the state of our funds with bitcoind
@@ -1360,14 +1360,14 @@ type FeeRateEstimate struct {
 type OnchainEstimate struct {
 	OpeningChannelSatoshis  uint64 `json:"opening_channel_satoshis"`
 	MutualCloseSatoshis     uint64 `json:"mutual_close_satoshis"`
-	UnilateralCloseSatoshis uint64 `json:"unilateral_close_satoshis'`
+	UnilateralCloseSatoshis uint64 `json:"unilateral_close_satoshis"`
 }
 
 type FeeRateDetails struct {
 	Urgent        int `json:"urgent"`
 	Normal        int `json:"normal"`
 	Slow          int `json:"slow"`
-	MinAcceptable int `json:'min_acceptable"`
+	MinAcceptable int `json:"min_acceptable"`
 	MaxAcceptable int `json:"max_acceptable"`
 }
 
