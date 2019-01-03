@@ -1435,7 +1435,6 @@ func writer(outPipe io.Writer, replyQueue chan []byte, t *testing.T) {
 	out := bufio.NewWriter(outPipe)
 	twoNewlines := []byte("\n\n")
 	for reply := range replyQueue {
-		println(string(reply))
 		reply = append(reply, twoNewlines...)
 		out.Write(reply)
 		out.Flush()
