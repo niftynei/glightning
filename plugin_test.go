@@ -104,9 +104,9 @@ func TestInit(t *testing.T) {
 	plugin.RegisterOption(golight.NewOption("greeting", "How you'd like to be called", "Mary"))
 	plugin.RegisterMethod(golight.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
 
-	initJson := "{\"jsonrpc\":\"2.0\",\"method\":\"init\",\"params\":{\"options\":{\"greeting\":\"Jenny\"},\"configuration\":{\"rpc-file\":\"rpc.file\",\"lightning-dir\":\"dirforlightning\"}}}\n\n"
+	initJson := "{\"jsonrpc\":\"2.0\",\"method\":\"init\",\"params\":{\"options\":{\"greeting\":\"Jenny\"},\"configuration\":{\"rpc-file\":\"rpc.file\",\"lightning-dir\":\"dirforlightning\"}},\"id\":1}\n\n"
 
-	expectedJson := "{\"jsonrpc\":\"2.0\",\"result\":\"ok\",\"id\":null}"
+	expectedJson := "{\"jsonrpc\":\"2.0\",\"result\":\"ok\",\"id\":1}"
 	runTest(t, plugin, initJson, expectedJson)
 }
 
@@ -172,5 +172,3 @@ func runTest(t *testing.T, plugin *golight.Plugin, inputMsg, expectedMsg string)
 	bytesRead := scanner.Bytes()
 	assert.Equal(t, expectedMsg, string(bytesRead))
 }
-
-// todo: try using stdin and stdout as pipes?
