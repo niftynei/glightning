@@ -165,7 +165,7 @@ func processMsg(s *Server, data []byte) {
 	}
 
 	// this is a subscription. we won't call you back.
-	if request.Id  == nil {
+	if request.Id == nil {
 		request.Method.(ServerMethod).Call()
 		return
 	}

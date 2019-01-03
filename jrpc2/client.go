@@ -57,7 +57,7 @@ func (c *Client) SocketStart(socket string, up chan bool) error {
 	defer conn.Close()
 	go func(conn net.Conn, up chan bool) {
 		if up != nil {
-			up<-true
+			up <- true
 		}
 		c.readQueue(conn)
 	}(conn, up)
@@ -168,7 +168,7 @@ func (c *Client) Request(m Method, resp interface{}) error {
 	}
 }
 
-// Hangs until a response comes. Be aware that this may never 
+// Hangs until a response comes. Be aware that this may never
 // terminate.
 func (c *Client) RequestNoTimeout(m Method, resp interface{}) error {
 	if c.shutdown {
