@@ -8,7 +8,7 @@ More details on c-lightning plugins can be found in the [c-lightning docs](https
 
 
 ## Plugins: How to Use
-`golight` builds upon the method paradigm established in `jrpc2`. Options, RpcMethods, and Subscriptions all must be registered on the plugin prior to start in order to be included in your manifest. 
+`golight` builds upon the method paradigm established in [`jrpc2`](jrpc2/README.md). Options, RpcMethods, and Subscriptions all must be registered on the plugin prior to start in order to be included in your manifest. 
 
 RpcMethods and Subscriptons are both a form of `jrpc2.Method`. 
 
