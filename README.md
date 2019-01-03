@@ -141,7 +141,7 @@ The c-lightning plugin subsystem uses stdin and stdout as its communication pipe
 
 
 ## Work in Progress
-Please note that `golight` is currently a work in progress. Although most of the RPC commands are provided, they have *not* all been tested yet. You will probably run into bugs when attempting to use them. They're in the process of being tested.
+Please note that `golight` is currently a work in progress. 
 
 Futher, the API, provided as is and is subject to revision without warning.
 
@@ -149,12 +149,14 @@ The author hereby acknowledges the boilerplate-y nature of the method definition
 
 ### Lightning RPC
 
-The lightning RPC functionality is currently untested, except for the following commands. All others are provided as is (and will be tested ... soon).
-
-- listchannels  
-- listpeers  
-
 The following RPC non-dev methods need to be added
 
 - delexpiredinvoice  
 - autocleaninvoice  
+
+Note that most of the 'dev' commands aren't well tested, and that many of them require you to set various flags at compile or configuration time (of lightningd) in order to use them. You'll need to at least have configured your c-lightning build into developer mode, ie:
+
+```
+cwd/lightning$ ./configure --enable-developer
+```
+
