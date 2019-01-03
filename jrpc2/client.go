@@ -99,7 +99,7 @@ func (c *Client) setupWriteQueue(outW io.Writer) {
 
 func (c *Client) readQueue(in io.Reader) {
 	decoder := json.NewDecoder(in)
-	for {
+	for !c.shutdown {
 		var rawResp RawResponse
 		if err := decoder.Decode(&rawResp); err == io.EOF {
 			break
