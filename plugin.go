@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	Connect string = "connect"
+	Connect    string = "connect"
 	Disconnect string = "disconnect"
 )
 
 type ConnectSubscription struct {
-	PeerId string	`json:"id"`
-	Address string	`json:"address"`
+	PeerId  string `json:"id"`
+	Address string `json:"address"`
 }
 
 func (s *ConnectSubscription) Name() string {
@@ -31,7 +31,7 @@ func (s *ConnectSubscription) New() interface{} {
 }
 
 type DisconnectSubscription struct {
-	PeerId string	`json:"id"`
+	PeerId string `json:"id"`
 }
 
 func (s *DisconnectSubscription) Name() string {
@@ -142,9 +142,9 @@ func NewManifestRpcMethod(p *Plugin) *RpcMethod {
 }
 
 type Manifest struct {
-	Options    []*Option    `json:"options"`
-	RpcMethods []*RpcMethod `json:"rpcmethods"`
-	Subscriptions []string	`json:"subscriptions,omitempty"`
+	Options       []*Option    `json:"options"`
+	RpcMethods    []*RpcMethod `json:"rpcmethods"`
+	Subscriptions []string     `json:"subscriptions,omitempty"`
 }
 
 func (gm GetManifestMethod) Name() string {
@@ -249,14 +249,14 @@ func (p *Plugin) Log(message string, level LogLevel) {
 }
 
 type Plugin struct {
-	server      *jrpc2.Server
-	options     map[string]*Option
-	methods     map[string]*RpcMethod
+	server        *jrpc2.Server
+	options       map[string]*Option
+	methods       map[string]*RpcMethod
 	subscriptions []string
-	initialized bool
-	initFn      func(plugin *Plugin, options map[string]string, c *Config)
-	Config      *Config
-	stopped     bool
+	initialized   bool
+	initFn        func(plugin *Plugin, options map[string]string, c *Config)
+	Config        *Config
+	stopped       bool
 }
 
 func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plugin {

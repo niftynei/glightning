@@ -5,7 +5,6 @@ import (
 	"github.com/niftynei/golight/jrpc2"
 	"log"
 	"path/filepath"
-	"reflect"
 )
 
 // This file's the one that holds all the objects for the
@@ -13,7 +12,7 @@ import (
 
 type Lightning struct {
 	client *jrpc2.Client
-	isUp bool
+	isUp   bool
 }
 
 func NewLightning() *Lightning {
@@ -69,6 +68,7 @@ type PeerChannel struct {
 	ScratchTxId                      string   `json:"scratch_txid"`
 	Owner                            string   `json:"owner"`
 	ShortChannelId                   string   `json:"short_channel_id"`
+	ChannelDirection                 int      `json:"channel_direction"`
 	ChannelId                        string   `json:"channel_id"`
 	FundingTxId                      string   `json:"funding_txid"`
 	Funding                          string   `json:"funding"`
@@ -81,7 +81,7 @@ type PeerChannel struct {
 	MaxHtlcValueInFlightMilliSatoshi uint64   `json:"max_htlc_value_in_flight_msat"`
 	TheirChannelReserveSatoshi       uint64   `json:"their_channel_reserve_satoshis"`
 	OurChannelReserveSatoshi         uint64   `json:"our_channel_reserve_satoshis"`
-	SpendableMilliSatoshi            uint64   `json:"spendable_msatoshis"`
+	SpendableMilliSatoshi            uint64   `json:"spendable_msatoshi"`
 	HtlcMinMilliSatoshi              uint64   `json:"htlc_minimum_msat"`
 	TheirToSelfDelay                 uint     `json:"their_to_self_delay"`
 	OurToSelfDelay                   uint     `json:"our_to_self_delay"`
@@ -94,7 +94,7 @@ type PeerChannel struct {
 	OutMilliSatoshiOffered           uint64   `json:"out_msatoshi_offered"`
 	OutPaymentsFulfilled             uint64   `json:"out_payments_fulfilled"`
 	OutMilliSatoshiFulfilled         uint64   `json:"out_msatoshi_fulfilled"`
-	Htlcs                            []*Htlc   `json:"htlcs"`
+	Htlcs                            []*Htlc  `json:"htlcs"`
 }
 
 type Htlc struct {
@@ -141,10 +141,6 @@ func (ln *ListNodeRequest) Name() string {
 	return "listnodes"
 }
 
-type Nodes struct {
-	Nodes []Node `json:"nodes"`
-}
-
 type Node struct {
 	Id             string    `json:"nodeid"`
 	Alias          string    `json:"alias"`
@@ -156,21 +152,23 @@ type Node struct {
 
 type Address struct {
 	// todo: map to enum (ipv4, ipv6, torv2, torv3)
-	Type    string `json:"type"`
-	Address string `json:"address"`
-	Port    int    `json:"port"`
+	Type string `json:"type"`
+	Addr string `json:"address"`
+	Port int    `json:"port"`
 }
 
 // Get all nodes in our local network view, filter on node {id},
 // if provided
-func (l *Lightning) GetNode(nodeId string) (*Nodes, error) {
-	var result Nodes
+func (l *Lightning) GetNode(nodeId string) ([]Node, error) {
+	var result struct {
+		Nodes []Node `json:"nodes"`
+	}
 	err := l.client.Request(&ListNodeRequest{nodeId}, &result)
-	return &result, err
+	return result.Nodes, err
 }
 
 // List all nodes in our local network view
-func (l *Lightning) ListNodes() (*Nodes, error) {
+func (l *Lightning) ListNodes() ([]Node, error) {
 	return l.GetNode("")
 }
 
@@ -185,7 +183,7 @@ type RouteRequest struct {
 }
 
 type Route struct {
-	Route []RouteHop `json:"route"`
+	Hops []RouteHop `json:"route"`
 }
 
 type RouteHop struct {
@@ -199,11 +197,15 @@ func (rr *RouteRequest) Name() string {
 	return "getroute"
 }
 
+func (l *Lightning) GetRouteSimple(peerId string, msats uint64, riskfactor float32) ([]RouteHop, error) {
+	return l.GetRoute(peerId, msats, riskfactor, 0, "", 0, "")
+}
+
 // Show route to {id} for {msatoshis}, using a {riskfactor} and optional
 // {cltv} value (defaults to 9). If specified, search from {fromId} otherwise
 // use current node as the source. Randomize the route with up to {fuzzpercent}
 // (0.0 -> 100.0, default 5.0) using {seed} as an arbitrary-size string seed.
-func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cltv uint, fromId string, fuzzpercent float32, seed string) (*Route, error) {
+func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cltv uint, fromId string, fuzzpercent float32, seed string) ([]RouteHop, error) {
 	if peerId == "" {
 		return nil, fmt.Errorf("Must provide a peerId to route to")
 	}
@@ -236,7 +238,7 @@ func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cl
 		FuzzPercent:   fuzzpercent,
 		Seed:          seed,
 	}, &result)
-	return &result, err
+	return result.Hops, err
 }
 
 type ListChannelRequest struct {
@@ -248,18 +250,18 @@ func (lc *ListChannelRequest) Name() string {
 }
 
 type Channel struct {
-	Source              string  `json:"source"`
-	Destination         string  `json:"destination"`
-	ShortChannelId      string  `json:"short_channel_id"`
-	IsPublic            bool    `json:"public"`
-	Satoshis            uint64  `json:"satoshis"`
-	MessageFlags        uint    `json:"message_flags"`
-	ChannelFlags        uint    `json:"channel_flags"`
-	IsActive            bool    `json:"active"`
-	LastUpdate          uint    `json:"last_update"`
-	BaseFeeMillisatoshi uint64  `json:"base_fee_millisatoshi"`
-	FeePerMillionth     float64 `json:"fee_per_millionth"`
-	Delay               uint    `json:"delay"`
+	Source              string `json:"source"`
+	Destination         string `json:"destination"`
+	ShortChannelId      string `json:"short_channel_id"`
+	IsPublic            bool   `json:"public"`
+	Satoshis            uint64 `json:"satoshis"`
+	MessageFlags        uint   `json:"message_flags"`
+	ChannelFlags        uint   `json:"channel_flags"`
+	IsActive            bool   `json:"active"`
+	LastUpdate          uint   `json:"last_update"`
+	BaseFeeMillisatoshi uint64 `json:"base_fee_millisatoshi"`
+	FeePerMillionth     uint64 `json:"fee_per_millionth"`
+	Delay               uint   `json:"delay"`
 }
 
 // Get channel by {shortChanId}
@@ -294,6 +296,9 @@ type Invoice struct {
 	Bolt11          string `json:"bolt11"`
 	WarningOffline  string `json:"warning_offline"`
 	WarningCapacity string `json:"warning_capacity"`
+	Label           string `json:"label"`
+	Status          string `json:"status"`
+	Description     string `json:"description"`
 }
 
 // Creates an invoice with a value of "any", that can be paid with any amount
@@ -330,7 +335,7 @@ func (l *Lightning) CreateInvoice(msat uint64, label, description string, expiry
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, string(msat), label, description, expirySeconds, fallbacks, preimage)
+	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage)
 
 }
 
@@ -394,7 +399,7 @@ func (l *Lightning) DeleteInvoice(label, status string) (*Invoice, error) {
 }
 
 type WaitAnyInvoiceRequest struct {
-	LastPayIndex uint `json:"lastpay_index"`
+	LastPayIndex uint `json:"lastpay_index,omitempty"`
 }
 
 func (r *WaitAnyInvoiceRequest) Name() string {
@@ -407,10 +412,12 @@ func (r *WaitAnyInvoiceRequest) Name() string {
 //
 // The 'pay index' is a monotonically-increasing number assigned to
 // an invoice when it gets paid. The first valid 'pay index' is 1.
-func (l *Lightning) WaitAnyInvoice(lastPayIndex uint) (interface{}, error) {
-	var result interface{}
-	err := l.client.Request(&WaitAnyInvoiceRequest{lastPayIndex}, result)
-	return result, err
+//
+// This blocks until it receives a response.
+func (l *Lightning) WaitAnyInvoice(lastPayIndex uint) (*CompletedInvoice, error) {
+	var result CompletedInvoice
+	err := l.client.RequestNoTimeout(&WaitAnyInvoiceRequest{lastPayIndex}, &result)
+	return &result, err
 }
 
 type WaitInvoiceRequest struct {
@@ -421,13 +428,29 @@ func (r *WaitInvoiceRequest) Name() string {
 	return "waitinvoice"
 }
 
-func (l *Lightning) WaitInvoice(label string) (*Invoice, error) {
+type CompletedInvoice struct {
+	Label                string `json:"label"`
+	Bolt11               string `json:"bolt11"`
+	PaymentHash          string `json:"payment_hash"`
+	Status               string `json:"status"`
+	Description          string `json:"description"`
+	PayIndex             int    `json:"pay_index"`
+	MilliSatoshi         uint64 `json:"msatoshi"`
+	MilliSatoshiReceived uint64 `json:"msatoshi_received"`
+	PaidAt               uint64 `json:"paid_at"`
+	ExpiresAt            uint64 `json:"expires_at"`
+}
+
+// Wait for invoice to be filled or for invoice to expire.
+// This blocks until a result is returned from the server and by
+// passes client timeout safeguards.
+func (l *Lightning) WaitInvoice(label string) (*CompletedInvoice, error) {
 	if label == "" {
 		return nil, fmt.Errorf("Must call wait invoice with a label")
 	}
 
-	var result Invoice
-	err := l.client.Request(&WaitInvoiceRequest{label}, &result)
+	var result CompletedInvoice
+	err := l.client.RequestNoTimeout(&WaitInvoiceRequest{label}, &result)
 	return &result, err
 }
 
@@ -441,19 +464,19 @@ func (r *DecodePayRequest) Name() string {
 }
 
 type DecodedBolt11 struct {
-	Currency           string      `json:"currency"`
-	CreatedAt          uint64      `json:"created_at"`
-	Expiry             uint64      `json:"expiry"`
-	Payee              string      `json:"payee"`
-	MilliSatoshis      uint64      `json:"msatoshi"`
-	Description        string      `json:"description"`
-	DescriptionHash    string      `json:"description_hash"`
-	MinFinalCltvExpiry int	       `json:"min_final_cltv_expiry"`
-	Fallbacks          []Fallback  `json:"fallbacks"`
+	Currency           string        `json:"currency"`
+	CreatedAt          uint64        `json:"created_at"`
+	Expiry             uint64        `json:"expiry"`
+	Payee              string        `json:"payee"`
+	MilliSatoshis      uint64        `json:"msatoshi"`
+	Description        string        `json:"description"`
+	DescriptionHash    string        `json:"description_hash"`
+	MinFinalCltvExpiry int           `json:"min_final_cltv_expiry"`
+	Fallbacks          []Fallback    `json:"fallbacks"`
 	Routes             [][]BoltRoute `json:"routes"`
-	Extra              []BoltExtra `json:"extra"`
-	PaymentHash        string      `json:"payment_hash"`
-	Signature          string      `json:"signature"`
+	Extra              []BoltExtra   `json:"extra"`
+	PaymentHash        string        `json:"payment_hash"`
+	Signature          string        `json:"signature"`
 }
 
 type Fallback struct {
@@ -588,14 +611,14 @@ type DevHashResult struct {
 }
 
 // Show SHA256 of {secret}
-func (l *Lightning) DevHash(secret string) (*DevHashResult, error) {
+func (l *Lightning) DevHash(secret string) (string, error) {
 	if secret == "" {
-		return nil, fmt.Errorf("Must pass in a valid secret to hash")
+		return "", fmt.Errorf("Must pass in a valid secret to hash")
 	}
 
 	var result DevHashResult
 	err := l.client.Request(&DevRHashRequest{secret}, &result)
-	return &result, err
+	return result.RHash, err
 }
 
 type DevCrashRequest struct{}
@@ -661,7 +684,9 @@ type NodeInfo struct {
 }
 
 type AddressInternal struct {
-	Address
+	Type    string  `json:"type"`
+	Addr    string  `json:"address"`
+	Port    int     `json:"port"`
 	Socket  string  `json:"socket"`
 	Service Address `json:"service"`
 	Name    string  `json:"name"`
@@ -674,10 +699,10 @@ func (l *Lightning) GetInfo() (*NodeInfo, error) {
 }
 
 type SendPayRequest struct {
-	Route         *Route	  `json:"route"`
-	PaymentHash   string      `json:"payment_hash"`
-	Desc          string      `json:"description,omitempty"`
-	MilliSatoshis uint64      `json:"msatoshi,omitempty"`
+	Route         []RouteHop `json:"route"`
+	PaymentHash   string     `json:"payment_hash"`
+	Desc          string     `json:"description,omitempty"`
+	MilliSatoshis uint64     `json:"msatoshi,omitempty"`
 }
 
 func (r *SendPayRequest) Name() string {
@@ -727,12 +752,11 @@ type SendPayResult struct {
 // prevents accidental multiple payments. Calls with the same 'paymentHash',
 // 'msat' and destination as a previous successful payment will return
 // immediately with a success, even if the route is different.
-func (l *Lightning) SendPay(route *Route, paymentHash, description string, msat uint64) (*SendPayResult, error) {
+func (l *Lightning) SendPay(route []RouteHop, paymentHash, description string, msat uint64) (*SendPayResult, error) {
 	if paymentHash == "" {
 		return nil, fmt.Errorf("Must specify a paymentHash to pay")
 	}
-	// todo: an actual 'route' object specification
-	if reflect.ValueOf(route).IsNil() {
+	if len(route) == 0 {
 		return nil, fmt.Errorf("Must specify a route to send payment along")
 	}
 
@@ -748,7 +772,7 @@ func (l *Lightning) SendPay(route *Route, paymentHash, description string, msat 
 
 type WaitSendPayRequest struct {
 	PaymentHash string `json:"payment_hash"`
-	Timeout     uint   `json:"timeout"`
+	Timeout     uint   `json:"timeout,omitempty"`
 }
 
 func (r *WaitSendPayRequest) Name() string {
@@ -762,15 +786,16 @@ func (r *WaitSendPayRequest) Name() string {
 // 200 error code (payment still in progress) if timeout elapses
 // before the payment is definitively concluded (success or fail).
 // If no 'timeout' is provided, the call waits indefinitely.
+//
+// NB: Blocking. Bypasses the default client request timeout mechanism
 func (l *Lightning) WaitSendPay(paymentHash string, timeout uint) (*PaymentFields, error) {
 	if paymentHash == "" {
 		return nil, fmt.Errorf("Must provide a payment hash to pay")
 	}
 
 	var result PaymentFields
-	err := l.client.Request(&WaitSendPayRequest{paymentHash, timeout}, &result)
+	err := l.client.RequestNoTimeout(&WaitSendPayRequest{paymentHash, timeout}, &result)
 	return &result, err
-
 }
 
 type PayRequest struct {
@@ -792,22 +817,22 @@ func (r *PayRequest) Name() string {
 // payment failures, that for now we totally lose
 type PaymentSuccess struct {
 	PaymentFields
-	GetRouteTries int           `json:"getroute_tries"`
-	SendPayTries  int           `json:"sendpay_tries"`
-	Route         []RouteHop    `json:"route"`
-	Failures      []PayFailures `json:"failures"`
+	GetRouteTries int          `json:"getroute_tries"`
+	SendPayTries  int          `json:"sendpay_tries"`
+	Route         []RouteHop   `json:"route"`
+	Failures      []PayFailure `json:"failures"`
 }
 
-type PayFailures struct {
-	Message              string     `json:"message"`
-	Type                 string     `json:"type"`
-	OnionReply           string     `json:"onionreply"`
-	ErringIndex          int        `json:"erring_index"`
-	FailCode             int        `json:"failcode"`
-	ErringNode           string     `json:"erring_node"`
-	ErringShortChannelId string     `json:"erring_channel"`
-	ChannelUpdate        string     `json:"channel_update"`
-	Route                []RouteHop `json:"route"`
+type PayFailure struct {
+	Message       string     `json:"message"`
+	Type          string     `json:"type"`
+	OnionReply    string     `json:"onionreply"`
+	ErringIndex   int        `json:"erring_index"`
+	FailCode      int        `json:"failcode"`
+	ErringNode    string     `json:"erring_node"`
+	ErringChannel string     `json:"erring_channel"`
+	ChannelUpdate string     `json:"channel_update"`
+	Route         []RouteHop `json:"route"`
 }
 
 func (l *Lightning) PayBolt(bolt11 string) (*PaymentSuccess, error) {
@@ -856,7 +881,7 @@ func (l *Lightning) Pay(req *PayRequest) (*PaymentSuccess, error) {
 		return nil, fmt.Errorf("MaxFeePercent must be a percentage. %f", req.MaxFeePercent)
 	}
 	var result PaymentSuccess
-	err := l.client.Request(req, &result)
+	err := l.client.RequestNoTimeout(req, &result)
 	return &result, err
 }
 
@@ -867,6 +892,10 @@ type ListPaymentRequest struct {
 
 func (r *ListPaymentRequest) Name() string {
 	return "listpayments"
+}
+
+func (l *Lightning) ListPaymentsAll() ([]PaymentFields, error) {
+	return l.listPayments(&ListPaymentRequest{})
 }
 
 // Show outgoing payments, regarding {bolt11}
@@ -915,13 +944,24 @@ func (l *Lightning) Connect(peerId, host string, port uint) (string, error) {
 }
 
 type FundChannelRequest struct {
-	Id       string  `json:"id"`
-	Satoshi  uint64  `json:"satoshi"`
-	FeeRate  float32 `json:"feerate,omitempty"`
-	Announce bool    `json:"announce,omitempty"`
+	Id       string `json:"id"`
+	Amount   uint64 `json:"satoshi"`
+	FeeRate  string `json:"feerate,omitempty"`
+	Announce bool   `json:"announce"`
+}
+
+type FundChannelRequestAll struct {
+	Id       string `json:"id"`
+	Amount   string `json:"satoshi"`
+	FeeRate  string `json:"feerate,omitempty"`
+	Announce bool   `json:"announce"`
 }
 
 func (r *FundChannelRequest) Name() string {
+	return "fundchannel"
+}
+
+func (r *FundChannelRequestAll) Name() string {
 	return "fundchannel"
 }
 
@@ -931,15 +971,40 @@ type FundChannelResult struct {
 	ChannelId   string `json:"channel_id"`
 }
 
+// Fund channel, defaults to public channel and default feerate.
+func (l *Lightning) FundChannel(id string, amount *SatoshiAmount) (*FundChannelResult, error) {
+	return l.FundChannelExt(id, amount, nil, true)
+}
+
 // Fund channel with node {id} using {satoshi} satoshis, with feerate of {feerate}. Uses
 // default feerate if unset.
 // If announce is false, channel announcements will not be sent.
-func (l *Lightning) FundChannel(id string, satoshis uint64, feerate float32, announce bool) (*FundChannelResult, error) {
-	if feerate < 0 {
-		return nil, fmt.Errorf("Feerate must be positive %f", feerate)
+func (l *Lightning) FundChannelExt(id string, amount *SatoshiAmount, feerate *FeeRate, announce bool) (*FundChannelResult, error) {
+	if amount == nil || (amount.Amount == 0 && !amount.SendAll) {
+		return nil, fmt.Errorf("Must set satoshi amount to send")
+	}
+	if amount.SendAll {
+		req := &FundChannelRequestAll{}
+		req.Id = id
+		req.Amount = amount.String()
+		req.Announce = announce
+		if feerate != nil {
+			req.FeeRate = feerate.String()
+		}
+		var result FundChannelResult
+		err := l.client.Request(req, &result)
+		return &result, err
+	}
+
+	req := &FundChannelRequest{}
+	req.Id = id
+	req.Amount = amount.Amount
+	req.Announce = announce
+	if feerate != nil {
+		req.FeeRate = feerate.String()
 	}
 	var result FundChannelResult
-	err := l.client.Request(&FundChannelRequest{id, satoshis, feerate, announce}, &result)
+	err := l.client.Request(req, &result)
 	return &result, err
 }
 
@@ -958,6 +1023,10 @@ type CloseResult struct {
 	TxId string `json:"txid"`
 	// todo: enum (mutual, unilateral)
 	Type string `json:"type"`
+}
+
+func (l *Lightning) CloseNormal(id string) (*CloseResult, error) {
+	return l.Close(id, false, 0)
 }
 
 // Close the channel with peer {id}, timing out with {timeout} seconds.
@@ -1087,15 +1156,25 @@ type MemLeak struct {
 }
 
 // Show unreferenced memory objects
-func (l *Lightning) DevMemLeak() (*MemLeakResult, error) {
+func (l *Lightning) DevMemLeak() ([]*MemLeak, error) {
 	var result MemLeakResult
 	err := l.client.Request(&DevMemLeakRequest{}, &result)
-	return &result, err
+	return result.Leaks, err
+}
+
+type WithdrawRequestAll struct {
+	Destination string `json:"destination"`
+	Satoshi     string `json:"satoshi"`
+	FeeRate     string `json:"feerate,omitempty"`
+}
+
+func (r *WithdrawRequestAll) Name() string {
+	return "withdraw"
 }
 
 type WithdrawRequest struct {
 	Destination string `json:"destination"`
-	Satoshi     string `json:"satoshi"`
+	Satoshi     uint64 `json:"satoshi"`
 	FeeRate     string `json:"feerate,omitempty"`
 }
 
@@ -1108,7 +1187,19 @@ func (s *SatoshiAmount) String() string {
 	if s.SendAll {
 		return "all"
 	}
-	return string(s.Amount)
+	return fmt.Sprint(s.Amount)
+}
+
+func NewAmount(amount int) *SatoshiAmount {
+	return &SatoshiAmount{
+		Amount: uint64(amount),
+	}
+}
+
+func NewAllAmount() *SatoshiAmount {
+	return &SatoshiAmount{
+		SendAll: true,
+	}
 }
 
 type FeeDirective int
@@ -1146,10 +1237,24 @@ func (r FeeRateStyle) String() string {
 
 func (f *FeeRate) String() string {
 	if f.Rate > 0 {
-		return string(f.Rate) + f.Style.String()
+		return fmt.Sprint(f.Rate) + f.Style.String()
 	}
 	// defaults to 'normal'
 	return f.Directive.String()
+}
+
+func NewFeeRate(style FeeRateStyle, rate uint) *FeeRate {
+	return &FeeRate{
+		Style: style,
+		Rate:  rate,
+	}
+}
+
+func NewFeeRateByDirective(style FeeRateStyle, directive FeeDirective) *FeeRate {
+	return &FeeRate{
+		Style:     style,
+		Directive: directive,
+	}
 }
 
 func (r *WithdrawRequest) Name() string {
@@ -1177,13 +1282,29 @@ func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate 
 	if amount == nil || (amount.Amount == 0 && !amount.SendAll) {
 		return nil, fmt.Errorf("Must set satoshi amount to send")
 	}
-	request := &WithdrawRequest{
-		Destination: destination,
-		Satoshi:     amount.String(),
+	if destination == "" {
+		return nil, fmt.Errorf("Must supply a destination for withdrawal")
 	}
-	if feerate != nil {
-		request.FeeRate = feerate.String()
+
+	var request jrpc2.Method
+	if amount.SendAll {
+		request = &WithdrawRequestAll{
+			Destination: destination,
+			Satoshi:     amount.String(),
+		}
+		if feerate != nil {
+			request.(*WithdrawRequestAll).FeeRate = feerate.String()
+		}
+	} else {
+		request = &WithdrawRequest{
+			Destination: destination,
+			Satoshi:     amount.Amount,
+		}
+		if feerate != nil {
+			request.(*WithdrawRequest).FeeRate = feerate.String()
+		}
 	}
+
 	var result WithdrawResult
 	err := l.client.Request(request, &result)
 	return &result, err
@@ -1266,7 +1387,7 @@ type Forwarding struct {
 	InChannel       string `json:"in_channel"`
 	OutChannel      string `json:"out_channel"`
 	MilliSatoshiIn  uint64 `json:"in_msatoshi"`
-	MilliSatoshiOut uint64 `json:"out_msathosi"`
+	MilliSatoshiOut uint64 `json:"out_msatoshi"`
 	Fee             uint64 `json:"fee"`
 	Status          string `json:"status"`
 }
@@ -1276,7 +1397,7 @@ func (l *Lightning) ListForwards() ([]Forwarding, error) {
 	var result struct {
 		Forwards []Forwarding `json:"forwards"`
 	}
-	err := l.client.Request(&ListForwardsRequest{}, result)
+	err := l.client.Request(&ListForwardsRequest{}, &result)
 	return result.Forwards, err
 }
 
@@ -1338,7 +1459,7 @@ func (r *DisconnectRequest) Name() string {
 // Returns a nil response on success
 func (l *Lightning) Disconnect(peerId string, force bool) error {
 	var result interface{}
-	err := l.client.Request(&DisconnectRequest{peerId, force}, result)
+	err := l.client.Request(&DisconnectRequest{peerId, force}, &result)
 	return err
 }
 

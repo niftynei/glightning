@@ -168,6 +168,25 @@ func (c *Client) Request(m Method, resp interface{}) error {
 	}
 }
 
+// Hangs until a response comes. Be aware that this may never 
+// terminate.
+func (c *Client) RequestNoTimeout(m Method, resp interface{}) error {
+	if c.shutdown {
+		return fmt.Errorf("Client is shutdown")
+	}
+	id := c.NextId()
+	// set up to get a response back
+	replyChan := make(chan *RawResponse, 1)
+	c.pendingReq[id.Val()] = replyChan
+
+	// send the request out
+	req := &Request{id, m}
+	c.requestQueue <- req
+
+	rawResp := <-replyChan
+	return handleReply(rawResp, resp)
+}
+
 func handleReply(rawResp *RawResponse, resp interface{}) error {
 	if rawResp == nil {
 		return fmt.Errorf("Pipe closed unexpectedly, nil result")
