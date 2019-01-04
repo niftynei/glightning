@@ -102,13 +102,17 @@ func (c *Client) readQueue(in io.Reader) {
 	for !c.shutdown {
 		var rawResp RawResponse
 		if err := decoder.Decode(&rawResp); err == io.EOF {
+			c.Shutdown()
 			break
 		} else if err != nil {
-			c.Shutdown()
-			log.Fatal(err)
+			log.Print(err.Error())
+			break
 		}
 		go processResponse(c, &rawResp)
 	}
+
+	// there's a problem with the input, shutdown
+	c.Shutdown()
 }
 
 func processResponse(c *Client, resp *RawResponse) {

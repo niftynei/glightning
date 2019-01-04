@@ -59,6 +59,43 @@ func TestClientBadResponse(t *testing.T) {
 	assert.Equal(t, 0, answer)
 }
 
+func TestClientIncomingInvalidJson(t *testing.T) {
+	in, out, _, serverOut := setupWritePipes(t)
+
+	client := jrpc2.NewClient()
+	client.SetTimeout(1)
+	go client.StartUp(in, out)
+
+	logs := overrideLogger(t)
+	defer resetLogger()
+
+	ok := make(chan bool, 1)
+	go func(client *jrpc2.Client, ok chan bool) {
+		_, err := subtract(client, 5, 1)
+		assert.Equal(t, "Request timed out", err.Error())
+		ok <- true
+	}(client,ok)
+	// write junk to the client
+	junk := `{"jsonrpc":"2.0"}`
+
+	writer := bufio.NewWriter(serverOut)
+	writer.Write([]byte(junk))
+	writer.Flush()
+
+	// make sure we've heard back from the client side
+	select {
+	case <-ok:
+		buf := make([]byte, 1024)
+		n, _ := logs.Read(buf)
+		// check that we failed for a reason
+		assert.Equal(t, "Must send either a result or an error in a response\n", string(buf[20:n]))
+		assert.Equal(t, false, client.IsUp())
+	case <-time.After(4 * time.Second):
+		t.Logf("test timed out after %d", 4)
+		t.Fail()
+	}
+}
+
 type ServerSubtractString struct {
 	Minuend    int
 	Subtrahend int
