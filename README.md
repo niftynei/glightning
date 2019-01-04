@@ -77,34 +77,27 @@ plugin.RegisterMethod(rpcHello)
 ```
 
 
-### Beta: Subscribing to a notification stream
+### Subscribing to a notification stream
 
-Subscriptions are currently in beta, but they will allow your plugin to receive
-a notification every time an event matching the notification type occurs
-within c-lightning. The two beta notifications are `connect` and `disconnect`.
+Subscriptions allow your plugin to receive a notification every time an 
+event matching the notification type occurs within c-lightning. 
 
-`golight` provides a beta harness for the provided subscriptions. This requires
-creating a new struct that includes the 'harness' for the subscription you want 
-to provide a call for. By way of example, here's how you'd create a `connect`
-callback and register it with the plugin.
+The two currently supported notifications are `connect` and `disconnect`.
+
+By way of example, here's how you'd create a `connect` callback and 
+register it with the plugin.
 
 ```
-type Connect struct {
-	golight.ConnectSubscription
-}
-
-func (c *Connect) Call() (jrpc2.Result, error) {
-	log.Printf("Peer %s connected", c.PeerId)
-	return nil, nil
+func OnConnect(e *golight.ConnectEvent) {
+    log.Printf("Connected to %s\n", e.PeerId)
 }
 
 func main() {
 	plugin := golight.NewPlugin(initfn)
-	plugin.Subscribe(&Connect{})
+	plugin.SubscribeConnect(OnConnect)
 }
 
 ```
-
 
 
 ### Callback from Init
