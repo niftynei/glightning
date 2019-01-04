@@ -13,6 +13,7 @@ import (
 )
 
 type Subscription string
+
 const (
 	Connect    Subscription = "connect"
 	Disconnect Subscription = "disconnect"
@@ -41,7 +42,7 @@ func (e *ConnectEvent) Call() (jrpc2.Result, error) {
 
 type DisconnectEvent struct {
 	PeerId string `json:"id"`
-	cb func(d *DisconnectEvent)
+	cb     func(d *DisconnectEvent)
 }
 
 func (e *DisconnectEvent) Name() string {
@@ -312,7 +313,7 @@ func (p *Plugin) checkForMonkeyPatch() {
 		f, err := os.OpenFile("plugin.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Fatal("Unable to open log file for writing: " + err.Error())
-			 return
+			return
 		}
 		log.SetFlags(log.Ltime | log.Lshortfile)
 		log.SetOutput(f)
@@ -420,13 +421,13 @@ func (p *Plugin) getOptionSet() map[string]string {
 	return options
 }
 
-func (p *Plugin) SubscribeConnect(cb func (c *ConnectEvent)) {
+func (p *Plugin) SubscribeConnect(cb func(c *ConnectEvent)) {
 	p.subscribe(&ConnectEvent{
 		cb: cb,
 	})
 }
 
-func (p *Plugin) SubscribeDisconnect(cb func (c *DisconnectEvent)) {
+func (p *Plugin) SubscribeDisconnect(cb func(c *DisconnectEvent)) {
 	p.subscribe(&DisconnectEvent{
 		cb: cb,
 	})
