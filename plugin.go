@@ -12,34 +12,51 @@ import (
 	"strings"
 )
 
+type Subscription string
 const (
-	Connect    string = "connect"
-	Disconnect string = "disconnect"
+	Connect    Subscription = "connect"
+	Disconnect Subscription = "disconnect"
 )
 
-type ConnectSubscription struct {
-	PeerId  string `json:"id"`
-	Address string `json:"address"`
+type ConnectEvent struct {
+	PeerId  string  `json:"id"`
+	Address Address `json:"address"`
+	cb      func(*ConnectEvent)
 }
 
-func (s *ConnectSubscription) Name() string {
-	return Connect
+func (e *ConnectEvent) Name() string {
+	return string(Connect)
 }
 
-func (s *ConnectSubscription) New() interface{} {
-	return &ConnectSubscription{}
+func (e *ConnectEvent) New() interface{} {
+	return &ConnectEvent{
+		cb: e.cb,
+	}
 }
 
-type DisconnectSubscription struct {
+func (e *ConnectEvent) Call() (jrpc2.Result, error) {
+	e.cb(e)
+	return nil, nil
+}
+
+type DisconnectEvent struct {
 	PeerId string `json:"id"`
+	cb func(d *DisconnectEvent)
 }
 
-func (s *DisconnectSubscription) Name() string {
-	return Disconnect
+func (e *DisconnectEvent) Name() string {
+	return string(Disconnect)
 }
 
-func (s *DisconnectSubscription) New() interface{} {
-	return &DisconnectSubscription{}
+func (e *DisconnectEvent) New() interface{} {
+	return &DisconnectEvent{
+		cb: e.cb,
+	}
+}
+
+func (e *DisconnectEvent) Call() (jrpc2.Result, error) {
+	e.cb(e)
+	return nil, nil
 }
 
 type Option struct {
@@ -391,7 +408,19 @@ func (p *Plugin) getOptionSet() map[string]string {
 	return options
 }
 
-func (p *Plugin) Subscribe(subscription jrpc2.ServerMethod) {
+func (p *Plugin) SubscribeConnect(cb func (c *ConnectEvent)) {
+	p.subscribe(&ConnectEvent{
+		cb: cb,
+	})
+}
+
+func (p *Plugin) SubscribeDisconnect(cb func (c *DisconnectEvent)) {
+	p.subscribe(&DisconnectEvent{
+		cb: cb,
+	})
+}
+
+func (p *Plugin) subscribe(subscription jrpc2.ServerMethod) {
 	p.server.Register(subscription)
 	p.subscriptions = append(p.subscriptions, subscription.Name())
 }
