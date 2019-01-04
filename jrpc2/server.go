@@ -97,6 +97,9 @@ func (s *Server) listen(in io.Reader) error {
 	scanner.Split(scanDoubleNewline)
 	for scanner.Scan() && !s.shutdown {
 		msg := scanner.Bytes()
+		if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
+			log.Println(string(msg))
+		}
 		// todo: send this over a channel
 		// for processing, so the number
 		// of things we process at once
@@ -118,6 +121,9 @@ func (s *Server) setupWriteQueue(outWriter io.Writer) {
 		if err != nil {
 			log.Println(err.Error())
 			continue
+		}
+		if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
+			log.Println(string(data))
 		}
 		// append two newlines to the outgoing message
 		data = append(data, twoNewlines...)

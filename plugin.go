@@ -306,21 +306,33 @@ func (p *Plugin) checkForMonkeyPatch() {
 		return
 	}
 
+	// Use a logfile instead
+	filename, _ := os.LookupEnv("GOLIGHT_DEBUG_LOGFILE")
+	if filename != "" {
+		f, err := os.OpenFile("plugin.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal("Unable to open log file for writing: " + err.Error())
+			 return
+		}
+		log.SetFlags(log.Ltime | log.Lshortfile)
+		log.SetOutput(f)
+		return
+	}
+	// otherwise we send things out
+	// pipe logs out...
 	in, out := io.Pipe()
 	go func(in io.Reader, plugin *Plugin) {
 		// everytime we get a new message, log it thru c-lightning
 		scanner := bufio.NewScanner(in)
-		for scanner.Scan() && !p.stopped {
+		for scanner.Scan() && !plugin.stopped {
 			plugin.Log(scanner.Text(), Info)
 		}
 		if err := scanner.Err(); err != nil {
-			// print errors with logging to stderr
-			fmt.Fprintln(os.Stderr, "error with logging pipe:", err)
+			log.Fatal("can't print out to std err, killing..." + err.Error())
 		}
 	}(in, p)
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	log.SetOutput(out)
-	return
 }
 
 func (p *Plugin) RegisterMethod(m *RpcMethod) error {
