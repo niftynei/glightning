@@ -132,6 +132,23 @@ You can make any calls provided on the Lightning RPC then.
 ## Logging as a c-lightning Plugin
 The c-lightning plugin subsystem uses stdin and stdout as its communication pipes. As most logging would interfere with normal operation of the plugin `golight` overrides the `log` package to pipe all logs to c-lightning. When developing a plugin, it is best practice to use the `log` library write all print statements, so as not to interfere with normal operation of the plugin.
 
+You can override this by providing a logfile to write to via the environment variable `GOLIGHT_DEBUG_LOGFILE`. See [plugin debugging](#plugin_debugging).
+
+
+### Plugin Debugging
+
+`golight` provides a few environment variables to help with debugging.
+
+`GOLIGHT_DEBUG_LOGFILE`: If set, will log to the file named in this variable. Otherwise, sends logs back to c-lightning to be added to its internal log buffer.
+
+`GOLIGHT_DEBUG_IO`: Logs all json messages sent and received from c-lightning. Must be used in conjunction with `GOLIGHT_DEBUG_LOGFILE` to avoid creating a log loop.
+
+Example usage: 
+
+```
+$ GOLIGHT_DEBUG_IO=1 GOLIGHT_DEBUG_LOGFILE=plugin.log lightupfg --plugin=/path/to/plugin/exec
+```
+
 
 ## Work in Progress
 Please note that `golight` is currently a work in progress. 
