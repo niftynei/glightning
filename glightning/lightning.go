@@ -1,4 +1,4 @@
-package golight
+package glightning
 
 import (
 	"fmt"
@@ -73,6 +73,7 @@ type PeerChannel struct {
 	FundingTxId                      string   `json:"funding_txid"`
 	Funding                          string   `json:"funding"`
 	Status                           []string `json:"status"`
+	Private				 bool	  `json:"private"`
 	MilliSatoshiToUs                 uint64   `json:"msatoshi_to_us"`
 	MilliSatoshiToUsMin              uint64   `json:"msatoshi_to_us_min"`
 	MilliSatoshiToUsMax              uint64   `json:"msatoshi_to_us_max"`

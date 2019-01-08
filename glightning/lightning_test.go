@@ -1,9 +1,9 @@
-package golight_test
+package glightning_test
 
 import (
 	"bufio"
 	"fmt"
-	"github.com/niftynei/golight"
+	"github.com/niftynei/golight/glightning"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
@@ -72,15 +72,15 @@ func TestListPeers(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := []golight.Peer{
-		golight.Peer{
+	expected := []glightning.Peer{
+		glightning.Peer{
 			Id:             "02e3cd7849f177a46f137ae3bfc1a08fc6a90bf4026c74f83c1ecc8430c282fe96",
 			Connected:      true,
 			NetAddresses:   []string{"0.0.0.0:6677"},
 			GlobalFeatures: "11",
 			LocalFeatures:  "8a",
-			Channels: []golight.PeerChannel{
-				golight.PeerChannel{
+			Channels: []glightning.PeerChannel{
+				glightning.PeerChannel{
 					State:                            "CHANNELD_NORMAL",
 					ScratchTxId:                      "cd13ba846709958bfd073155283c3493f08f7db1bb4ef199c014559e5505d18d",
 					Owner:                            "lightning_channeld",
@@ -112,7 +112,7 @@ func TestListPeers(t *testing.T) {
 					OutMilliSatoshiOffered:   123,
 					OutPaymentsFulfilled:     123,
 					OutMilliSatoshiFulfilled: 123,
-					Htlcs:                    []*golight.Htlc{},
+					Htlcs:                    []*glightning.Htlc{},
 				},
 			},
 		},
@@ -140,8 +140,8 @@ func TestListForwards(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []golight.Forwarding{
-		golight.Forwarding{
+	assert.Equal(t, []glightning.Forwarding{
+		glightning.Forwarding{
 			InChannel:       "233:1:0",
 			OutChannel:      "263:1:0",
 			MilliSatoshiIn:  10001,
@@ -174,8 +174,8 @@ func TestListPayments(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []golight.PaymentFields{
-		golight.PaymentFields{
+	assert.Equal(t, []glightning.PaymentFields{
+		glightning.PaymentFields{
 			Id:               1,
 			PaymentHash:      "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
 			Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
@@ -252,7 +252,7 @@ func TestPay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	paymentFields := &golight.PaymentFields{
+	paymentFields := &glightning.PaymentFields{
 		Id:               5,
 		PaymentHash:      "be8b5435aa8738be31580c31cc747bc237d1c83fe946da338ee1c6bf8ac85a12",
 		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
@@ -263,36 +263,36 @@ func TestPay(t *testing.T) {
 		PaymentPreimage:  "b368340fc5fb5839beaaf59885efa6636557715746be26601cddf876a2bc489b",
 		Description:      "for goods and service",
 	}
-	route := []golight.RouteHop{
-		golight.RouteHop{
+	route := []glightning.RouteHop{
+		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233:1:0",
 			MilliSatoshi:   301080,
 			Delay:          16,
 		},
-		golight.RouteHop{
+		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263:1:0",
 			MilliSatoshi:   301076,
 			Delay:          10,
 		},
 	}
-	failroute := []golight.RouteHop{
-		golight.RouteHop{
+	failroute := []glightning.RouteHop{
+		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233:1:0",
 			MilliSatoshi:   300660,
 			Delay:          16,
 		},
-		golight.RouteHop{
+		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263:1:0",
 			MilliSatoshi:   300656,
 			Delay:          10,
 		},
 	}
-	failures := []golight.PayFailure{
-		golight.PayFailure{
+	failures := []glightning.PayFailure{
+		glightning.PayFailure{
 			Message:       "reply from remote",
 			Type:          "FAIL_PAYMENT_REPLY",
 			ErringIndex:   1,
@@ -303,7 +303,7 @@ func TestPay(t *testing.T) {
 			Route:         failroute,
 		},
 	}
-	expect := &golight.PaymentSuccess{*paymentFields, 1, 1, route, failures}
+	expect := &glightning.PaymentSuccess{*paymentFields, 1, 1, route, failures}
 	assert.Equal(t, expect, payment)
 }
 
@@ -328,7 +328,7 @@ func TestWaitSendPay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	paymentFields := &golight.PaymentFields{
+	paymentFields := &glightning.PaymentFields{
 		Id:               4,
 		PaymentHash:      paymentHash,
 		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
@@ -357,14 +357,14 @@ func TestSendPay(t *testing.T) {
 
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	route := []golight.RouteHop{
-		golight.RouteHop{
+	route := []glightning.RouteHop{
+		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233:1:0",
 			MilliSatoshi:   uint64(10001),
 			Delay:          15,
 		},
-		golight.RouteHop{
+		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263:1:0",
 			MilliSatoshi:   uint64(10000),
@@ -376,7 +376,7 @@ func TestSendPay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	paymentFields := &golight.PaymentFields{
+	paymentFields := &glightning.PaymentFields{
 		Id:               1,
 		PaymentHash:      "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
 		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
@@ -385,7 +385,7 @@ func TestSendPay(t *testing.T) {
 		CreatedAt:        1546480001,
 		Status:           "pending",
 	}
-	result := &golight.SendPayResult{
+	result := &glightning.SendPayResult{
 		"Monitor status with listpayments or waitsendpay",
 		*paymentFields,
 	}
@@ -413,7 +413,7 @@ func TestWaitAnyInvoice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.CompletedInvoice{
+	assert.Equal(t, &glightning.CompletedInvoice{
 		Label:                "bagatab",
 		Bolt11:               "lnbcrt100n1pwz6a8wpp5249mj72sysuemctra4gsmexjec066g2ra7qkkp2rwvuzxuyhhesqdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqc9ua2tv4kqglsgxnt7l2lcrdajc4juwhtl3jkqqvdnzqfyth5lefx25n0ef8emstfxm4v6dcx8s5ae8ef0ug64nquwdxv9zduggxr8lgpg9m473",
 		PaymentHash:          "554bb9795024399de163ed510de4d2ce1fad2143ef816b05437338237097be60",
@@ -449,7 +449,7 @@ func TestWaitInvoice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.CompletedInvoice{
+	assert.Equal(t, &glightning.CompletedInvoice{
 		Label:                "gab",
 		Bolt11:               "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
 		PaymentHash:          "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
@@ -480,7 +480,7 @@ func TestDeleteInvoice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.Invoice{
+	assert.Equal(t, &glightning.Invoice{
 		Label:       "uniq",
 		Bolt11:      "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
 		PaymentHash: "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
@@ -519,8 +519,8 @@ func TestListInvoices(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []golight.Invoice{
-		golight.Invoice{
+	assert.Equal(t, []glightning.Invoice{
+		glightning.Invoice{
 			Label:       "label",
 			Bolt11:      "lnbcrt1pwz646mpp59plmhlzsnz0yu6twf2mtjmydt40zlle2fzlkkkdzlmxqgqeha2gsdq8v3jhxccxqzxgcqp2vj8dqhg6yyzrvcd7kfwu4svh6k44mv5uy6wetpwfyxav504rthkxhxll2d9e4dwcm7xzpsxy9l9aulpmskepqad2x8vz82krme8zevgq3utwgq",
 			PaymentHash: "287fbbfc50989e4e696e4ab6b96c8d5d5e2fff2a48bf6b59a2fecc040337ea91",
@@ -528,7 +528,7 @@ func TestListInvoices(t *testing.T) {
 			Description: "desc",
 			ExpiresAt:   1546475555,
 		},
-		golight.Invoice{
+		glightning.Invoice{
 			Label:       "uniq",
 			Bolt11:      "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
 			PaymentHash: "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
@@ -560,8 +560,8 @@ func TestGetInvoice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []golight.Invoice{
-		golight.Invoice{
+	assert.Equal(t, []glightning.Invoice{
+		glightning.Invoice{
 			Label:       "uniq",
 			Bolt11:      "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
 			PaymentHash: "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
@@ -587,7 +587,7 @@ func TestInvoice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.Invoice{
+	assert.Equal(t, &glightning.Invoice{
 		PaymentHash:     "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
 		ExpiresAt:       1546475890,
 		Bolt11:          "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
@@ -609,7 +609,7 @@ func TestInvoiceAny(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.Invoice{
+	assert.Equal(t, &glightning.Invoice{
 		PaymentHash:     "287fbbfc50989e4e696e4ab6b96c8d5d5e2fff2a48bf6b59a2fecc040337ea91",
 		ExpiresAt:       1546475555,
 		Bolt11:          "lnbcrt1pwz646mpp59plmhlzsnz0yu6twf2mtjmydt40zlle2fzlkkkdzlmxqgqeha2gsdq8v3jhxccxqzxgcqp2vj8dqhg6yyzrvcd7kfwu4svh6k44mv5uy6wetpwfyxav504rthkxhxll2d9e4dwcm7xzpsxy9l9aulpmskepqad2x8vz82krme8zevgq3utwgq",
@@ -637,8 +637,8 @@ func TestGetRouteSimple(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []golight.RouteHop{
-		golight.RouteHop{
+	assert.Equal(t, []glightning.RouteHop{
+		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233:1:0",
 			MilliSatoshi:   300000,
@@ -669,8 +669,8 @@ func TestGetRoute(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []golight.RouteHop{
-		golight.RouteHop{
+	assert.Equal(t, []glightning.RouteHop{
+		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233:1:0",
 			MilliSatoshi:   300000,
@@ -689,12 +689,12 @@ func TestWithdraw(t *testing.T) {
 }`)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	feerate := golight.NewFeeRate(golight.SatPerKiloByte, 125)
-	result, err := lightning.Withdraw(addr, golight.NewAmount(500000), feerate)
+	feerate := glightning.NewFeeRate(glightning.SatPerKiloByte, 125)
+	result, err := lightning.Withdraw(addr, glightning.NewAmount(500000), feerate)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.WithdrawResult{
+	assert.Equal(t, &glightning.WithdrawResult{
 		Tx:   "020000000001012a62fd17c6b13b7d89df7bbceb9baa79ab937223887c9c69b05fefc9288a2d640000000000ffffffff0250c30000000000001600143509281c9566caa292c20ef671f886776c4649db9d3aff00000000001600142e7dfaf485fba60010bfb37c99fc93b8bb42ad0202483045022100b99e4231fcf98dc2f94d88094b63dc12fc0ba7c125dc78df1f7a50bfca726b8a02204639577a20f39830d63dfefcfc85f134f0d8128c55a2833775bb906957a0fa86012103d5aea229d81a06e576dfcf71db13670422b22dd1093cddc01269a5596fb0c7d100000000",
 		TxId: "f80423d5daed70d31585e597d8e1c0d191a5f2d8050a11dee730f7727c5abd9c",
 	}, result)
@@ -709,12 +709,12 @@ func TestWithdrawAll(t *testing.T) {
 }`)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	feerate := golight.NewFeeRate(golight.SatPerKiloByte, 125)
-	result, err := lightning.Withdraw(addr, golight.NewAllAmount(), feerate)
+	feerate := glightning.NewFeeRate(glightning.SatPerKiloByte, 125)
+	result, err := lightning.Withdraw(addr, glightning.NewAllAmount(), feerate)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.WithdrawResult{
+	assert.Equal(t, &glightning.WithdrawResult{
 		Tx:   "020000000001012a62fd17c6b13b7d89df7bbceb9baa79ab937223887c9c69b05fefc9288a2d640000000000ffffffff0250c30000000000001600143509281c9566caa292c20ef671f886776c4649db9d3aff00000000001600142e7dfaf485fba60010bfb37c99fc93b8bb42ad0202483045022100b99e4231fcf98dc2f94d88094b63dc12fc0ba7c125dc78df1f7a50bfca726b8a02204639577a20f39830d63dfefcfc85f134f0d8128c55a2833775bb906957a0fa86012103d5aea229d81a06e576dfcf71db13670422b22dd1093cddc01269a5596fb0c7d100000000",
 		TxId: "f80423d5daed70d31585e597d8e1c0d191a5f2d8050a11dee730f7727c5abd9c",
 	}, result)
@@ -735,7 +735,7 @@ func TestClose(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.CloseResult{
+	assert.Equal(t, &glightning.CloseResult{
 		Tx:   "02000000015c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c0000000000ffffffff0195feff000000000016001449a59c8b2c806e554858127df08ed4aadf361b4600000000",
 		TxId: "642d8a28c9ef5fb0699c7c88237293ab79aa9bebbc7bdf897d3bb1c617fd622a",
 		Type: "mutual",
@@ -770,9 +770,9 @@ func TestListFunds(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.FundsResult{
-		Outputs: []*golight.FundOutput{
-			&golight.FundOutput{
+	assert.Equal(t, &glightning.FundsResult{
+		Outputs: []*glightning.FundOutput{
+			&glightning.FundOutput{
 				TxId:    "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
 				Output:  1,
 				Value:   uint64(983222176),
@@ -780,8 +780,8 @@ func TestListFunds(t *testing.T) {
 				Status:  "confirmed",
 			},
 		},
-		Channels: []*golight.FundingChannel{
-			&golight.FundingChannel{
+		Channels: []*glightning.FundingChannel{
+			&glightning.FundingChannel{
 				Id:                  "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 				ShortChannelId:      "103:1:0",
 				ChannelSatoshi:      16777215,
@@ -817,15 +817,15 @@ func TestFundChannel(t *testing.T) {
   "channel_id": "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c"
 }
 `)
-	sats := golight.NewAmount(amount)
-	feeRate := golight.NewFeeRate(golight.SatPerKiloSipa, 500)
+	sats := glightning.NewAmount(amount)
+	feeRate := glightning.NewFeeRate(glightning.SatPerKiloSipa, 500)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	result, err := lightning.FundChannelExt(id, sats, feeRate, false)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.FundChannelResult{
+	assert.Equal(t, &glightning.FundChannelResult{
 		FundingTx:   "0200000000010153bcd4cfabb72750bb8d16fc711c91b30215957549a0a93370f50475fa9457570100000000ffffffff02ffffff0000000000220020b2c1a13de4a5926ed48601626e281a171d0cdb548fddc4e7cc8cdc9d982a2368a0c79a3a00000000160014d952a5ff3c78ca2c48fd8e2b4ae0699887dd166e0247304402206a781a53902e6526686b9ecc79f7287d372d11614dc094789f05f843458e703e022041cc1f5f7e2526d415b44563c80b80d9ce808310eaf8a73fbead45a0238b01e0012102cf978ae73c98d6e8e73b384b217c13180fd75cd867f5d9daf19624ecebf5fc0a00000000",
 		FundingTxId: "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
 		ChannelId:   "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c",
@@ -838,8 +838,8 @@ func TestFundChannel(t *testing.T) {
   "channel_id": "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c"
 }
 `)
-	sats = &golight.SatoshiAmount{Amount: uint64(amount)}
-	feeRate = golight.NewFeeRateByDirective(golight.SatPerKiloByte, golight.Urgent)
+	sats = &glightning.SatoshiAmount{Amount: uint64(amount)}
+	feeRate = glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"announce":true,"feerate":"urgent","id":"%s","satoshi":%d},"id":%d}`, id, amount, 2)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	_, err = lightning.FundChannelExt(id, sats, feeRate, true)
@@ -856,8 +856,8 @@ func TestFundChannel(t *testing.T) {
 `)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"announce":true,"feerate":"300perkb","id":"%s","satoshi":"%s"},"id":%d}`, id, "all", 3)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	sats = &golight.SatoshiAmount{SendAll: true}
-	feeRate = golight.NewFeeRate(golight.SatPerKiloByte, uint(300))
+	sats = &glightning.SatoshiAmount{SendAll: true}
+	feeRate = glightning.NewFeeRate(glightning.SatPerKiloByte, uint(300))
 	_, err = lightning.FundChannelExt(id, sats, feeRate, true)
 	if err != nil {
 		t.Fatal(err)
@@ -870,8 +870,8 @@ func TestFundChannel(t *testing.T) {
   "channel_id": "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c"
 }
 `)
-	sats = &golight.SatoshiAmount{SendAll: true}
-	feeRate = golight.NewFeeRateByDirective(golight.SatPerKiloByte, golight.Urgent)
+	sats = &glightning.SatoshiAmount{SendAll: true}
+	feeRate = glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"announce":false,"feerate":"urgent","id":"%s","satoshi":"all"},"id":%d}`, id, 4)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	_, err = lightning.FundChannelExt(id, sats, feeRate, false)
@@ -936,8 +936,8 @@ func TestListChannels(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []golight.Channel{
-		golight.Channel{
+	assert.Equal(t, []glightning.Channel{
+		glightning.Channel{
 			Source:              "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
 			Destination:         "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
 			ShortChannelId:      "556297:2967:0",
@@ -951,7 +951,7 @@ func TestListChannels(t *testing.T) {
 			FeePerMillionth:     uint64(1),
 			Delay:               uint(144),
 		},
-		golight.Channel{
+		glightning.Channel{
 			Source:              "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
 			Destination:         "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
 			ShortChannelId:      "556297:2967:0",
@@ -995,15 +995,15 @@ func TestListNodes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []golight.Node{
-		golight.Node{
+	assert.Equal(t, []glightning.Node{
+		glightning.Node{
 			Id:             "02befaace6e8970aaca34eafe85f30f988e374628ec279d94e7eca8b574b738eb4",
 			Alias:          "LightningBerry [LND]",
 			Color:          "68f442",
 			LastTimestamp:  uint(1542574678),
 			GlobalFeatures: "",
-			Addresses: []golight.Address{
-				golight.Address{
+			Addresses: []glightning.Address{
+				glightning.Address{
 					Type: "ipv4",
 					Addr: "84.219.199.67",
 					Port: 9735,
@@ -1022,7 +1022,7 @@ func TestGetInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.NodeInfo{
+	assert.Equal(t, &glightning.NodeInfo{
 		Id:                   "020631b6c35d614ebdf8856bfd2ccb5099337588b1b56453d5d7567654d6710b92",
 		Alias:                "LATENTNET-v0.6.2-291-g91c9ce7",
 		Color:                "020631",
@@ -1030,14 +1030,14 @@ func TestGetInfo(t *testing.T) {
 		PendingChannelCount:  3,
 		ActiveChannelCount:   1,
 		InactiveChannelCount: 8,
-		Addresses:            []golight.Address{},
-		Binding: []golight.AddressInternal{
-			golight.AddressInternal{
+		Addresses:            []glightning.Address{},
+		Binding: []glightning.AddressInternal{
+			glightning.AddressInternal{
 				Type: "ipv6",
 				Addr: "::",
 				Port: 9735,
 			},
-			golight.AddressInternal{
+			glightning.AddressInternal{
 				Type: "ipv4",
 				Addr: "0.0.0.0",
 				Port: 9735,
@@ -1055,26 +1055,26 @@ func TestGetLog(t *testing.T) {
 	req := "{\"jsonrpc\":\"2.0\",\"method\":\"getlog\",\"params\":{\"level\":\"info\"},\"id\":1}"
 	resp := wrapResult(1, `{"created_at":"1546200491.277516996", "bytes_used":6445039,"bytes_max":20971520,"log":[{"type": "UNUSUAL","time": "4709.811937439","source": "lightningd(9383):", "log": "bitcoin-cli: finished bitcoin-cli getblockhash 556283 (12250 ms)"},{"type": "SKIPPED","num_skipped": 89},{"type": "INFO","time": "5688.218267611","source": "lightningd(9383):","log": "lightning_openingd-02cca6c5c966fcf61d121e3a70e03a1cd9eeeea024b26ea666ce974d43b242e636 chan #1: Peer connection lost"}]}`)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	logresp, err := lightning.GetLog(golight.Info)
+	logresp, err := lightning.GetLog(glightning.Info)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.LogResponse{
+	assert.Equal(t, &glightning.LogResponse{
 		CreatedAt: "1546200491.277516996",
 		BytesUsed: uint64(6445039),
 		BytesMax:  uint64(20971520),
-		Logs: []golight.Log{
-			golight.Log{
+		Logs: []glightning.Log{
+			glightning.Log{
 				Type:    "UNUSUAL",
 				Time:    "4709.811937439",
 				Source:  "lightningd(9383):",
 				Message: "bitcoin-cli: finished bitcoin-cli getblockhash 556283 (12250 ms)",
 			},
-			golight.Log{
+			glightning.Log{
 				Type:       "SKIPPED",
 				NumSkipped: uint(89),
 			},
-			golight.Log{
+			glightning.Log{
 				Type:    "INFO",
 				Time:    "5688.218267611",
 				Source:  "lightningd(9383):",
@@ -1093,13 +1093,13 @@ func TestHelp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []golight.Command{
-		golight.Command{
+	assert.Equal(t, []glightning.Command{
+		glightning.Command{
 			NameAndUsage: "feerates style",
 			Description:  "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).",
 			Verbose:      "HELP! Please contribute a description for this json_command!",
 		},
-		golight.Command{
+		glightning.Command{
 			NameAndUsage: "connect id [host] [port]",
 			Description:  "Connect to {id} at {host} (which can end in ':port' if not default). {id} can also be of the form id@host",
 			Verbose:      "HELP! Please contribute a description for this json_command!",
@@ -1118,7 +1118,7 @@ func TestDecodePay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.DecodedBolt11{
+	assert.Equal(t, &glightning.DecodedBolt11{
 		Currency:           "bc",
 		CreatedAt:          uint64(1496314658),
 		Expiry:             uint64(60),
@@ -1178,7 +1178,7 @@ func TestDecodePayWithDescAndFallbacks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.DecodedBolt11{
+	assert.Equal(t, &glightning.DecodedBolt11{
 		Currency:           "bc",
 		CreatedAt:          uint64(1496314658),
 		Expiry:             uint64(3600),
@@ -1188,23 +1188,23 @@ func TestDecodePayWithDescAndFallbacks(t *testing.T) {
 		MinFinalCltvExpiry: 9,
 		PaymentHash:        "0001020304050607080900010203040506070809000102030405060708090102",
 		Signature:          "304502210091675cb3fad8e9d915343883a49242e074474e26d42c7ed914655689a80745530220733e8e4ea5ce9b85f69e40d755a55014536b12323f8b220600c94ef2b9c51428",
-		Fallbacks: []golight.Fallback{
-			golight.Fallback{
+		Fallbacks: []glightning.Fallback{
+			glightning.Fallback{
 				Type:    "P2PKH",
 				Address: "1RustyRX2oai4EYYDpQGWvEL62BBGqN9T",
 				Hex:     "76a91404b61f7dc1ea0dc99424464cc4064dc564d91e8988ac",
 			},
 		},
-		Routes: [][]golight.BoltRoute{
-			[]golight.BoltRoute{
-				golight.BoltRoute{
+		Routes: [][]glightning.BoltRoute{
+			[]glightning.BoltRoute{
+				glightning.BoltRoute{
 					Pubkey:                    "029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255",
 					ShortChannelId:            "66051:263430:1800",
 					FeeBaseMilliSatoshis:      uint64(1),
 					FeeProportionalMillionths: uint64(20),
 					CltvExpiryDelta:           uint(3),
 				},
-				golight.BoltRoute{
+				glightning.BoltRoute{
 					Pubkey:                    "039e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255",
 					ShortChannelId:            "197637:395016:2314",
 					FeeBaseMilliSatoshis:      uint64(2),
@@ -1243,7 +1243,7 @@ func TestPing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.Pong{
+	assert.Equal(t, &glightning.Pong{
 		TotalLen: 132,
 	}, pong)
 }
@@ -1259,7 +1259,7 @@ func TestPingWithLen(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.Pong{
+	assert.Equal(t, &glightning.Pong{
 		TotalLen: 234,
 	}, pong)
 }
@@ -1270,7 +1270,7 @@ func TestNewAddr(t *testing.T) {
 	req := "{\"jsonrpc\":\"2.0\",\"method\":\"newaddr\",\"params\":{\"addresstype\":\"p2sh-segwit\"},\"id\":1}"
 	resp := wrapResult(1, `{ "address": "3LfQdff5doR791QNzjn5KdPkFfFn3dmYpc" } `)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	addr, err := lightning.NewAddressOfType(golight.P2SHSegwit)
+	addr, err := lightning.NewAddressOfType(glightning.P2SHSegwit)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1279,7 +1279,7 @@ func TestNewAddr(t *testing.T) {
 	req = "{\"jsonrpc\":\"2.0\",\"method\":\"newaddr\",\"params\":{\"addresstype\":\"bech32\"},\"id\":2}"
 	resp = wrapResult(2, `{ "address": "bc1q4va8cea0ye7hr8f6rwmug7r2rlkvc7lz93zqmh" } `)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	addr, err = lightning.NewAddressOfType(golight.Bech32)
+	addr, err = lightning.NewAddressOfType(glightning.Bech32)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1296,20 +1296,20 @@ func TestFeeRate(t *testing.T) {
 
 	// queue request & response
 	go runServerSide(t, expectedRequest, reply, replyQ, requestQ)
-	rates, err := lightning.FeeRates(golight.SatPerKiloByte)
+	rates, err := lightning.FeeRates(glightning.SatPerKiloByte)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.FeeRateEstimate{
-		Style: golight.SatPerKiloByte,
-		Details: &golight.FeeRateDetails{
+	assert.Equal(t, &glightning.FeeRateEstimate{
+		Style: glightning.SatPerKiloByte,
+		Details: &glightning.FeeRateDetails{
 			Urgent:        3328,
 			Normal:        1012,
 			Slow:          1012,
 			MinAcceptable: 1012,
 			MaxAcceptable: 33280,
 		},
-		OnchainEstimate: &golight.OnchainEstimate{
+		OnchainEstimate: &glightning.OnchainEstimate{
 			OpeningChannelSatoshis:  177,
 			MutualCloseSatoshis:     170,
 			UnilateralCloseSatoshis: 497,
@@ -1323,20 +1323,20 @@ func TestFeeRate(t *testing.T) {
 
 	// queue request & response
 	go runServerSide(t, expectedRequest, reply, replyQ, requestQ)
-	rates, err = lightning.FeeRates(golight.SatPerKiloSipa)
+	rates, err = lightning.FeeRates(glightning.SatPerKiloSipa)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.FeeRateEstimate{
-		Style: golight.SatPerKiloSipa,
-		Details: &golight.FeeRateDetails{
+	assert.Equal(t, &glightning.FeeRateEstimate{
+		Style: glightning.SatPerKiloSipa,
+		Details: &glightning.FeeRateDetails{
 			Urgent:        832,
 			Normal:        253,
 			Slow:          253,
 			MinAcceptable: 253,
 			MaxAcceptable: 8320,
 		},
-		OnchainEstimate: &golight.OnchainEstimate{
+		OnchainEstimate: &glightning.OnchainEstimate{
 			OpeningChannelSatoshis:  177,
 			MutualCloseSatoshis:     170,
 			UnilateralCloseSatoshis: 497,
@@ -1351,13 +1351,13 @@ func TestLimitedFeeRates(t *testing.T) {
 
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, request, reply, replyQ, requestQ)
-	rates, err := lightning.FeeRates(golight.SatPerKiloSipa)
+	rates, err := lightning.FeeRates(glightning.SatPerKiloSipa)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &golight.FeeRateEstimate{
-		Style: golight.SatPerKiloSipa,
-		Details: &golight.FeeRateDetails{
+	assert.Equal(t, &glightning.FeeRateEstimate{
+		Style: glightning.SatPerKiloSipa,
+		Details: &glightning.FeeRateDetails{
 			MinAcceptable: 253,
 			MaxAcceptable: 4294967295,
 		},
@@ -1374,7 +1374,7 @@ func runServerSide(t *testing.T, expectedRequest, reply string, replyQ, requestQ
 }
 
 // Set up lightning to talk over a test socket
-func startupServer(t *testing.T) (lightning *golight.Lightning, requestQ, replyQ chan []byte) {
+func startupServer(t *testing.T) (lightning *glightning.Lightning, requestQ, replyQ chan []byte) {
 	tmpfile, err := ioutil.TempFile("", "rpc.socket")
 	if err != nil {
 		t.Fatal(err)
@@ -1404,7 +1404,7 @@ func startupServer(t *testing.T) (lightning *golight.Lightning, requestQ, replyQ
 	// block until the socket is listening
 	<-ok
 
-	lightning = golight.NewLightning()
+	lightning = glightning.NewLightning()
 	lightning.StartUp("", tmpfile.Name())
 	return lightning, requestQueue, replyQueue
 }

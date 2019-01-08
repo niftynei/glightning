@@ -1,4 +1,4 @@
-package golight
+package glightning
 
 import (
 	"bufio"
@@ -80,7 +80,7 @@ func (o *Option) Description() string {
 		return o.description
 	}
 
-	return "A golightning plugin option"
+	return "A g-lightning plugin option"
 }
 
 func (o *Option) Set(value string) {
@@ -123,7 +123,7 @@ func (r *RpcMethod) Description() string {
 		return r.Desc
 	}
 
-	return "A golightning RPC method."
+	return "A g-lightning RPC method."
 }
 
 func (r *RpcMethod) MarshalJSON() ([]byte, error) {
