@@ -60,6 +60,14 @@ func TestListPeers(t *testing.T) {
           "out_payments_fulfilled": 123,
           "out_msatoshi_fulfilled": 123,
           "htlcs": [
+            {
+              "direction": "out",
+              "id": 1,
+              "msatoshi": 1437433749,
+              "expiry": 556832,
+              "payment_hash": "3525b49c055604a7997512f866694b6154987a32cc60e1c374113246d38bd5ad",
+              "state": "SENT_REMOVE_ACK_COMMIT"
+            }
           ]
         }
       ]
@@ -71,6 +79,17 @@ func TestListPeers(t *testing.T) {
 	peers, err := lightning.ListPeers()
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	htlcs := []*glightning.Htlc{
+		&glightning.Htlc{
+			Direction: "out",
+			Id: 1,
+			MilliSatoshi:1437433749,
+			Expiry: 556832,
+			PaymentHash: "3525b49c055604a7997512f866694b6154987a32cc60e1c374113246d38bd5ad",
+			State: "SENT_REMOVE_ACK_COMMIT",
+		},
 	}
 	expected := []glightning.Peer{
 		glightning.Peer{
@@ -112,7 +131,7 @@ func TestListPeers(t *testing.T) {
 					OutMilliSatoshiOffered:   123,
 					OutPaymentsFulfilled:     123,
 					OutMilliSatoshiFulfilled: 123,
-					Htlcs:                    []*glightning.Htlc{},
+					Htlcs:                    htlcs,
 				},
 			},
 		},
