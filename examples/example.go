@@ -13,7 +13,7 @@ func main() {
 	sats := glightning.NewAmount(600000)
 	feerate := glightning.NewFeeRateByDirective(glightning.SatPerKiloSipa, glightning.Urgent)
 	result, err := lone.FundChannelExt(id, sats, feerate, true)
-	if err !=  nil {
+	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("%+v\n", result)
@@ -44,7 +44,7 @@ func payInvoice() {
 	invoiceLabel := "ayc"
 	invoice, err := ltwo.CreateInvoice(satoshi, invoiceLabel, "desc", uint32(5), nil, "")
 	fmt.Printf("Invoice one is %s\n", invoice.PaymentHash)
-	invoiceTwo, err := ltwo.CreateInvoice(satoshi, invoiceLabel + "ab", "desc", uint32(5), nil, "")
+	invoiceTwo, err := ltwo.CreateInvoice(satoshi, invoiceLabel+"ab", "desc", uint32(5), nil, "")
 	if err != nil {
 		panic(err)
 	}

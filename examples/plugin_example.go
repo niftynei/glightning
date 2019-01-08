@@ -1,14 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"github.com/niftynei/glightning/glightning"
 	"github.com/niftynei/glightning/jrpc2"
-	"fmt"
-	"os"
 	"log"
+	"os"
 )
 
-type Hello struct {}
+type Hello struct{}
 
 func (h *Hello) New() interface{} {
 	return &Hello{}
@@ -25,7 +25,6 @@ func (h *Hello) Call() (jrpc2.Result, error) {
 
 var lightning *glightning.Lightning
 var plugin *glightning.Plugin
-
 
 // ok, let's try plugging this into c-lightning
 func main() {

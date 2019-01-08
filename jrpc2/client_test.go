@@ -74,7 +74,7 @@ func TestClientIncomingInvalidJson(t *testing.T) {
 		_, err := subtract(client, 5, 1)
 		assert.Equal(t, "Request timed out", err.Error())
 		ok <- true
-	}(client,ok)
+	}(client, ok)
 	// write junk to the client
 	junk := `{"jsonrpc":"2.0"}`
 

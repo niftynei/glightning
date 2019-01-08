@@ -73,7 +73,7 @@ type PeerChannel struct {
 	FundingTxId                      string   `json:"funding_txid"`
 	Funding                          string   `json:"funding"`
 	Status                           []string `json:"status"`
-	Private				 bool	  `json:"private"`
+	Private                          bool     `json:"private"`
 	MilliSatoshiToUs                 uint64   `json:"msatoshi_to_us"`
 	MilliSatoshiToUsMin              uint64   `json:"msatoshi_to_us_min"`
 	MilliSatoshiToUsMax              uint64   `json:"msatoshi_to_us_max"`
@@ -727,6 +727,11 @@ type SendPayResult struct {
 	PaymentFields
 }
 
+// SendPay, but without description or millisatoshi value
+func (l *Lightning) SendPayLite(route []RouteHop, paymentHash, description string, msat uint64) (*SendPayResult, error) {
+	return l.SendPay(route, paymentHash, "", 0)
+}
+
 // Send along {route} in return for preimage of {paymentHash}
 //  Description and msat are optional.
 // Generally a client would call GetRoute to resolve a route, then
@@ -734,7 +739,7 @@ type SendPayResult struct {
 // to retry.
 //
 // Response will occur when payment is on its way to the destination.
-// Does not wati for a definitive success or failure. Use 'waitsendpay'
+// Does not wait for a definitive success or failure. Use 'waitsendpay'
 // to poll or wait for definite success or failure.
 //
 // 'description', if provided, will be returned in 'waitsendpay' and
