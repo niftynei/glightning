@@ -2,7 +2,7 @@ package glightning
 
 import (
 	"fmt"
-	"github.com/niftynei/golight/jrpc2"
+	"github.com/niftynei/glightning/jrpc2"
 	"log"
 	"path/filepath"
 )

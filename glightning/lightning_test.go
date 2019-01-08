@@ -3,7 +3,7 @@ package glightning_test
 import (
 	"bufio"
 	"fmt"
-	"github.com/niftynei/golight/glightning"
+	"github.com/niftynei/glightning/glightning"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"

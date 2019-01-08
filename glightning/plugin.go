@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"github.com/niftynei/golight/jrpc2"
+	"github.com/niftynei/glightning/jrpc2"
 	"io"
 	"log"
 	"os"

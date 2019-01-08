@@ -3,8 +3,8 @@ package glightning_test
 import (
 	"bufio"
 	"fmt"
-	"github.com/niftynei/golight/glightning"
-	"github.com/niftynei/golight/jrpc2"
+	"github.com/niftynei/glightning/glightning"
+	"github.com/niftynei/glightning/jrpc2"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
