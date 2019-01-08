@@ -7,10 +7,10 @@ RPC, most notably that the server offers a "Notify" method.
 
 ## Some notes on architecture
 A marriage of JSON and a strongly typed language such as Go is never a truly
-happy affair. In order to provide the best hiding of this fact, `golight` offers
+happy affair. In order to provide the best hiding of this fact, `glightning` offers
 a boutique jsonrpc2 implementation, jrpc2. 
 
-`golight` takes advantage of reflection to marshal and unmarshal method parameters. 
+`glightning` takes advantage of reflection to marshal and unmarshal method parameters. 
 
 ### Offering a method from the Server
 
