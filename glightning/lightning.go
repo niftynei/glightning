@@ -728,7 +728,7 @@ type SendPayResult struct {
 }
 
 // SendPay, but without description or millisatoshi value
-func (l *Lightning) SendPayLite(route []RouteHop, paymentHash, description string, msat uint64) (*SendPayResult, error) {
+func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayResult, error) {
 	return l.SendPay(route, paymentHash, "", 0)
 }
 
