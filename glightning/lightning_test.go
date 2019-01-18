@@ -32,7 +32,7 @@ func TestListPeers(t *testing.T) {
           "scratch_txid": "cd13ba846709958bfd073155283c3493f08f7db1bb4ef199c014559e5505d18d",
           "owner": "lightning_channeld",
           "short_channel_id": "355:1:0",
-          "channel_direction": 1,
+	  "direction": 1,
           "channel_id": "5415f1347cf12f30222c5968c59a4744e78ee39f0361e19b6ce2996cce4e1538",
           "funding_txid": "38154ece6c99e26c9be161039fe38ee744479ac568592c22302ff17c34f11554",
 	  "private": true,

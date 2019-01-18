@@ -68,7 +68,7 @@ type PeerChannel struct {
 	ScratchTxId                      string   `json:"scratch_txid"`
 	Owner                            string   `json:"owner"`
 	ShortChannelId                   string   `json:"short_channel_id"`
-	ChannelDirection                 int      `json:"channel_direction"`
+	ChannelDirection                 int      `json:"direction"`
 	ChannelId                        string   `json:"channel_id"`
 	FundingTxId                      string   `json:"funding_txid"`
 	Funding                          string   `json:"funding"`
