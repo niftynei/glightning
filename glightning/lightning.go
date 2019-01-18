@@ -251,6 +251,7 @@ func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cl
 
 type ListChannelRequest struct {
 	ShortChannelId string `json:"short_channel_id,omitempty"`
+	Source string `json:"source,omitempty"`
 }
 
 func (lc *ListChannelRequest) Name() string {
@@ -277,7 +278,15 @@ func (l *Lightning) GetChannel(shortChanId string) ([]Channel, error) {
 	var result struct {
 		Channels []Channel `json:"channels"`
 	}
-	err := l.client.Request(&ListChannelRequest{shortChanId}, &result)
+	err := l.client.Request(&ListChannelRequest{shortChanId,""}, &result)
+	return result.Channels, err
+}
+
+func (l *Lightning) ListChannelsBySource(nodeId string) ([]Channel, error) {
+	var result struct {
+		Channels []Channel `json:"channels"`
+	}
+	err := l.client.Request(&ListChannelRequest{"",nodeId}, &result)
 	return result.Channels, err
 }
 

@@ -922,6 +922,51 @@ func TestStop(t *testing.T) {
 
 }
 
+func TestListChannelsBySource(t *testing.T) {
+	lightning, requestQ, replyQ := startupServer(t)
+	source := "0399a287c8bcc11e8547f2d9cbcceccab0b74c1a07803b482d1d450233ddd447a6"
+	req := "{\"jsonrpc\":\"2.0\",\"method\":\"listchannels\",\"params\":{\"source\":\"0399a287c8bcc11e8547f2d9cbcceccab0b74c1a07803b482d1d450233ddd447a6\"},\"id\":1}"
+	resp := wrapResult(1, `{
+  "channels": [
+    {
+      "source": "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
+      "destination": "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
+      "short_channel_id": "556297x2967x0",
+      "public": true,
+      "satoshis": 500000,
+      "message_flags": 0,
+      "channel_flags": 0,
+      "flags": 0,
+      "active": true,
+      "last_update": 1546213724,
+      "base_fee_millisatoshi": 1000,
+      "fee_per_millionth": 1,
+      "delay": 144
+    },
+    {
+      "source": "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
+      "destination": "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
+      "short_channel_id": "556297x2967x0",
+      "public": true,
+      "satoshis": 500000,
+      "message_flags": 0,
+      "channel_flags": 1,
+      "flags": 1,
+      "active": true,
+      "last_update": 1546213449,
+      "base_fee_millisatoshi": 1000,
+      "fee_per_millionth": 1,
+      "delay": 144
+    }
+  ]
+}`)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	_, err := lightning.ListChannelsBySource(source)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestListChannels(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	scid := "556297:2967:0"
