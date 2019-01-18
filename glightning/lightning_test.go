@@ -680,7 +680,7 @@ func TestGetRoute(t *testing.T) {
 	id := "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"
 	fromId := "02e9ce22855694b3dea98d78512c3e73c198c98553912cd04b53d1563b40f661da"
 
-	req := `{"jsonrpc":"2.0","method":"getroute","params":{"cltv":32,"fromid":"02e9ce22855694b3dea98d78512c3e73c198c98553912cd04b53d1563b40f661da","fuzzpercent":10,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","msatoshi":300000,"riskfactor":99,"seed":"abcde"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"getroute","params":{"cltv":32,"exclude":["1020x222x1/1"],"fromid":"02e9ce22855694b3dea98d78512c3e73c198c98553912cd04b53d1563b40f661da","fuzzpercent":10,"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","maxhops":10,"msatoshi":300000,"riskfactor":99},"id":1}`
 	resp := wrapResult(1, `{
   "route": [
     {
@@ -694,7 +694,7 @@ func TestGetRoute(t *testing.T) {
 
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	route, err := lightning.GetRoute(id, 300000, 99, 32, fromId, 10.0, "abcde")
+	route, err := lightning.GetRoute(id, 300000, 99, 32, fromId, 10.0, []string{"1020x222x1/1"}, 10)
 	if err != nil {
 		t.Fatal(err)
 	}

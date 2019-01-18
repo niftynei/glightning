@@ -182,6 +182,8 @@ type RouteRequest struct {
 	FromId        string  `json:"fromid,omitempty"`
 	FuzzPercent   float32 `json:"fuzzpercent"`
 	Seed          string  `json:"seed,omitempty"`
+	Exclude	      []string `json:"exclude,omitempty"`
+	MaxHops       int32      `json:"maxhops,omitempty"`
 }
 
 type Route struct {
@@ -200,14 +202,17 @@ func (rr *RouteRequest) Name() string {
 }
 
 func (l *Lightning) GetRouteSimple(peerId string, msats uint64, riskfactor float32) ([]RouteHop, error) {
-	return l.GetRoute(peerId, msats, riskfactor, 0, "", 0, "")
+	return l.GetRoute(peerId, msats, riskfactor, 0, "", 0, nil, 0)
 }
 
 // Show route to {id} for {msatoshis}, using a {riskfactor} and optional
 // {cltv} value (defaults to 9). If specified, search from {fromId} otherwise
 // use current node as the source. Randomize the route with up to {fuzzpercent}
-// (0.0 -> 100.0, default 5.0) using {seed} as an arbitrary-size string seed.
-func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cltv uint, fromId string, fuzzpercent float32, seed string) ([]RouteHop, error) {
+// (0.0 -> 100.0, default 5.0).
+// 
+// If you wish to exclude a set of channels from the route, you can pass in an optional
+// set of channel id's with a direction (scid/direction)
+func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cltv uint, fromId string, fuzzpercent float32, exclude []string, maxHops int32) ([]RouteHop, error) {
 	if peerId == "" {
 		return nil, fmt.Errorf("Must provide a peerId to route to")
 	}
@@ -238,7 +243,8 @@ func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cl
 		Cltv:          cltv,
 		FromId:        fromId,
 		FuzzPercent:   fuzzpercent,
-		Seed:          seed,
+		Exclude:       exclude,
+		MaxHops:       maxHops,
 	}, &result)
 	return result.Hops, err
 }
