@@ -35,6 +35,11 @@ func TestListPeers(t *testing.T) {
           "channel_direction": 1,
           "channel_id": "5415f1347cf12f30222c5968c59a4744e78ee39f0361e19b6ce2996cce4e1538",
           "funding_txid": "38154ece6c99e26c9be161039fe38ee744479ac568592c22302ff17c34f11554",
+	  "private": true,
+	  "funding_allocation_msat": {
+            "03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4": 0,
+            "028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764": 1000000000
+          },
           "msatoshi_to_us": 16777215000,
           "msatoshi_to_us_min": 16777215000,
           "msatoshi_to_us_max": 16777215000,
@@ -81,6 +86,9 @@ func TestListPeers(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	fundingAlloc := make(map[string]uint64)
+	fundingAlloc["03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4"] = uint64(0)
+	fundingAlloc["028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764"] = uint64(1000000000)
 	htlcs := []*glightning.Htlc{
 		&glightning.Htlc{
 			Direction: "out",
@@ -107,6 +115,8 @@ func TestListPeers(t *testing.T) {
 					ChannelDirection:                 1,
 					ChannelId:                        "5415f1347cf12f30222c5968c59a4744e78ee39f0361e19b6ce2996cce4e1538",
 					FundingTxId:                      "38154ece6c99e26c9be161039fe38ee744479ac568592c22302ff17c34f11554",
+					Private:		          true,
+					FundingAllocations:		  fundingAlloc,
 					MilliSatoshiToUs:                 16777215000,
 					MilliSatoshiToUsMin:              16777215000,
 					MilliSatoshiToUsMax:              16777215000,

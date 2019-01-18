@@ -74,6 +74,7 @@ type PeerChannel struct {
 	Funding                          string   `json:"funding"`
 	Status                           []string `json:"status"`
 	Private                          bool     `json:"private"`
+	FundingAllocations		 map[string]uint64 `json:"funding_allocation_msat"`
 	MilliSatoshiToUs                 uint64   `json:"msatoshi_to_us"`
 	MilliSatoshiToUsMin              uint64   `json:"msatoshi_to_us_min"`
 	MilliSatoshiToUsMax              uint64   `json:"msatoshi_to_us_max"`
