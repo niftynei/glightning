@@ -31,7 +31,7 @@ func TestListPeers(t *testing.T) {
           "state": "CHANNELD_NORMAL",
           "scratch_txid": "cd13ba846709958bfd073155283c3493f08f7db1bb4ef199c014559e5505d18d",
           "owner": "lightning_channeld",
-          "short_channel_id": "355:1:0",
+          "short_channel_id": "355x1x0",
 	  "direction": 1,
           "channel_id": "5415f1347cf12f30222c5968c59a4744e78ee39f0361e19b6ce2996cce4e1538",
           "funding_txid": "38154ece6c99e26c9be161039fe38ee744479ac568592c22302ff17c34f11554",
@@ -111,7 +111,7 @@ func TestListPeers(t *testing.T) {
 					State:                            "CHANNELD_NORMAL",
 					ScratchTxId:                      "cd13ba846709958bfd073155283c3493f08f7db1bb4ef199c014559e5505d18d",
 					Owner:                            "lightning_channeld",
-					ShortChannelId:                   "355:1:0",
+					ShortChannelId:                   "355x1x0",
 					ChannelDirection:                 1,
 					ChannelId:                        "5415f1347cf12f30222c5968c59a4744e78ee39f0361e19b6ce2996cce4e1538",
 					FundingTxId:                      "38154ece6c99e26c9be161039fe38ee744479ac568592c22302ff17c34f11554",
@@ -154,8 +154,8 @@ func TestListForwards(t *testing.T) {
 	resp := wrapResult(1, `{
   "forwards": [
     {
-      "in_channel": "233:1:0",
-      "out_channel": "263:1:0",
+      "in_channel": "233x1x0",
+      "out_channel": "263x1x0",
       "in_msatoshi": 10001,
       "out_msatoshi": 10000,
       "fee": 1,
@@ -171,8 +171,8 @@ func TestListForwards(t *testing.T) {
 	}
 	assert.Equal(t, []glightning.Forwarding{
 		glightning.Forwarding{
-			InChannel:       "233:1:0",
-			OutChannel:      "263:1:0",
+			InChannel:       "233x1x0",
+			OutChannel:      "263x1x0",
 			MilliSatoshiIn:  10001,
 			MilliSatoshiOut: 10000,
 			Fee:             1,
@@ -236,13 +236,13 @@ func TestPay(t *testing.T) {
   "route": [
     {
       "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-      "channel": "233:1:0",
+      "channel": "233x1x0",
       "msatoshi": 301080,
       "delay": 16
     },
     {
       "id": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
-      "channel": "263:1:0",
+      "channel": "263x1x0",
       "msatoshi": 301076,
       "delay": 10
     }
@@ -254,18 +254,18 @@ func TestPay(t *testing.T) {
       "erring_index": 1,
       "failcode": 4103,
       "erring_node": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-      "erring_channel": "263:1:0",
+      "erring_channel": "263x1x0",
       "channel_update": "01028f8dc4547391f45988ddb2c46844eacae0cae02e11129087dcbbc27292084c3e430d2827641db78a4be825b3a92ff1690cc0ae236accde60cbb313d2c2bf2d7406226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f00010700000100005c2d7f07010300060000000000000000000000010000000a000000003a699d00",
       "route": [
         {
           "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-          "channel": "233:1:0",
+          "channel": "233x1x0",
           "msatoshi": 300660,
           "delay": 16
         },
         {
           "id": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
-          "channel": "263:1:0",
+          "channel": "263x1x0",
           "msatoshi": 300656,
           "delay": 10
         }
@@ -295,13 +295,13 @@ func TestPay(t *testing.T) {
 	route := []glightning.RouteHop{
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-			ShortChannelId: "233:1:0",
+			ShortChannelId: "233x1x0",
 			MilliSatoshi:   301080,
 			Delay:          16,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
-			ShortChannelId: "263:1:0",
+			ShortChannelId: "263x1x0",
 			MilliSatoshi:   301076,
 			Delay:          10,
 		},
@@ -309,13 +309,13 @@ func TestPay(t *testing.T) {
 	failroute := []glightning.RouteHop{
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-			ShortChannelId: "233:1:0",
+			ShortChannelId: "233x1x0",
 			MilliSatoshi:   300660,
 			Delay:          16,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
-			ShortChannelId: "263:1:0",
+			ShortChannelId: "263x1x0",
 			MilliSatoshi:   300656,
 			Delay:          10,
 		},
@@ -327,7 +327,7 @@ func TestPay(t *testing.T) {
 			ErringIndex:   1,
 			FailCode:      4103,
 			ErringNode:    "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-			ErringChannel: "263:1:0",
+			ErringChannel: "263x1x0",
 			ChannelUpdate: "01028f8dc4547391f45988ddb2c46844eacae0cae02e11129087dcbbc27292084c3e430d2827641db78a4be825b3a92ff1690cc0ae236accde60cbb313d2c2bf2d7406226e46111a0b59caaf126043eb5bbf28c34f3a5e332a1fc7b2b73cf188910f00010700000100005c2d7f07010300060000000000000000000000010000000a000000003a699d00",
 			Route:         failroute,
 		},
@@ -372,7 +372,7 @@ func TestWaitSendPay(t *testing.T) {
 }
 
 func TestSendPay(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233:1:0","msatoshi":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263:1:0","msatoshi":10000,"delay":9}]},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233x1x0","msatoshi":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263x1x0","msatoshi":10000,"delay":9}]},"id":1}`
 	resp := wrapResult(1, `{
   "message": "Monitor status with listpayments or waitsendpay",
   "id": 1,
@@ -389,13 +389,13 @@ func TestSendPay(t *testing.T) {
 	route := []glightning.RouteHop{
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-			ShortChannelId: "233:1:0",
+			ShortChannelId: "233x1x0",
 			MilliSatoshi:   uint64(10001),
 			Delay:          15,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
-			ShortChannelId: "263:1:0",
+			ShortChannelId: "263x1x0",
 			MilliSatoshi:   uint64(10000),
 			Delay:          9,
 		},
@@ -653,7 +653,7 @@ func TestGetRouteSimple(t *testing.T) {
   "route": [
     {
       "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-      "channel": "233:1:0",
+      "channel": "233x1x0",
       "msatoshi": 300000,
       "delay": 9
     }
@@ -669,7 +669,7 @@ func TestGetRouteSimple(t *testing.T) {
 	assert.Equal(t, []glightning.RouteHop{
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-			ShortChannelId: "233:1:0",
+			ShortChannelId: "233x1x0",
 			MilliSatoshi:   300000,
 			Delay:          9,
 		},
@@ -685,7 +685,7 @@ func TestGetRoute(t *testing.T) {
   "route": [
     {
       "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-      "channel": "233:1:0",
+      "channel": "233x1x0",
       "msatoshi": 300000,
       "delay": 32 
     }
@@ -701,7 +701,7 @@ func TestGetRoute(t *testing.T) {
 	assert.Equal(t, []glightning.RouteHop{
 		glightning.RouteHop{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-			ShortChannelId: "233:1:0",
+			ShortChannelId: "233x1x0",
 			MilliSatoshi:   300000,
 			Delay:          32,
 		},
@@ -786,7 +786,7 @@ func TestListFunds(t *testing.T) {
   "channels": [
     {
       "peer_id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-      "short_channel_id": "103:1:0",
+      "short_channel_id": "103x1x0",
       "channel_sat": 16777215,
       "channel_total_sat": 16777215,
       "funding_txid": "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c"
@@ -812,7 +812,7 @@ func TestListFunds(t *testing.T) {
 		Channels: []*glightning.FundingChannel{
 			&glightning.FundingChannel{
 				Id:                  "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-				ShortChannelId:      "103:1:0",
+				ShortChannelId:      "103x1x0",
 				ChannelSatoshi:      16777215,
 				ChannelTotalSatoshi: 16777215,
 				FundingTxId:         "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
@@ -969,14 +969,14 @@ func TestListChannelsBySource(t *testing.T) {
 
 func TestListChannels(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
-	scid := "556297:2967:0"
-	req := "{\"jsonrpc\":\"2.0\",\"method\":\"listchannels\",\"params\":{\"short_channel_id\":\"556297:2967:0\"},\"id\":1}"
+	scid := "556297x2967x0"
+	req := "{\"jsonrpc\":\"2.0\",\"method\":\"listchannels\",\"params\":{\"short_channel_id\":\"556297x2967x0\"},\"id\":1}"
 	resp := wrapResult(1, `{
   "channels": [
     {
       "source": "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
       "destination": "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
-      "short_channel_id": "556297:2967:0",
+      "short_channel_id": "556297x2967x0",
       "public": true,
       "satoshis": 500000,
       "message_flags": 0,
@@ -991,7 +991,7 @@ func TestListChannels(t *testing.T) {
     {
       "source": "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
       "destination": "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
-      "short_channel_id": "556297:2967:0",
+      "short_channel_id": "556297x2967x0",
       "public": true,
       "satoshis": 500000,
       "message_flags": 0,
@@ -1014,7 +1014,7 @@ func TestListChannels(t *testing.T) {
 		glightning.Channel{
 			Source:              "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
 			Destination:         "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
-			ShortChannelId:      "556297:2967:0",
+			ShortChannelId:      "556297x2967x0",
 			IsPublic:            true,
 			Satoshis:            500000,
 			MessageFlags:        uint(0),
@@ -1028,7 +1028,7 @@ func TestListChannels(t *testing.T) {
 		glightning.Channel{
 			Source:              "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
 			Destination:         "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
-			ShortChannelId:      "556297:2967:0",
+			ShortChannelId:      "556297x2967x0",
 			IsPublic:            true,
 			Satoshis:            500000,
 			MessageFlags:        uint(0),
