@@ -602,7 +602,7 @@ func TestGetInvoice(t *testing.T) {
 }
 
 func TestInvoice(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"label":"uniq","msatoshi":"1"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":true,"label":"uniq","msatoshi":"1"},"id":1}`
 	resp := wrapResult(1, `{
   "payment_hash": "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
   "expires_at": 1546475890,
@@ -612,7 +612,7 @@ func TestInvoice(t *testing.T) {
 
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	invoice, err := lightning.CreateInvoice(uint64(1), "uniq", "desc", uint32(200), nil, "")
+	invoice, err := lightning.CreateInvoice(uint64(1), "uniq", "desc", uint32(200), nil, "", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -625,7 +625,7 @@ func TestInvoice(t *testing.T) {
 }
 
 func TestInvoiceAny(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"label":"label","msatoshi":"any"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":false,"label":"label","msatoshi":"any"},"id":1}`
 	resp := wrapResult(1, `{
   "payment_hash": "287fbbfc50989e4e696e4ab6b96c8d5d5e2fff2a48bf6b59a2fecc040337ea91",
   "expires_at": 1546475555,
@@ -634,7 +634,7 @@ func TestInvoiceAny(t *testing.T) {
 }`)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	invoice, err := lightning.CreateInvoiceAny("label", "desc", uint32(200), nil, "")
+	invoice, err := lightning.CreateInvoiceAny("label", "desc", uint32(200), nil, "", false)
 	if err != nil {
 		t.Fatal(err)
 	}

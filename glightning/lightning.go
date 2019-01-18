@@ -286,6 +286,7 @@ type InvoiceRequest struct {
 	ExpirySeconds uint32   `json:"expiry,omitempty"`
 	Fallbacks     []string `json:"fallbacks,omitempty"`
 	PreImage      string   `json:"preimage,omitempty"`
+	ExposePrivateChans bool    `json:"exposeprivatechannels"`
 }
 
 func (ir *InvoiceRequest) Name() string {
@@ -304,8 +305,8 @@ type Invoice struct {
 }
 
 // Creates an invoice with a value of "any", that can be paid with any amount
-func (l *Lightning) CreateInvoiceAny(label, description string, expirySeconds uint32, fallbacks []string, preimage string) (*Invoice, error) {
-	return createInvoice(l, "any", label, description, expirySeconds, fallbacks, preimage)
+func (l *Lightning) CreateInvoiceAny(label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivateChans bool) (*Invoice, error) {
+	return createInvoice(l, "any", label, description, expirySeconds, fallbacks, preimage, exposePrivateChans)
 }
 
 // Creates an invoice with a value of `msat`. Label and description must be set.
@@ -332,16 +333,16 @@ func (l *Lightning) CreateInvoiceAny(label, description string, expirySeconds ui
 // was used in its creation and keeping it secret.
 // This parameter is an advanced feature intended for use with cutting-edge
 // cryptographic protocols and should not be used unless explicitly needed.
-func (l *Lightning) CreateInvoice(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string) (*Invoice, error) {
+func (l *Lightning) CreateInvoice(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivateChannels bool) (*Invoice, error) {
 
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage)
+	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, exposePrivateChannels)
 
 }
 
-func createInvoice(l *Lightning, msat, label, description string, expirySeconds uint32, fallbacks []string, preimage string) (*Invoice, error) {
+func createInvoice(l *Lightning, msat, label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivateChans bool) (*Invoice, error) {
 
 	if label == "" {
 		return nil, fmt.Errorf("Must set a label on an invoice")
@@ -358,6 +359,7 @@ func createInvoice(l *Lightning, msat, label, description string, expirySeconds 
 		ExpirySeconds: expirySeconds,
 		Fallbacks:     fallbacks,
 		PreImage:      preimage,
+		ExposePrivateChans: exposePrivateChans,
 	}, &result)
 	return &result, err
 }
