@@ -116,6 +116,9 @@ func (c *Client) readQueue(in io.Reader) {
 }
 
 func processResponse(c *Client, resp *RawResponse) {
+	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
+		log.Println(string(resp.Raw))
+	}
 	// the response should have an ID
 	if resp.Id == nil || resp.Id.Val() == "" {
 		// no id means there's no one listening
