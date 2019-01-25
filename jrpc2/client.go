@@ -116,9 +116,6 @@ func (c *Client) readQueue(in io.Reader) {
 }
 
 func processResponse(c *Client, resp *RawResponse) {
-	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
-		log.Println(string(resp.Raw))
-	}
 	// the response should have an ID
 	if resp.Id == nil || resp.Id.Val() == "" {
 		// no id means there's no one listening
@@ -191,6 +188,14 @@ func (c *Client) RequestNoTimeout(m Method, resp interface{}) error {
 	c.requestQueue <- req
 
 	rawResp := <-replyChan
+	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
+		if rawResp.Error {
+			log.Printf("%d:%s", rawResp.Error.Code, rawResp.Error.Message)
+			log.Println(string(rawResp.Error.Data))
+		} else {
+			log.Println(string(rawResp.Raw))
+		}
+	}
 	return handleReply(rawResp, resp)
 }
 
