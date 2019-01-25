@@ -371,6 +371,41 @@ func TestWaitSendPay(t *testing.T) {
 
 }
 
+func TestWaitSendPayError(t *testing.T) {
+	req := `{"jsonrpc":"2.0","method":"waitsendpay","params":{"payment_hash":"37ef7c6ff62d5a2fbce1940ab2f4de2785045b922f93944b73f7bc5123ed698f"},"id":1}`
+	resp := wrapError(1, 204, "failed: WIRE_TEMPORARY_CHANNEL_FAILURE", `{"erring_index": 2, "failcode": 4107,
+  "erring_node": "038863cf8ab91046230f561cd5b386cbff8309fa02e3f0c3ed161a3aeb64a643b9",
+  "erring_channel": "1451409x38x0",
+  "erring_direction": 1,
+  "channel_update": "0102fc0d7e4831887e04c5abce42f4860869ab984a037c49fd43f16aef81cc42de4075092f0c24e6c8febd42faafb41ffe48f974d1cdb5dc4dc3cebe4eec41881f6043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000016259100002600005c4ab84e0100009000000000000003e8000003e80000000100000003e7fffc18"}`)
+	paymentHash := "37ef7c6ff62d5a2fbce1940ab2f4de2785045b922f93944b73f7bc5123ed698f"
+	lightning, requestQ, replyQ := startupServer(t)
+	// confirm that we're using non-timeout path
+	lightning.SetTimeout(0)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	_, err := lightning.WaitSendPay(paymentHash, 0)
+	if err == nil {
+		t.Fatal("Expected error, got nothing")
+	}
+	payErr, ok := err.(*glightning.PaymentError)
+	if !ok {
+		t.Fatal(err)
+	}
+	assert.Equal(t, payErr.Error(), "204:failed: WIRE_TEMPORARY_CHANNEL_FAILURE")
+	assert.Equal(t, payErr.Message, "failed: WIRE_TEMPORARY_CHANNEL_FAILURE")
+	assert.Equal(t, payErr.Code, 204)
+	errData := &glightning.PaymentErrorData{
+		ErringIndex: 2,
+		FailCode: 4107,
+		ErringNode: "038863cf8ab91046230f561cd5b386cbff8309fa02e3f0c3ed161a3aeb64a643b9",
+		ErringChannel: "1451409x38x0",
+		ErringDirection: 1,
+		ChannelUpdate: "0102fc0d7e4831887e04c5abce42f4860869ab984a037c49fd43f16aef81cc42de4075092f0c24e6c8febd42faafb41ffe48f974d1cdb5dc4dc3cebe4eec41881f6043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000016259100002600005c4ab84e0100009000000000000003e8000003e80000000100000003e7fffc18",
+	}
+	assert.Equal(t, *errData, payErr.Data)
+
+}
+
 func TestSendPay(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233x1x0","msatoshi":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263x1x0","msatoshi":10000,"delay":9}]},"id":1}`
 	resp := wrapResult(1, `{
@@ -1513,6 +1548,10 @@ func writer(outPipe io.Writer, replyQueue chan []byte, t *testing.T) {
 		out.Write(reply)
 		out.Flush()
 	}
+}
+
+func wrapError(id, code int, message, data string) string {
+	return fmt.Sprintf("{\"jsonrpc\":\"2.0\",\"id\":%d,\"error\":{\"code\":%d,\"message\":\"%s\",\"data\":%s}}", id, code, message, data)
 }
 
 func wrapResult(id int, result string) string {

@@ -207,7 +207,7 @@ func handleReply(rawResp *RawResponse, resp interface{}) error {
 	// when the response comes back, it will either have an error,
 	// that we should parse into an 'error' (depending on the code?)
 	if rawResp.Error != nil {
-		return rawResp.Error.ToErr()
+		return rawResp.Error
 	}
 
 	// or a raw response, that we should json map into the

@@ -136,7 +136,7 @@ func processMsg(s *Server, data []byte) {
 	// read is done. time to figure out what we've gotten
 	if len(data) == 0 {
 		s.outQueue <- (&Response{
-			Error: &Error{
+			Error: &RpcError{
 				Code:    InvalidRequest,
 				Message: "Invalid Request",
 			},
@@ -148,7 +148,7 @@ func processMsg(s *Server, data []byte) {
 	// todo: infra for batches (ie use wait group)
 	if data[0] == '[' {
 		s.outQueue <- &Response{
-			Error: &Error{
+			Error: &RpcError{
 				Code:    InternalErr,
 				Message: "This server can't handle batch requests",
 			},
@@ -162,7 +162,7 @@ func processMsg(s *Server, data []byte) {
 	if err != nil {
 		s.outQueue <- &Response{
 			Id: err.Id,
-			Error: &Error{
+			Error: &RpcError{
 				Code:    err.Code,
 				Message: err.Msg,
 			},
@@ -238,9 +238,9 @@ func (s *Server) Unregister(method ServerMethod) error {
 	return s.UnregisterByName(method.Name())
 }
 
-func constructError(err error) *Error {
+func constructError(err error) *RpcError {
 	// todo: specify return data?
-	return &Error{
+	return &RpcError{
 		Code:    -1,
 		Message: err.Error(),
 	}

@@ -94,7 +94,7 @@ type Method interface {
 // Responses are sent by the Server
 type Response struct {
 	Result Result `json:"result,omitempty"`
-	Error  *Error `json:"error,omitempty"`
+	Error  *RpcError `json:"error,omitempty"`
 	Id     *Id    `json:"id"`
 }
 
@@ -106,24 +106,24 @@ type Response struct {
 type RawResponse struct {
 	Id    *Id             `json:"id"`
 	Raw   json.RawMessage `json:"-"`
-	Error *Error          `json:"error,omitempty"`
+	Error *RpcError          `json:"error,omitempty"`
 }
 
 type Result interface{}
 
-type Error struct {
+type RpcError struct {
 	Code    int             `json:"code"`
 	Message string          `json:"message"`
-	Data    json.RawMessage `json:"data,omitempty"` // parse your own adventure
+	Data    json.RawMessage `json:"data,omitempty"`
 }
 
 // provide your own object to parse this with! ehehe
-func (e *Error) ParseData(into interface{}) error {
+func (e *RpcError) ParseData(into interface{}) error {
 	return json.Unmarshal(e.Data, into)
 }
 
-func (e *Error) ToErr() error {
-	return fmt.Errorf("%d:%s", e.Code, e.Message)
+func (e *RpcError) Error() string {
+	return fmt.Sprintf("%d:%s", e.Code, e.Message)
 }
 
 // What we really want is the parameter values off of

@@ -803,6 +803,20 @@ func (r *WaitSendPayRequest) Name() string {
 	return "waitsendpay"
 }
 
+type PaymentError struct {
+	*jrpc2.RpcError
+	Data PaymentErrorData
+}
+
+type PaymentErrorData struct {
+	ErringIndex uint64 `json:"erring_index"`
+	FailCode int `json:"failcode"`
+	ErringNode string `json:"erring_node"`
+	ErringChannel string `json:"erring_channel"`
+	ErringDirection int `json:"erring_direction"`
+	ChannelUpdate string `json:"channel_update"`
+}
+
 // Polls or waits for the status of an outgoing payment that was
 // initiated by a previous 'SendPay' invocation.
 //
@@ -819,6 +833,16 @@ func (l *Lightning) WaitSendPay(paymentHash string, timeout uint) (*PaymentField
 
 	var result PaymentFields
 	err := l.client.RequestNoTimeout(&WaitSendPayRequest{paymentHash, timeout}, &result)
+	if err, ok := err.(*jrpc2.RpcError); ok {
+		var paymentErrData PaymentErrorData
+		parseErr := err.ParseData(&paymentErrData)
+		if parseErr != nil {
+			log.Printf(parseErr.Error())
+			return &result, err
+		}
+		return &result, &PaymentError{err,paymentErrData}
+	}
+
 	return &result, err
 }
 
