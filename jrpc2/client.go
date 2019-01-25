@@ -188,14 +188,6 @@ func (c *Client) RequestNoTimeout(m Method, resp interface{}) error {
 	c.requestQueue <- req
 
 	rawResp := <-replyChan
-	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
-		if rawResp.Error != nil {
-			log.Printf("%d:%s", rawResp.Error.Code, rawResp.Error.Message)
-			log.Println(string(rawResp.Error.Data))
-		} else {
-			log.Println(string(rawResp.Raw))
-		}
-	}
 	return handleReply(rawResp, resp)
 }
 
@@ -207,7 +199,15 @@ func handleReply(rawResp *RawResponse, resp interface{}) error {
 	// when the response comes back, it will either have an error,
 	// that we should parse into an 'error' (depending on the code?)
 	if rawResp.Error != nil {
+		if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO_RPC_ERR"); ok {
+			log.Printf("%d:%s", rawResp.Error.Code, rawResp.Error.Message)
+			log.Println(string(rawResp.Error.Data))
+		}
 		return rawResp.Error
+	}
+
+	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO_RPC"); ok {
+		log.Println(string(rawResp.Raw))
 	}
 
 	// or a raw response, that we should json map into the
