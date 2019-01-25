@@ -310,7 +310,7 @@ func (p *Plugin) checkForMonkeyPatch() {
 	// Use a logfile instead
 	filename, _ := os.LookupEnv("GOLIGHT_DEBUG_LOGFILE")
 	if filename != "" {
-		f, err := os.OpenFile("plugin.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			log.Fatal("Unable to open log file for writing: " + err.Error())
 			return
