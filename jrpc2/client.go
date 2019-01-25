@@ -189,7 +189,7 @@ func (c *Client) RequestNoTimeout(m Method, resp interface{}) error {
 
 	rawResp := <-replyChan
 	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
-		if rawResp.Error {
+		if rawResp.Error != nil {
 			log.Printf("%d:%s", rawResp.Error.Code, rawResp.Error.Message)
 			log.Println(string(rawResp.Error.Data))
 		} else {
