@@ -64,39 +64,39 @@ type Peer struct {
 }
 
 type PeerChannel struct {
-	State                            string   `json:"state"`
-	ScratchTxId                      string   `json:"scratch_txid"`
-	Owner                            string   `json:"owner"`
-	ShortChannelId                   string   `json:"short_channel_id"`
-	ChannelDirection                 int      `json:"direction"`
-	ChannelId                        string   `json:"channel_id"`
-	FundingTxId                      string   `json:"funding_txid"`
-	Funding                          string   `json:"funding"`
-	Status                           []string `json:"status"`
-	Private                          bool     `json:"private"`
-	FundingAllocations		 map[string]uint64 `json:"funding_allocation_msat"`
-	MilliSatoshiToUs                 uint64   `json:"msatoshi_to_us"`
-	MilliSatoshiToUsMin              uint64   `json:"msatoshi_to_us_min"`
-	MilliSatoshiToUsMax              uint64   `json:"msatoshi_to_us_max"`
-	MilliSatoshiTotal                uint64   `json:"msatoshi_total"`
-	DustLimitSatoshi                 uint64   `json:"dust_limit_satoshis"`
-	MaxHtlcValueInFlightMilliSatoshi uint64   `json:"max_htlc_value_in_flight_msat"`
-	TheirChannelReserveSatoshi       uint64   `json:"their_channel_reserve_satoshis"`
-	OurChannelReserveSatoshi         uint64   `json:"our_channel_reserve_satoshis"`
-	SpendableMilliSatoshi            uint64   `json:"spendable_msatoshi"`
-	HtlcMinMilliSatoshi              uint64   `json:"htlc_minimum_msat"`
-	TheirToSelfDelay                 uint     `json:"their_to_self_delay"`
-	OurToSelfDelay                   uint     `json:"our_to_self_delay"`
-	MaxAcceptedHtlcs                 uint     `json:"max_accepted_htlcs"`
-	InPaymentsOffered                uint64   `json:"in_payments_offered"`
-	InMilliSatoshiOffered            uint64   `json:"in_msatoshi_offered"`
-	InPaymentsFulfilled              uint64   `json:"in_payments_fulfilled"`
-	InMilliSatoshiFulfilled          uint64   `json:"in_msatoshi_fulfilled"`
-	OutPaymentsOffered               uint64   `json:"out_payments_offered"`
-	OutMilliSatoshiOffered           uint64   `json:"out_msatoshi_offered"`
-	OutPaymentsFulfilled             uint64   `json:"out_payments_fulfilled"`
-	OutMilliSatoshiFulfilled         uint64   `json:"out_msatoshi_fulfilled"`
-	Htlcs                            []*Htlc  `json:"htlcs"`
+	State                            string            `json:"state"`
+	ScratchTxId                      string            `json:"scratch_txid"`
+	Owner                            string            `json:"owner"`
+	ShortChannelId                   string            `json:"short_channel_id"`
+	ChannelDirection                 int               `json:"direction"`
+	ChannelId                        string            `json:"channel_id"`
+	FundingTxId                      string            `json:"funding_txid"`
+	Funding                          string            `json:"funding"`
+	Status                           []string          `json:"status"`
+	Private                          bool              `json:"private"`
+	FundingAllocations               map[string]uint64 `json:"funding_allocation_msat"`
+	MilliSatoshiToUs                 uint64            `json:"msatoshi_to_us"`
+	MilliSatoshiToUsMin              uint64            `json:"msatoshi_to_us_min"`
+	MilliSatoshiToUsMax              uint64            `json:"msatoshi_to_us_max"`
+	MilliSatoshiTotal                uint64            `json:"msatoshi_total"`
+	DustLimitSatoshi                 uint64            `json:"dust_limit_satoshis"`
+	MaxHtlcValueInFlightMilliSatoshi uint64            `json:"max_htlc_value_in_flight_msat"`
+	TheirChannelReserveSatoshi       uint64            `json:"their_channel_reserve_satoshis"`
+	OurChannelReserveSatoshi         uint64            `json:"our_channel_reserve_satoshis"`
+	SpendableMilliSatoshi            uint64            `json:"spendable_msatoshi"`
+	HtlcMinMilliSatoshi              uint64            `json:"htlc_minimum_msat"`
+	TheirToSelfDelay                 uint              `json:"their_to_self_delay"`
+	OurToSelfDelay                   uint              `json:"our_to_self_delay"`
+	MaxAcceptedHtlcs                 uint              `json:"max_accepted_htlcs"`
+	InPaymentsOffered                uint64            `json:"in_payments_offered"`
+	InMilliSatoshiOffered            uint64            `json:"in_msatoshi_offered"`
+	InPaymentsFulfilled              uint64            `json:"in_payments_fulfilled"`
+	InMilliSatoshiFulfilled          uint64            `json:"in_msatoshi_fulfilled"`
+	OutPaymentsOffered               uint64            `json:"out_payments_offered"`
+	OutMilliSatoshiOffered           uint64            `json:"out_msatoshi_offered"`
+	OutPaymentsFulfilled             uint64            `json:"out_payments_fulfilled"`
+	OutMilliSatoshiFulfilled         uint64            `json:"out_msatoshi_fulfilled"`
+	Htlcs                            []*Htlc           `json:"htlcs"`
 }
 
 type Htlc struct {
@@ -175,15 +175,15 @@ func (l *Lightning) ListNodes() ([]Node, error) {
 }
 
 type RouteRequest struct {
-	PeerId        string  `json:"id"`
-	MilliSatoshis uint64  `json:"msatoshi"`
-	RiskFactor    float32 `json:"riskfactor"`
-	Cltv          uint    `json:"cltv"`
-	FromId        string  `json:"fromid,omitempty"`
-	FuzzPercent   float32 `json:"fuzzpercent"`
-	Seed          string  `json:"seed,omitempty"`
-	Exclude	      []string `json:"exclude,omitempty"`
-	MaxHops       int32      `json:"maxhops,omitempty"`
+	PeerId        string   `json:"id"`
+	MilliSatoshis uint64   `json:"msatoshi"`
+	RiskFactor    float32  `json:"riskfactor"`
+	Cltv          uint     `json:"cltv"`
+	FromId        string   `json:"fromid,omitempty"`
+	FuzzPercent   float32  `json:"fuzzpercent"`
+	Seed          string   `json:"seed,omitempty"`
+	Exclude       []string `json:"exclude,omitempty"`
+	MaxHops       int32    `json:"maxhops,omitempty"`
 }
 
 type Route struct {
@@ -209,7 +209,7 @@ func (l *Lightning) GetRouteSimple(peerId string, msats uint64, riskfactor float
 // {cltv} value (defaults to 9). If specified, search from {fromId} otherwise
 // use current node as the source. Randomize the route with up to {fuzzpercent}
 // (0.0 -> 100.0, default 5.0).
-// 
+//
 // If you wish to exclude a set of channels from the route, you can pass in an optional
 // set of channel id's with a direction (scid/direction)
 func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cltv uint, fromId string, fuzzpercent float32, exclude []string, maxHops int32) ([]RouteHop, error) {
@@ -251,7 +251,7 @@ func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cl
 
 type ListChannelRequest struct {
 	ShortChannelId string `json:"short_channel_id,omitempty"`
-	Source string `json:"source,omitempty"`
+	Source         string `json:"source,omitempty"`
 }
 
 func (lc *ListChannelRequest) Name() string {
@@ -278,7 +278,7 @@ func (l *Lightning) GetChannel(shortChanId string) ([]Channel, error) {
 	var result struct {
 		Channels []Channel `json:"channels"`
 	}
-	err := l.client.Request(&ListChannelRequest{shortChanId,""}, &result)
+	err := l.client.Request(&ListChannelRequest{shortChanId, ""}, &result)
 	return result.Channels, err
 }
 
@@ -286,7 +286,7 @@ func (l *Lightning) ListChannelsBySource(nodeId string) ([]Channel, error) {
 	var result struct {
 		Channels []Channel `json:"channels"`
 	}
-	err := l.client.Request(&ListChannelRequest{"",nodeId}, &result)
+	err := l.client.Request(&ListChannelRequest{"", nodeId}, &result)
 	return result.Channels, err
 }
 
@@ -295,13 +295,13 @@ func (l *Lightning) ListChannels() ([]Channel, error) {
 }
 
 type InvoiceRequest struct {
-	MilliSatoshis string   `json:"msatoshi"`
-	Label         string   `json:"label"`
-	Description   string   `json:"description"`
-	ExpirySeconds uint32   `json:"expiry,omitempty"`
-	Fallbacks     []string `json:"fallbacks,omitempty"`
-	PreImage      string   `json:"preimage,omitempty"`
-	ExposePrivateChans bool    `json:"exposeprivatechannels"`
+	MilliSatoshis      string   `json:"msatoshi"`
+	Label              string   `json:"label"`
+	Description        string   `json:"description"`
+	ExpirySeconds      uint32   `json:"expiry,omitempty"`
+	Fallbacks          []string `json:"fallbacks,omitempty"`
+	PreImage           string   `json:"preimage,omitempty"`
+	ExposePrivateChans bool     `json:"exposeprivatechannels"`
 }
 
 func (ir *InvoiceRequest) Name() string {
@@ -368,12 +368,12 @@ func createInvoice(l *Lightning, msat, label, description string, expirySeconds 
 
 	var result Invoice
 	err := l.client.Request(&InvoiceRequest{
-		MilliSatoshis: msat,
-		Label:         label,
-		Description:   description,
-		ExpirySeconds: expirySeconds,
-		Fallbacks:     fallbacks,
-		PreImage:      preimage,
+		MilliSatoshis:      msat,
+		Label:              label,
+		Description:        description,
+		ExpirySeconds:      expirySeconds,
+		Fallbacks:          fallbacks,
+		PreImage:           preimage,
 		ExposePrivateChans: exposePrivateChans,
 	}, &result)
 	return &result, err
@@ -809,12 +809,12 @@ type PaymentError struct {
 }
 
 type PaymentErrorData struct {
-	ErringIndex uint64 `json:"erring_index"`
-	FailCode int `json:"failcode"`
-	ErringNode string `json:"erring_node"`
-	ErringChannel string `json:"erring_channel"`
-	ErringDirection int `json:"erring_direction"`
-	ChannelUpdate string `json:"channel_update"`
+	ErringIndex     uint64 `json:"erring_index"`
+	FailCode        int    `json:"failcode"`
+	ErringNode      string `json:"erring_node"`
+	ErringChannel   string `json:"erring_channel"`
+	ErringDirection int    `json:"erring_direction"`
+	ChannelUpdate   string `json:"channel_update"`
 }
 
 // Polls or waits for the status of an outgoing payment that was
@@ -840,7 +840,7 @@ func (l *Lightning) WaitSendPay(paymentHash string, timeout uint) (*PaymentField
 			log.Printf(parseErr.Error())
 			return &result, err
 		}
-		return &result, &PaymentError{err,paymentErrData}
+		return &result, &PaymentError{err, paymentErrData}
 	}
 
 	return &result, err

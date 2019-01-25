@@ -93,9 +93,9 @@ type Method interface {
 
 // Responses are sent by the Server
 type Response struct {
-	Result Result `json:"result,omitempty"`
+	Result Result    `json:"result,omitempty"`
 	Error  *RpcError `json:"error,omitempty"`
-	Id     *Id    `json:"id"`
+	Id     *Id       `json:"id"`
 }
 
 // RawResponses are what the client gets back
@@ -106,7 +106,7 @@ type Response struct {
 type RawResponse struct {
 	Id    *Id             `json:"id"`
 	Raw   json.RawMessage `json:"-"`
-	Error *RpcError          `json:"error,omitempty"`
+	Error *RpcError       `json:"error,omitempty"`
 }
 
 type Result interface{}

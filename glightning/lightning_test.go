@@ -91,12 +91,12 @@ func TestListPeers(t *testing.T) {
 	fundingAlloc["028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764"] = uint64(1000000000)
 	htlcs := []*glightning.Htlc{
 		&glightning.Htlc{
-			Direction: "out",
-			Id: 1,
-			MilliSatoshi:1437433749,
-			Expiry: 556832,
-			PaymentHash: "3525b49c055604a7997512f866694b6154987a32cc60e1c374113246d38bd5ad",
-			State: "SENT_REMOVE_ACK_COMMIT",
+			Direction:    "out",
+			Id:           1,
+			MilliSatoshi: 1437433749,
+			Expiry:       556832,
+			PaymentHash:  "3525b49c055604a7997512f866694b6154987a32cc60e1c374113246d38bd5ad",
+			State:        "SENT_REMOVE_ACK_COMMIT",
 		},
 	}
 	expected := []glightning.Peer{
@@ -115,8 +115,8 @@ func TestListPeers(t *testing.T) {
 					ChannelDirection:                 1,
 					ChannelId:                        "5415f1347cf12f30222c5968c59a4744e78ee39f0361e19b6ce2996cce4e1538",
 					FundingTxId:                      "38154ece6c99e26c9be161039fe38ee744479ac568592c22302ff17c34f11554",
-					Private:		          true,
-					FundingAllocations:		  fundingAlloc,
+					Private:                          true,
+					FundingAllocations:               fundingAlloc,
 					MilliSatoshiToUs:                 16777215000,
 					MilliSatoshiToUsMin:              16777215000,
 					MilliSatoshiToUsMax:              16777215000,
@@ -395,12 +395,12 @@ func TestWaitSendPayError(t *testing.T) {
 	assert.Equal(t, payErr.Message, "failed: WIRE_TEMPORARY_CHANNEL_FAILURE")
 	assert.Equal(t, payErr.Code, 204)
 	errData := &glightning.PaymentErrorData{
-		ErringIndex: 2,
-		FailCode: 4107,
-		ErringNode: "038863cf8ab91046230f561cd5b386cbff8309fa02e3f0c3ed161a3aeb64a643b9",
-		ErringChannel: "1451409x38x0",
+		ErringIndex:     2,
+		FailCode:        4107,
+		ErringNode:      "038863cf8ab91046230f561cd5b386cbff8309fa02e3f0c3ed161a3aeb64a643b9",
+		ErringChannel:   "1451409x38x0",
 		ErringDirection: 1,
-		ChannelUpdate: "0102fc0d7e4831887e04c5abce42f4860869ab984a037c49fd43f16aef81cc42de4075092f0c24e6c8febd42faafb41ffe48f974d1cdb5dc4dc3cebe4eec41881f6043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000016259100002600005c4ab84e0100009000000000000003e8000003e80000000100000003e7fffc18",
+		ChannelUpdate:   "0102fc0d7e4831887e04c5abce42f4860869ab984a037c49fd43f16aef81cc42de4075092f0c24e6c8febd42faafb41ffe48f974d1cdb5dc4dc3cebe4eec41881f6043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000016259100002600005c4ab84e0100009000000000000003e8000003e80000000100000003e7fffc18",
 	}
 	assert.Equal(t, *errData, payErr.Data)
 
