@@ -4,7 +4,7 @@ glightning is a driver for the Lightning Network protocol implemenation [c-light
 
 It offers an RPC client for calling lightning commands and a Plugin infrastructure, for creating your own c-lightning commands and registering for subscriptions.
 
-More details on c-lightning plugins can be found in the [c-lightning docs](https://github.com/ElementsProject/lightning/blob/master/doc/plugins.md)
+More details on c-lightning plugins can be found in the [c-lightning docs](https://github.com/ElementsProject/lightning/blob/master/doc/PLUGINS.md)
 
 
 ## Plugins: How to Use
