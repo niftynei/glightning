@@ -95,7 +95,7 @@ func (o *Option) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Name        string `json:"name"`
 		Type        string `json:"type"`
-		Default     string `json:"default,omitempty"`
+		Default     string `json:"default"`
 		Description string `json:"description"`
 	}{
 		Name:        o.Name,
