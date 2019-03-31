@@ -109,6 +109,7 @@ type RpcMethod struct {
 	Method   jrpc2.ServerMethod
 	Desc     string
 	LongDesc string
+	Usage    string
 }
 
 func NewRpcMethod(method jrpc2.ServerMethod, desc string) *RpcMethod {
@@ -132,11 +133,13 @@ func (r *RpcMethod) MarshalJSON() ([]byte, error) {
 		Desc     string   `json:"description"`
 		Params   []string `json:"params,omitempty"`
 		LongDesc string   `json:"long_description,omitempty"`
+		Usage    string   `json:"usage,omitempty"`
 	}{
 		Name:     r.Method.Name(),
 		Desc:     r.Description(),
 		LongDesc: r.LongDesc,
 		Params:   getParamList(r.Method),
+		Usage:    r.Usage,
 	})
 }
 
