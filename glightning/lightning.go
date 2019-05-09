@@ -720,9 +720,9 @@ func (l *Lightning) GetInfo() (*NodeInfo, error) {
 type SendPayRequest struct {
 	Route         []RouteHop `json:"route"`
 	PaymentHash   string     `json:"payment_hash"`
-	label         string     `json:"label,omitempty"`
+	Label         string     `json:"label,omitempty"`
 	MilliSatoshis uint64     `json:"msatoshi,omitempty"`
-	bolt11        string     `json:"bolt11,omitempty"`
+	Bolt11        string     `json:"bolt11,omitempty"`
 }
 
 func (r *SendPayRequest) Name() string {
@@ -748,7 +748,7 @@ type SendPayResult struct {
 
 // SendPay, but without description or millisatoshi value
 func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayResult, error) {
-	return l.SendPay(route, paymentHash, "", "", 0)
+	return l.SendPay(route, paymentHash, "", 0, "")
 }
 
 // Send along {route} in return for preimage of {paymentHash}
