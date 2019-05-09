@@ -720,8 +720,9 @@ func (l *Lightning) GetInfo() (*NodeInfo, error) {
 type SendPayRequest struct {
 	Route         []RouteHop `json:"route"`
 	PaymentHash   string     `json:"payment_hash"`
-	Desc          string     `json:"description,omitempty"`
+	label         string     `json:"label,omitempty"`
 	MilliSatoshis uint64     `json:"msatoshi,omitempty"`
+	bolt11        string     `json:"bolt11,omitempty"`
 }
 
 func (r *SendPayRequest) Name() string {
@@ -747,7 +748,7 @@ type SendPayResult struct {
 
 // SendPay, but without description or millisatoshi value
 func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayResult, error) {
-	return l.SendPay(route, paymentHash, "", 0)
+	return l.SendPay(route, paymentHash, "", "", 0)
 }
 
 // Send along {route} in return for preimage of {paymentHash}
@@ -776,7 +777,7 @@ func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayR
 // prevents accidental multiple payments. Calls with the same 'paymentHash',
 // 'msat' and destination as a previous successful payment will return
 // immediately with a success, even if the route is different.
-func (l *Lightning) SendPay(route []RouteHop, paymentHash, description string, msat uint64) (*SendPayResult, error) {
+func (l *Lightning) SendPay(route []RouteHop, paymentHash, label string, msat uint64, bolt11 string) (*SendPayResult, error) {
 	if paymentHash == "" {
 		return nil, fmt.Errorf("Must specify a paymentHash to pay")
 	}
@@ -788,8 +789,9 @@ func (l *Lightning) SendPay(route []RouteHop, paymentHash, description string, m
 	err := l.client.Request(&SendPayRequest{
 		Route:         route,
 		PaymentHash:   paymentHash,
-		Desc:          description,
+		Label:         label,
 		MilliSatoshis: msat,
+		Bolt11: bolt11,
 	}, &result)
 	return &result, err
 }
