@@ -42,9 +42,9 @@ func payInvoice() {
 	satoshi := uint64(10000)
 
 	invoiceLabel := "ayc"
-	invoice, err := ltwo.CreateInvoice(satoshi, invoiceLabel, "desc", uint32(5), nil, "")
+	invoice, err := ltwo.CreateInvoice(satoshi, invoiceLabel, "desc", uint32(5), nil, "", false)
 	fmt.Printf("Invoice one is %s\n", invoice.PaymentHash)
-	invoiceTwo, err := ltwo.CreateInvoice(satoshi, invoiceLabel+"ab", "desc", uint32(5), nil, "")
+	invoiceTwo, err := ltwo.CreateInvoice(satoshi, invoiceLabel+"ab", "desc", uint32(5), nil, "", false)
 	if err != nil {
 		panic(err)
 	}

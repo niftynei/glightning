@@ -465,7 +465,7 @@ func TestResponseMarshalling(t *testing.T) {
 		Name:  "arbit",
 	}
 	arbitBytes, err := json.Marshal(arbitData)
-	erro := &jrpc2.Error{
+	erro := &jrpc2.RpcError{
 		Code:    2,
 		Message: "omg",
 		Data:    arbitBytes,
