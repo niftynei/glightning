@@ -60,7 +60,7 @@ func payInvoice() {
 		if err != nil {
 			panic(err)
 		}
-		result, err := lone.SendPay(route, paymentHash, "", 0)
+		result, err := lone.SendPay(route, paymentHash, "", 0, "")
 		if err != nil {
 			panic(err)
 		}

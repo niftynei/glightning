@@ -436,7 +436,7 @@ func TestSendPay(t *testing.T) {
 		},
 	}
 	paymentHash := "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993"
-	invoice, err := lightning.SendPay(route, paymentHash, "", 0)
+	invoice, err := lightning.SendPay(route, paymentHash, "", 0, "")
 	if err != nil {
 		t.Fatal(err)
 	}
