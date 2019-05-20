@@ -44,6 +44,10 @@ func (l *Lightning) IsUp() bool {
 	return l.isUp && l.client.IsUp()
 }
 
+func (l *Lightning) Request(m jrpc2.Method, resp interface{}) error {
+	return l.client.Request(m, resp)
+}
+
 type ListPeersRequest struct {
 	PeerId string `json:"id,omitempty"`
 	Level  string `json:"level,omitempty"`
@@ -791,7 +795,7 @@ func (l *Lightning) SendPay(route []RouteHop, paymentHash, label string, msat ui
 		PaymentHash:   paymentHash,
 		Label:         label,
 		MilliSatoshis: msat,
-		Bolt11: bolt11,
+		Bolt11:        bolt11,
 	}, &result)
 	return &result, err
 }
