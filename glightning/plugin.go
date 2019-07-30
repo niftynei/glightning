@@ -206,6 +206,7 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 type Config struct {
 	LightningDir string `json:"lightning-dir"`
 	RpcFile      string `json:"rpc-file"`
+	Startup      bool   `json:"startup,omitempty"`
 }
 
 type InitMethod struct {
