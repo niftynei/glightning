@@ -1397,6 +1397,78 @@ func (l *Lightning) NewAddressOfType(addrType AddressType) (string, error) {
 	return result.Address, err
 }
 
+type TxPrepare struct {
+	Destination string `json:"destination"`
+	Satoshi     string `json:"satoshi"`
+	FeeRate     string `json:"feerate,omitempty"`
+	MinConf	    uint16 `json:"minconf,omitempty"`
+}
+
+type TxResult struct {
+	Tx string `json:"unsigned_tx"`
+	TxId string `json:"txid"`
+}
+
+func (r *TxPrepare) Name() string {
+	return "txprepare"
+}
+
+func (l *Lightning) PrepareTx(destination string, amount *SatoshiAmount, feerate *FeeRate, minConf *uint16) (*TxResult, error) {
+	if amount == nil || (amount.Amount == 0 && !amount.SendAll) {
+		return nil, fmt.Errorf("Must set satoshi amount to send")
+	}
+	if destination == "" {
+		return nil, fmt.Errorf("Must supply a destination for transaction")
+	}
+
+	request := &TxPrepare{
+		Destination: destination,
+		Satoshi: amount.String(),
+	}
+
+	if feerate != nil {
+		request.FeeRate = feerate.String()
+	}
+
+	if minConf != nil {
+		request.MinConf = *minConf
+	}
+
+	var result TxResult
+	err := l.client.Request(request, &result)
+	return &result, err
+}
+
+type TxDiscard struct {
+	TxId	string `json:"txid"`
+}
+
+func (r *TxDiscard) Name() string {
+	return "txdiscard"
+}
+
+// Abandon a transaction created by PrepareTx
+func (l *Lightning) DiscardTx(txid string) (*TxResult, error) {
+	var result TxResult
+	err := l.client.Request(&TxDiscard{txid}, &result)
+	return &result, err
+}
+
+type TxSend struct {
+	TxId	string `json:"txid"`
+}
+
+func (r *TxSend) Name() string {
+	return "txsend"
+}
+
+// Sign and broadcast a transaction created by PrepareTx
+func (l *Lightning) SendTx(txid string) (*TxResult, error) {
+	var result TxResult
+	err := l.client.Request(&TxSend{txid}, &result)
+	return &result, err
+}
+
 type ListFundsRequest struct{}
 
 func (r *ListFundsRequest) Name() string {
@@ -1424,7 +1496,7 @@ type FundingChannel struct {
 	FundingTxId         string `json:"funding_txid"`
 }
 
-// Show funds available for opening channels
+// Funds in wallet.
 func (l *Lightning) ListFunds() (*FundsResult, error) {
 	var result FundsResult
 	err := l.client.Request(&ListFundsRequest{}, &result)
@@ -1574,3 +1646,4 @@ func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 		Warning:         result.Warning,
 	}, nil
 }
+

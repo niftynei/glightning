@@ -784,6 +784,69 @@ func TestWithdrawAll(t *testing.T) {
 	}, result)
 }
 
+func TestTxPrepare(t *testing.T) {
+	destination := "bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg"
+	amount := glightning.NewAmount(100000)
+	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, 243)
+	minConf := uint16(1)
+	req := `{"jsonrpc":"2.0","method":"txprepare","params":{"destination":"bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg","feerate":"243perkw","minconf":1,"satoshi":"100000"},"id":1}`
+	resp := wrapResult(1, `{
+   "unsigned_tx" : "0200000001060528291e1039a5a2e071ab88ffca8cb9655481f62108dff2e87a1aa139b6450000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a01000000160014e1cfb78798b16dd8f0b05b540f853d07ac5c555200000000",
+   "txid" : "cec03e956f3761624f176d62428d9e2cd51cb923258e00e17a34fc49b0da6dde"
+}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	result, err := lightning.PrepareTx(destination, amount, feerate, &minConf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, &glightning.TxResult{
+		Tx: "0200000001060528291e1039a5a2e071ab88ffca8cb9655481f62108dff2e87a1aa139b6450000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a01000000160014e1cfb78798b16dd8f0b05b540f853d07ac5c555200000000",
+		TxId: "cec03e956f3761624f176d62428d9e2cd51cb923258e00e17a34fc49b0da6dde",
+	}, result)
+}
+
+func TestTxSend(t *testing.T) {
+	req := `{"jsonrpc":"2.0","method":"txsend","params":{"txid":"c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed"},"id":1}`
+	resp := wrapResult(1, `{
+   "unsigned_tx" : "0200000001f56ad611189c96c9ae9499d61872e590a3ba4d55760f7663b0642d81c2b1880d0000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a010000001600146ea01d6c5aaa643076902d1c8b026e9eb47b32c000000000",
+   "txid" : "c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed"
+}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	result, err := lightning.SendTx("c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, &glightning.TxResult{
+		Tx: "0200000001f56ad611189c96c9ae9499d61872e590a3ba4d55760f7663b0642d81c2b1880d0000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a010000001600146ea01d6c5aaa643076902d1c8b026e9eb47b32c000000000",
+		TxId: "c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed",
+	}, result)
+}
+
+func TestTxDiscard(t *testing.T) {
+	req := `{"jsonrpc":"2.0","method":"txdiscard","params":{"txid":"c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed"},"id":1}`
+	resp := wrapResult(1, `{
+   "unsigned_tx" : "0200000001f56ad611189c96c9ae9499d61872e590a3ba4d55760f7663b0642d81c2b1880d0000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a010000001600146ea01d6c5aaa643076902d1c8b026e9eb47b32c000000000",
+   "txid" : "c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed"
+}`)
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	result, err := lightning.DiscardTx("c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, &glightning.TxResult{
+		Tx: "0200000001f56ad611189c96c9ae9499d61872e590a3ba4d55760f7663b0642d81c2b1880d0000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a010000001600146ea01d6c5aaa643076902d1c8b026e9eb47b32c000000000",
+		TxId: "c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed",
+	}, result)
+}
+
 func TestClose(t *testing.T) {
 	id := "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"
 	req := `{"jsonrpc":"2.0","method":"close","params":{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"},"id":1}`
