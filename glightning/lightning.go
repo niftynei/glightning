@@ -1045,6 +1045,72 @@ func (l *Lightning) FundChannelExt(id string, amount *SatoshiAmount, feerate *Fe
 	return &result, err
 }
 
+type FundChannelStart struct {
+	Id       string `json:"id"`
+	Amount   uint64 `json:"satoshi"`
+	Announce bool `json:"announce"`
+	FeeRate  string `json:"feerate,omitempty"`
+}
+
+func (r *FundChannelStart) Name() string {
+	return "fundchannel_start"
+}
+
+// Returns a string that's a bech32 address. this address is the funding output address.
+func (l *Lightning) StartFundChannel(id string, amount uint64, announce bool, feerate *FeeRate) (string, error) {
+	req := &FundChannelStart{
+		Id: id,
+		Amount: amount,
+		Announce: announce,
+	}
+	if feerate != nil {
+		req.FeeRate = feerate.String()
+	}
+
+	var result struct {
+		Address string `json:"funding_address"`
+	}
+	err := l.client.Request(req, &result)
+	return result.Address, err
+}
+
+type FundChannelComplete struct {
+	PeerId string `json:"id"`
+	TxId   string `json:"txid"`
+	TxOut  uint16 `json:"txout"`
+}
+
+func (r *FundChannelComplete) Name() string {
+	return "fundchannel_complete"
+}
+
+func (l *Lightning) CompleteFundChannel(peerId, txId string, txout uint16) (channelId string, err error) {
+	var result struct {
+		ChannelId string `json:"channel_id"`
+		CommitmentsSecured bool `json:"commitments_secured"`
+	}
+
+	err = l.client.Request(&FundChannelComplete{peerId, txId, txout}, &result)
+	return result.ChannelId, err
+}
+
+type FundChannelCancel struct {
+	PeerId string `json:"id"`
+}
+
+func (r *FundChannelCancel) Name() string {
+	return "fundchannel_cancel"
+}
+
+func (l *Lightning) CancelFundChannel(peerId string) (bool, error) {
+	var result struct {
+		Cancelled string `json:"cancelled"`
+	}
+
+	err := l.client.Request(&FundChannelCancel{peerId}, &result)
+	return err == nil, err
+}
+
 type CloseRequest struct {
 	PeerId  string `json:"id"`
 	Force   bool   `json:"force,omitempty"`
