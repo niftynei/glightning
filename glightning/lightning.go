@@ -999,23 +999,13 @@ func (l *Lightning) Connect(peerId, host string, port uint) (string, error) {
 
 type FundChannelRequest struct {
 	Id       string `json:"id"`
-	Amount   uint64 `json:"satoshi"`
-	FeeRate  string `json:"feerate,omitempty"`
-	Announce bool   `json:"announce"`
-}
-
-type FundChannelRequestAll struct {
-	Id       string `json:"id"`
 	Amount   string `json:"satoshi"`
 	FeeRate  string `json:"feerate,omitempty"`
 	Announce bool   `json:"announce"`
+	MinConf  uint16 `json:"minconf,omitempty"`
 }
 
 func (r *FundChannelRequest) Name() string {
-	return "fundchannel"
-}
-
-func (r *FundChannelRequestAll) Name() string {
 	return "fundchannel"
 }
 
@@ -1027,36 +1017,29 @@ type FundChannelResult struct {
 
 // Fund channel, defaults to public channel and default feerate.
 func (l *Lightning) FundChannel(id string, amount *SatoshiAmount) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, nil, true)
+	return l.FundChannelExt(id, amount, nil, true, nil)
 }
 
 // Fund channel with node {id} using {satoshi} satoshis, with feerate of {feerate}. Uses
 // default feerate if unset.
 // If announce is false, channel announcements will not be sent.
-func (l *Lightning) FundChannelExt(id string, amount *SatoshiAmount, feerate *FeeRate, announce bool) (*FundChannelResult, error) {
+func (l *Lightning) FundChannelExt(id string, amount *SatoshiAmount, feerate *FeeRate, announce bool, minConf *uint16) (*FundChannelResult, error) {
 	if amount == nil || (amount.Amount == 0 && !amount.SendAll) {
 		return nil, fmt.Errorf("Must set satoshi amount to send")
 	}
-	if amount.SendAll {
-		req := &FundChannelRequestAll{}
-		req.Id = id
-		req.Amount = amount.String()
-		req.Announce = announce
-		if feerate != nil {
-			req.FeeRate = feerate.String()
-		}
-		var result FundChannelResult
-		err := l.client.Request(req, &result)
-		return &result, err
-	}
 
-	req := &FundChannelRequest{}
-	req.Id = id
-	req.Amount = amount.Amount
-	req.Announce = announce
+	req := &FundChannelRequest{
+		Id: id,
+		Amount: amount.String(),
+		Announce: announce,
+	}
 	if feerate != nil {
 		req.FeeRate = feerate.String()
 	}
+	if minConf != nil {
+		req.MinConf = *minConf
+	}
+
 	var result FundChannelResult
 	err := l.client.Request(req, &result)
 	return &result, err
@@ -1220,7 +1203,7 @@ type WithdrawRequest struct {
 	Destination string `json:"destination"`
 	Satoshi     string `json:"satoshi"`
 	FeeRate     string `json:"feerate,omitempty"`
-	MinConf	    uint16 `json:"minconf,omitempty"`
+	MinConf     uint16 `json:"minconf,omitempty"`
 }
 
 type SatoshiAmount struct {
@@ -1331,7 +1314,7 @@ func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate 
 		return nil, fmt.Errorf("Must supply a destination for withdrawal")
 	}
 
-	request := &WithdrawRequest {
+	request := &WithdrawRequest{
 		Destination: destination,
 		Satoshi:     amount.String(),
 	}
@@ -1384,11 +1367,11 @@ type TxPrepare struct {
 	Destination string `json:"destination"`
 	Satoshi     string `json:"satoshi"`
 	FeeRate     string `json:"feerate,omitempty"`
-	MinConf	    uint16 `json:"minconf,omitempty"`
+	MinConf     uint16 `json:"minconf,omitempty"`
 }
 
 type TxResult struct {
-	Tx string `json:"unsigned_tx"`
+	Tx   string `json:"unsigned_tx"`
 	TxId string `json:"txid"`
 }
 
@@ -1406,7 +1389,7 @@ func (l *Lightning) PrepareTx(destination string, amount *SatoshiAmount, feerate
 
 	request := &TxPrepare{
 		Destination: destination,
-		Satoshi: amount.String(),
+		Satoshi:     amount.String(),
 	}
 
 	if feerate != nil {
@@ -1423,7 +1406,7 @@ func (l *Lightning) PrepareTx(destination string, amount *SatoshiAmount, feerate
 }
 
 type TxDiscard struct {
-	TxId	string `json:"txid"`
+	TxId string `json:"txid"`
 }
 
 func (r *TxDiscard) Name() string {
@@ -1438,7 +1421,7 @@ func (l *Lightning) DiscardTx(txid string) (*TxResult, error) {
 }
 
 type TxSend struct {
-	TxId	string `json:"txid"`
+	TxId string `json:"txid"`
 }
 
 func (r *TxSend) Name() string {
@@ -1629,4 +1612,3 @@ func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 		Warning:         result.Warning,
 	}, nil
 }
-

@@ -803,7 +803,7 @@ func TestTxPrepare(t *testing.T) {
 	}
 
 	assert.Equal(t, &glightning.TxResult{
-		Tx: "0200000001060528291e1039a5a2e071ab88ffca8cb9655481f62108dff2e87a1aa139b6450000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a01000000160014e1cfb78798b16dd8f0b05b540f853d07ac5c555200000000",
+		Tx:   "0200000001060528291e1039a5a2e071ab88ffca8cb9655481f62108dff2e87a1aa139b6450000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a01000000160014e1cfb78798b16dd8f0b05b540f853d07ac5c555200000000",
 		TxId: "cec03e956f3761624f176d62428d9e2cd51cb923258e00e17a34fc49b0da6dde",
 	}, result)
 }
@@ -823,7 +823,7 @@ func TestTxSend(t *testing.T) {
 	}
 
 	assert.Equal(t, &glightning.TxResult{
-		Tx: "0200000001f56ad611189c96c9ae9499d61872e590a3ba4d55760f7663b0642d81c2b1880d0000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a010000001600146ea01d6c5aaa643076902d1c8b026e9eb47b32c000000000",
+		Tx:   "0200000001f56ad611189c96c9ae9499d61872e590a3ba4d55760f7663b0642d81c2b1880d0000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a010000001600146ea01d6c5aaa643076902d1c8b026e9eb47b32c000000000",
 		TxId: "c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed",
 	}, result)
 }
@@ -842,7 +842,7 @@ func TestTxDiscard(t *testing.T) {
 	}
 
 	assert.Equal(t, &glightning.TxResult{
-		Tx: "0200000001f56ad611189c96c9ae9499d61872e590a3ba4d55760f7663b0642d81c2b1880d0000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a010000001600146ea01d6c5aaa643076902d1c8b026e9eb47b32c000000000",
+		Tx:   "0200000001f56ad611189c96c9ae9499d61872e590a3ba4d55760f7663b0642d81c2b1880d0000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a010000001600146ea01d6c5aaa643076902d1c8b026e9eb47b32c000000000",
 		TxId: "c139ff2ce1c1e1056429c1527262d56da2be096559f554e061da18ee72d5c5ed",
 	}, result)
 }
@@ -937,7 +937,7 @@ func TestFundChannel(t *testing.T) {
 	id := "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"
 	amount := 90000
 
-	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"announce":false,"feerate":"500perkw","id":"%s","satoshi":%d},"id":%d}`, id, amount, 1)
+	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"announce":false,"feerate":"500perkw","id":"%s","satoshi":"%d"},"id":%d}`, id, amount, 1)
 	resp := wrapResult(1, `{
   "tx": "0200000000010153bcd4cfabb72750bb8d16fc711c91b30215957549a0a93370f50475fa9457570100000000ffffffff02ffffff0000000000220020b2c1a13de4a5926ed48601626e281a171d0cdb548fddc4e7cc8cdc9d982a2368a0c79a3a00000000160014d952a5ff3c78ca2c48fd8e2b4ae0699887dd166e0247304402206a781a53902e6526686b9ecc79f7287d372d11614dc094789f05f843458e703e022041cc1f5f7e2526d415b44563c80b80d9ce808310eaf8a73fbead45a0238b01e0012102cf978ae73c98d6e8e73b384b217c13180fd75cd867f5d9daf19624ecebf5fc0a00000000",
   "txid": "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
@@ -948,7 +948,7 @@ func TestFundChannel(t *testing.T) {
 	feeRate := glightning.NewFeeRate(glightning.SatPerKiloSipa, 500)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	result, err := lightning.FundChannelExt(id, sats, feeRate, false)
+	result, err := lightning.FundChannelExt(id, sats, feeRate, false, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -967,9 +967,9 @@ func TestFundChannel(t *testing.T) {
 `)
 	sats = &glightning.SatoshiAmount{Amount: uint64(amount)}
 	feeRate = glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
-	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"announce":true,"feerate":"urgent","id":"%s","satoshi":%d},"id":%d}`, id, amount, 2)
+	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"announce":true,"feerate":"urgent","id":"%s","satoshi":"%d"},"id":%d}`, id, amount, 2)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	_, err = lightning.FundChannelExt(id, sats, feeRate, true)
+	_, err = lightning.FundChannelExt(id, sats, feeRate, true, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -985,7 +985,7 @@ func TestFundChannel(t *testing.T) {
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	sats = &glightning.SatoshiAmount{SendAll: true}
 	feeRate = glightning.NewFeeRate(glightning.SatPerKiloByte, uint(300))
-	_, err = lightning.FundChannelExt(id, sats, feeRate, true)
+	_, err = lightning.FundChannelExt(id, sats, feeRate, true, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1001,7 +1001,7 @@ func TestFundChannel(t *testing.T) {
 	feeRate = glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"announce":false,"feerate":"urgent","id":"%s","satoshi":"all"},"id":%d}`, id, 4)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	_, err = lightning.FundChannelExt(id, sats, feeRate, false)
+	_, err = lightning.FundChannelExt(id, sats, feeRate, false, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
