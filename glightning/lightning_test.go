@@ -1007,6 +1007,61 @@ func TestFundChannel(t *testing.T) {
 	}
 }
 
+func TestStartFundChannel (t *testing.T) {
+	id := "0334b7c8e723c00aedb6aaab0988619a6929f0039275ac195185efbadad1a343f9"
+	sats := uint64(100000)
+	feeRate := glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
+	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel_start","params":{"announce":true,"feerate":"urgent","id":"%s","satoshi":%d},"id":%d}`, id, sats, 1)
+	resp := wrapResult(1, `{"funding_address" : "bcrt1qc4p5fwkgznrrlml5z4hy0xwauys8nlsxsca2zn2ew2wez27hlyequp6sff"}
+`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	result, err := lightning.StartFundChannel(id, sats, true, feeRate)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, "bcrt1qc4p5fwkgznrrlml5z4hy0xwauys8nlsxsca2zn2ew2wez27hlyequp6sff", result)
+}
+
+func TestCompleteFundChannel (t *testing.T) {
+
+	id := "0334b7c8e723c00aedb6aaab0988619a6929f0039275ac195185efbadad1a343f9"
+	txid := "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c"
+	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel_complete","params":{"id":"%s","txid":"%s","txout":0},"id":%d}`, id, txid, 1)
+	resp := wrapResult(1, `{
+   "channel_id" : "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c",
+   "commitments_secured" : true
+}
+`)
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	result, err := lightning.CompleteFundChannel(id, txid, uint16(0))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c", result)
+}
+
+func TestCancelFundChannel (t *testing.T) {
+	id := "0334b7c8e723c00aedb6aaab0988619a6929f0039275ac195185efbadad1a343f9"
+	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel_cancel","params":{"id":"%s"},"id":%d}`, id, 1)
+	resp := wrapResult(1, `{
+   "cancelled" : "Channel open canceled by RPC"
+}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	result, err := lightning.CancelFundChannel(id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, true, result)
+}
+
 func TestStop(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"stop","params":{},"id":1}`
 	resp := wrapResult(1, `"Shutting down"`)
