@@ -1,4 +1,4 @@
-# glightning: a c-lightning plugin and RPC driver
+# glightning: a c-lightning plugin driver and RPC client
 
 [![CircleCI](https://circleci.com/gh/niftynei/glightning.svg?style=svg)](https://circleci.com/gh/niftynei/glightning)
 
