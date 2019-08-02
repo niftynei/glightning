@@ -1216,20 +1216,11 @@ func (l *Lightning) DevMemLeak() ([]*MemLeak, error) {
 	return result.Leaks, err
 }
 
-type WithdrawRequestAll struct {
+type WithdrawRequest struct {
 	Destination string `json:"destination"`
 	Satoshi     string `json:"satoshi"`
 	FeeRate     string `json:"feerate,omitempty"`
-}
-
-func (r *WithdrawRequestAll) Name() string {
-	return "withdraw"
-}
-
-type WithdrawRequest struct {
-	Destination string `json:"destination"`
-	Satoshi     uint64 `json:"satoshi"`
-	FeeRate     string `json:"feerate,omitempty"`
+	MinConf	    uint16 `json:"minconf,omitempty"`
 }
 
 type SatoshiAmount struct {
@@ -1332,7 +1323,7 @@ type WithdrawResult struct {
 // and 'perkb' means it is interpreted bitcoind-style as satoshi-per-kilobyte.
 // Omitting the suffix is equivalent to 'perkb'
 // If not set, {feerate} defaults to 'normal'.
-func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate *FeeRate) (*WithdrawResult, error) {
+func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate *FeeRate, minConf *uint16) (*WithdrawResult, error) {
 	if amount == nil || (amount.Amount == 0 && !amount.SendAll) {
 		return nil, fmt.Errorf("Must set satoshi amount to send")
 	}
@@ -1340,23 +1331,15 @@ func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate 
 		return nil, fmt.Errorf("Must supply a destination for withdrawal")
 	}
 
-	var request jrpc2.Method
-	if amount.SendAll {
-		request = &WithdrawRequestAll{
-			Destination: destination,
-			Satoshi:     amount.String(),
-		}
-		if feerate != nil {
-			request.(*WithdrawRequestAll).FeeRate = feerate.String()
-		}
-	} else {
-		request = &WithdrawRequest{
-			Destination: destination,
-			Satoshi:     amount.Amount,
-		}
-		if feerate != nil {
-			request.(*WithdrawRequest).FeeRate = feerate.String()
-		}
+	request := &WithdrawRequest {
+		Destination: destination,
+		Satoshi:     amount.String(),
+	}
+	if feerate != nil {
+		request.FeeRate = feerate.String()
+	}
+	if minConf != nil {
+		request.MinConf = *minConf
 	}
 
 	var result WithdrawResult

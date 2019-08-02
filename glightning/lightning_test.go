@@ -746,7 +746,7 @@ func TestGetRoute(t *testing.T) {
 
 func TestWithdraw(t *testing.T) {
 	addr := "bcrt1qx5yjs8y4vm929ykzpmm8r7yxwakyvjwmyc5mkm"
-	req := `{"jsonrpc":"2.0","method":"withdraw","params":{"destination":"bcrt1qx5yjs8y4vm929ykzpmm8r7yxwakyvjwmyc5mkm","feerate":"125perkb","satoshi":500000},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"withdraw","params":{"destination":"bcrt1qx5yjs8y4vm929ykzpmm8r7yxwakyvjwmyc5mkm","feerate":"125perkb","satoshi":"500000"},"id":1}`
 	resp := wrapResult(1, `{
   "tx": "020000000001012a62fd17c6b13b7d89df7bbceb9baa79ab937223887c9c69b05fefc9288a2d640000000000ffffffff0250c30000000000001600143509281c9566caa292c20ef671f886776c4649db9d3aff00000000001600142e7dfaf485fba60010bfb37c99fc93b8bb42ad0202483045022100b99e4231fcf98dc2f94d88094b63dc12fc0ba7c125dc78df1f7a50bfca726b8a02204639577a20f39830d63dfefcfc85f134f0d8128c55a2833775bb906957a0fa86012103d5aea229d81a06e576dfcf71db13670422b22dd1093cddc01269a5596fb0c7d100000000",
   "txid": "f80423d5daed70d31585e597d8e1c0d191a5f2d8050a11dee730f7727c5abd9c"
@@ -754,7 +754,7 @@ func TestWithdraw(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	feerate := glightning.NewFeeRate(glightning.SatPerKiloByte, 125)
-	result, err := lightning.Withdraw(addr, glightning.NewAmount(500000), feerate)
+	result, err := lightning.Withdraw(addr, glightning.NewAmount(500000), feerate, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -774,7 +774,7 @@ func TestWithdrawAll(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	feerate := glightning.NewFeeRate(glightning.SatPerKiloByte, 125)
-	result, err := lightning.Withdraw(addr, glightning.NewAllAmount(), feerate)
+	result, err := lightning.Withdraw(addr, glightning.NewAllAmount(), feerate, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
