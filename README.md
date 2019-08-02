@@ -1,5 +1,7 @@
 # glightning: a c-lightning plugin and RPC driver
 
+[![CircleCI](https://circleci.com/gh/niftynei/glightning.svg?style=svg)](https://circleci.com/gh/niftynei/glightning)
+
 glightning is a driver for the Lightning Network protocol implemenation [c-lightning](https://github.com/ElementsProject/lightning).
 
 It offers an RPC client for calling lightning commands and a Plugin infrastructure, for creating your own c-lightning commands and registering for subscriptions.
