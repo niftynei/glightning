@@ -129,6 +129,44 @@ func TestGetManifest(t *testing.T) {
 	runTest(t, plugin, msg, resp)
 }
 
+func TestManifestWithHooks(t *testing.T) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.RegisterHooks(&glightning.Hooks{
+		PeerConnected:  OnPeerConnect,
+		DbWrite:        OnDbWrite,
+		InvoicePayment: OnInvoicePayment,
+		OpenChannel:    OnOpenChannel,
+		HtlcAccepted:   OnHtlcAccepted,
+	})
+
+	msg := "{\"jsonrpc\":\"2.0\",\"method\":\"getmanifest\",\"id\":\"aloha\"}\n\n"
+	resp := `{"jsonrpc":"2.0","result":{"options":[],"rpcmethods":[],"hooks":["db_write","peer_connected","invoice_payment","openchannel","htlc_accepted"]},"id":"aloha"}`
+	runTest(t, plugin, msg, resp)
+}
+
+func OnPeerConnect(event *glightning.PeerConnectedEvent) (*glightning.PeerConnectedResponse, error) {
+	return nil, nil
+}
+
+func OnDbWrite(event *glightning.DbWriteEvent) (bool, error) {
+	return false, nil
+}
+
+func OnInvoicePayment(event *glightning.InvoicePaymentEvent) (*glightning.InvoicePaymentResponse, error) {
+	return nil, nil
+}
+
+func OnOpenChannel(*glightning.OpenChannelEvent) (*glightning.OpenChannelResponse, error) {
+	return nil, nil
+}
+
+func OnHtlcAccepted(*glightning.HtlcAcceptedEvent) (*glightning.HtlcAcceptedResponse, error) {
+	return nil, nil
+}
+
 func runTest(t *testing.T, plugin *glightning.Plugin, inputMsg, expectedMsg string) {
 	progIn, testOut, err := os.Pipe()
 	if err != nil {
