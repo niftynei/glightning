@@ -99,12 +99,13 @@ func TestInit(t *testing.T) {
 		assert.Equal(t, "Jenny", options["greeting"])
 		assert.Equal(t, "rpc.file", config.RpcFile)
 		assert.Equal(t, "dirforlightning", config.LightningDir)
+		assert.Equal(t, true, config.Startup)
 	})
 	plugin := glightning.NewPlugin(initTestFn)
 	plugin.RegisterOption(glightning.NewOption("greeting", "How you'd like to be called", "Mary"))
 	plugin.RegisterMethod(glightning.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
 
-	initJson := "{\"jsonrpc\":\"2.0\",\"method\":\"init\",\"params\":{\"options\":{\"greeting\":\"Jenny\"},\"configuration\":{\"rpc-file\":\"rpc.file\",\"lightning-dir\":\"dirforlightning\"}},\"id\":1}\n\n"
+	initJson := "{\"jsonrpc\":\"2.0\",\"method\":\"init\",\"params\":{\"options\":{\"greeting\":\"Jenny\"},\"configuration\":{\"rpc-file\":\"rpc.file\",\"startup\":true,\"lightning-dir\":\"dirforlightning\"}},\"id\":1}\n\n"
 
 	expectedJson := "{\"jsonrpc\":\"2.0\",\"result\":\"ok\",\"id\":1}"
 	runTest(t, plugin, initJson, expectedJson)
