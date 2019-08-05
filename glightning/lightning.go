@@ -1029,8 +1029,8 @@ func (l *Lightning) FundChannelExt(id string, amount *SatoshiAmount, feerate *Fe
 	}
 
 	req := &FundChannelRequest{
-		Id: id,
-		Amount: amount.String(),
+		Id:       id,
+		Amount:   amount.String(),
 		Announce: announce,
 	}
 	if feerate != nil {
@@ -1048,7 +1048,7 @@ func (l *Lightning) FundChannelExt(id string, amount *SatoshiAmount, feerate *Fe
 type FundChannelStart struct {
 	Id       string `json:"id"`
 	Amount   uint64 `json:"satoshi"`
-	Announce bool `json:"announce"`
+	Announce bool   `json:"announce"`
 	FeeRate  string `json:"feerate,omitempty"`
 }
 
@@ -1059,8 +1059,8 @@ func (r *FundChannelStart) Name() string {
 // Returns a string that's a bech32 address. this address is the funding output address.
 func (l *Lightning) StartFundChannel(id string, amount uint64, announce bool, feerate *FeeRate) (string, error) {
 	req := &FundChannelStart{
-		Id: id,
-		Amount: amount,
+		Id:       id,
+		Amount:   amount,
 		Announce: announce,
 	}
 	if feerate != nil {
@@ -1086,8 +1086,8 @@ func (r *FundChannelComplete) Name() string {
 
 func (l *Lightning) CompleteFundChannel(peerId, txId string, txout uint16) (channelId string, err error) {
 	var result struct {
-		ChannelId string `json:"channel_id"`
-		CommitmentsSecured bool `json:"commitments_secured"`
+		ChannelId          string `json:"channel_id"`
+		CommitmentsSecured bool   `json:"commitments_secured"`
 	}
 
 	err = l.client.Request(&FundChannelComplete{peerId, txId, txout}, &result)
@@ -1680,8 +1680,8 @@ func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 }
 
 type PluginInfo struct {
-	Name string `json:"name"`
-	Active bool `json:"active"`
+	Name   string `json:"name"`
+	Active bool   `json:"active"`
 }
 
 type PluginRequest struct {
@@ -1725,7 +1725,7 @@ func (l *Lightning) SetPluginStartDir(directory string) ([]PluginInfo, error) {
 
 type PluginRequestPlugin struct {
 	Subcommand string `json:"subcommand"`
-	PluginName	string `json:"plugin"`
+	PluginName string `json:"plugin"`
 }
 
 func (r *PluginRequestPlugin) Name() string {

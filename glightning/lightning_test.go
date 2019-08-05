@@ -1007,7 +1007,7 @@ func TestFundChannel(t *testing.T) {
 	}
 }
 
-func TestStartFundChannel (t *testing.T) {
+func TestStartFundChannel(t *testing.T) {
 	id := "0334b7c8e723c00aedb6aaab0988619a6929f0039275ac195185efbadad1a343f9"
 	sats := uint64(100000)
 	feeRate := glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
@@ -1025,7 +1025,7 @@ func TestStartFundChannel (t *testing.T) {
 	assert.Equal(t, "bcrt1qc4p5fwkgznrrlml5z4hy0xwauys8nlsxsca2zn2ew2wez27hlyequp6sff", result)
 }
 
-func TestCompleteFundChannel (t *testing.T) {
+func TestCompleteFundChannel(t *testing.T) {
 
 	id := "0334b7c8e723c00aedb6aaab0988619a6929f0039275ac195185efbadad1a343f9"
 	txid := "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c"
@@ -1045,7 +1045,7 @@ func TestCompleteFundChannel (t *testing.T) {
 	assert.Equal(t, "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c", result)
 }
 
-func TestCancelFundChannel (t *testing.T) {
+func TestCancelFundChannel(t *testing.T) {
 	id := "0334b7c8e723c00aedb6aaab0988619a6929f0039275ac195185efbadad1a343f9"
 	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel_cancel","params":{"id":"%s"},"id":%d}`, id, 1)
 	resp := wrapResult(1, `{
@@ -1572,23 +1572,22 @@ func TestFeeRate(t *testing.T) {
 	}, rates)
 }
 
-
 func TestPlugins(t *testing.T) {
 
 	lightning, requestQ, replyQ := startupServer(t)
-	pluginList :=`{"plugins":[{"name":"autoclean","active":true},{"name":"pay","active":true},{"name":"plugin_example","active":true}]}`
+	pluginList := `{"plugins":[{"name":"autoclean","active":true},{"name":"pay","active":true},{"name":"plugin_example","active":true}]}`
 	reqTemplate := "{\"jsonrpc\":\"2.0\",\"method\":\"plugin\",\"params\":{%s\"subcommand\":\"%s\"},\"id\":%d}"
-	expected := []glightning.PluginInfo {
-		glightning.PluginInfo{ "autoclean", true },
-		glightning.PluginInfo{ "pay", true },
-		glightning.PluginInfo{ "plugin_example", true },
+	expected := []glightning.PluginInfo{
+		glightning.PluginInfo{"autoclean", true},
+		glightning.PluginInfo{"pay", true},
+		glightning.PluginInfo{"plugin_example", true},
 	}
 
 	// test "list"
 	go runServerSide(t,
-			 fmt.Sprintf(reqTemplate, "", "list", 1),
-			 wrapResult(1, pluginList),
-			 replyQ, requestQ)
+		fmt.Sprintf(reqTemplate, "", "list", 1),
+		wrapResult(1, pluginList),
+		replyQ, requestQ)
 	plugins, err := lightning.ListPlugins()
 	if err != nil {
 		t.Fatal(err)
@@ -1597,9 +1596,9 @@ func TestPlugins(t *testing.T) {
 
 	// test "rescan"
 	go runServerSide(t,
-			 fmt.Sprintf(reqTemplate, "", "rescan", 2),
-			 wrapResult(2, pluginList),
-			 replyQ, requestQ)
+		fmt.Sprintf(reqTemplate, "", "rescan", 2),
+		wrapResult(2, pluginList),
+		replyQ, requestQ)
 	plugins, err = lightning.RescanPlugins()
 	if err != nil {
 		t.Fatal(err)
@@ -1608,9 +1607,9 @@ func TestPlugins(t *testing.T) {
 
 	// test "start"
 	go runServerSide(t,
-	fmt.Sprintf(reqTemplate, "\"plugin\":\"name\",", "start", 3),
-			 wrapResult(3, pluginList),
-			 replyQ, requestQ)
+		fmt.Sprintf(reqTemplate, "\"plugin\":\"name\",", "start", 3),
+		wrapResult(3, pluginList),
+		replyQ, requestQ)
 	plugins, err = lightning.StartPlugin("name")
 	if err != nil {
 		t.Fatal(err)
@@ -1619,9 +1618,9 @@ func TestPlugins(t *testing.T) {
 
 	// test "stop"
 	go runServerSide(t,
-	fmt.Sprintf(reqTemplate, "\"plugin\":\"name\",", "stop", 4),
-			 wrapResult(4, pluginList),
-			 replyQ, requestQ)
+		fmt.Sprintf(reqTemplate, "\"plugin\":\"name\",", "stop", 4),
+		wrapResult(4, pluginList),
+		replyQ, requestQ)
 	plugins, err = lightning.StopPlugin("name")
 	if err != nil {
 		t.Fatal(err)
@@ -1630,9 +1629,9 @@ func TestPlugins(t *testing.T) {
 	// test plugin start-dir
 	assert.Equal(t, expected, plugins)
 	go runServerSide(t,
-			 fmt.Sprintf(reqTemplate, "\"directory\":\"dir\",", "start-dir", 5),
-			 wrapResult(5, pluginList),
-			 replyQ, requestQ)
+		fmt.Sprintf(reqTemplate, "\"directory\":\"dir\",", "start-dir", 5),
+		wrapResult(5, pluginList),
+		replyQ, requestQ)
 	plugins, err = lightning.SetPluginStartDir("dir")
 	if err != nil {
 		t.Fatal(err)
