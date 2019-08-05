@@ -142,6 +142,11 @@ func (ip *InvoicePaymentEvent) Fail(failureCode uint16) *InvoicePaymentResponse 
 }
 
 type OpenChannelEvent struct {
+	OpenChannel OpenChannel `json:"openchannel"`
+	hook        func(*OpenChannelEvent) (*OpenChannelResponse, error)
+}
+
+type OpenChannel struct {
 	PeerId                            string `json:"id"`
 	FundingSatoshis                   string `json:"funding_satoshis"`
 	PushMilliSatoshis                 string `json:"push_msat"`
@@ -149,11 +154,11 @@ type OpenChannelEvent struct {
 	MaxHtlcValueInFlightMilliSatoshis string `json:"max_htlc_value_in_flight_msat"`
 	ChannelReserveSatoshis            string `json:"channel_reserve_satoshis"`
 	HtlcMinimumMillisatoshis          string `json:"htlc_minimum_msat"`
-	//FeeratePerKw ..//??
-	ToSelfDelay      uint16 `json:"to_self_delay"`
-	MaxAcceptedHtlcs uint16 `json:"max_accepted_htlcs"`
-	ChannelFlags     uint16 `json:"channel_flags"`
-	hook             func(*OpenChannelEvent) (*OpenChannelResponse, error)
+	FeeratePerKw                      int    `json:"feerate_per_kw"`
+	ToSelfDelay                       int    `json:"to_self_delay"`
+	MaxAcceptedHtlcs                  int    `json:"max_accepted_htlcs"`
+	ChannelFlags                      int    `json:"channel_flags"`
+	ShutdownScriptPubkey              string `json:"shutdown_scriptpubkey"`
 }
 
 type OpenChannelResult string
@@ -165,7 +170,7 @@ type OpenChannelResponse struct {
 	Result OpenChannelResult `json:"result"`
 	// Only allowed if result is "reject"
 	// Sent back to peer.
-	Message string `json:"error_message"`
+	Message string `json:"error_message,omitempty"`
 }
 
 func (oc *OpenChannelEvent) New() interface{} {
