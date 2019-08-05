@@ -1572,6 +1572,74 @@ func TestFeeRate(t *testing.T) {
 	}, rates)
 }
 
+
+func TestPlugins(t *testing.T) {
+
+	lightning, requestQ, replyQ := startupServer(t)
+	pluginList :=`{"plugins":[{"name":"autoclean","active":true},{"name":"pay","active":true},{"name":"plugin_example","active":true}]}`
+	reqTemplate := "{\"jsonrpc\":\"2.0\",\"method\":\"plugin\",\"params\":{%s\"subcommand\":\"%s\"},\"id\":%d}"
+	expected := []glightning.PluginInfo {
+		glightning.PluginInfo{ "autoclean", true },
+		glightning.PluginInfo{ "pay", true },
+		glightning.PluginInfo{ "plugin_example", true },
+	}
+
+	// test "list"
+	go runServerSide(t,
+			 fmt.Sprintf(reqTemplate, "", "list", 1),
+			 wrapResult(1, pluginList),
+			 replyQ, requestQ)
+	plugins, err := lightning.ListPlugins()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, expected, plugins)
+
+	// test "rescan"
+	go runServerSide(t,
+			 fmt.Sprintf(reqTemplate, "", "rescan", 2),
+			 wrapResult(2, pluginList),
+			 replyQ, requestQ)
+	plugins, err = lightning.RescanPlugins()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, expected, plugins)
+
+	// test "start"
+	go runServerSide(t,
+	fmt.Sprintf(reqTemplate, "\"plugin\":\"name\",", "start", 3),
+			 wrapResult(3, pluginList),
+			 replyQ, requestQ)
+	plugins, err = lightning.StartPlugin("name")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, expected, plugins)
+
+	// test "stop"
+	go runServerSide(t,
+	fmt.Sprintf(reqTemplate, "\"plugin\":\"name\",", "stop", 4),
+			 wrapResult(4, pluginList),
+			 replyQ, requestQ)
+	plugins, err = lightning.StopPlugin("name")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// test plugin start-dir
+	assert.Equal(t, expected, plugins)
+	go runServerSide(t,
+			 fmt.Sprintf(reqTemplate, "\"directory\":\"dir\",", "start-dir", 5),
+			 wrapResult(5, pluginList),
+			 replyQ, requestQ)
+	plugins, err = lightning.SetPluginStartDir("dir")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, expected, plugins)
+}
+
 func TestLimitedFeeRates(t *testing.T) {
 	request := "{\"jsonrpc\":\"2.0\",\"method\":\"feerates\",\"params\":{\"style\":\"perkw\"},\"id\":1}"
 	reply := wrapResult(1, `{ "perkw": { "min_acceptable": 253, "max_acceptable": 4294967295 }, "warning": "Some fee estimates unavailable: bitcoind startup?" } `)
