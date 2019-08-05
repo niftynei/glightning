@@ -1678,3 +1678,68 @@ func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 		Warning:         result.Warning,
 	}, nil
 }
+
+type PluginInfo struct {
+	Name string `json:"name"`
+	Active bool `json:"active"`
+}
+
+type PluginRequest struct {
+	Subcommand string `json:"subcommand"`
+}
+
+type pluginResponse struct {
+	Plugins []PluginInfo `json:"plugins"`
+}
+
+func (r *PluginRequest) Name() string {
+	return "plugin"
+}
+
+func (l *Lightning) ListPlugins() ([]PluginInfo, error) {
+	var result pluginResponse
+	err := l.client.Request(&PluginRequest{"list"}, &result)
+	return result.Plugins, err
+}
+
+func (l *Lightning) RescanPlugins() ([]PluginInfo, error) {
+	var result pluginResponse
+	err := l.client.Request(&PluginRequest{"rescan"}, &result)
+	return result.Plugins, err
+}
+
+type PluginRequestDir struct {
+	Subcommand string `json:"subcommand"`
+	Directory  string `json:"directory"`
+}
+
+func (r *PluginRequestDir) Name() string {
+	return "plugin"
+}
+
+func (l *Lightning) SetPluginStartDir(directory string) ([]PluginInfo, error) {
+	var result pluginResponse
+	err := l.client.Request(&PluginRequestDir{"start-dir", directory}, &result)
+	return result.Plugins, err
+}
+
+type PluginRequestPlugin struct {
+	Subcommand string `json:"subcommand"`
+	PluginName	string `json:"plugin"`
+}
+
+func (r *PluginRequestPlugin) Name() string {
+	return "plugin"
+}
+
+func (l *Lightning) StartPlugin(pluginName string) ([]PluginInfo, error) {
+	var result pluginResponse
+	err := l.client.Request(&PluginRequestPlugin{"start", pluginName}, &result)
+	return result.Plugins, err
+}
+
+func (l *Lightning) StopPlugin(pluginName string) ([]PluginInfo, error) {
+	var result pluginResponse
+	err := l.client.Request(&PluginRequestPlugin{"stop", pluginName}, &result)
+	return result.Plugins, err
+}
