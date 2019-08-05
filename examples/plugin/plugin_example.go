@@ -40,11 +40,21 @@ func main() {
 	}
 }
 
-func secondMain(config *glightning.Config) {
-	// set up lightning .. thing
+// This is called after the plugin starts up successfully
+func onInit(plugin *glightning.Plugin, options map[string]string, config *glightning.Config) {
+	log.Printf("successfully init'd! %s\n", config.RpcFile)
+
+	// Here's how you'd use the config's lightning-dir to
+	//   start up an RPC client for the node.
 	lightning.StartUp(config.RpcFile, config.LightningDir)
 	channels, _ := lightning.ListChannels()
 	log.Printf("You know about %d channels", len(channels))
+
+	// If 'initialization' happened at the same time as the plugin starts,
+	//   then the 'startup' will be true. Otherwise, you've been
+	//   initialized by the 'dynamic' plugin command.
+	//   Note that you have to opt-into dynamic startup.
+	log.Printf("Is this initial node startup? %v\n", config.Startup)
 }
 
 func registerOptions(p *glightning.Plugin) {
@@ -71,7 +81,3 @@ func registerSubscriptions(p *glightning.Plugin) {
 	p.SubscribeDisconnect(OnDisconnect)
 }
 
-func onInit(plugin *glightning.Plugin, options map[string]string, config *glightning.Config) {
-	log.Printf("successfully init'd! %s\n", config.RpcFile)
-	secondMain(config)
-}
