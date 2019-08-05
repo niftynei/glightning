@@ -34,6 +34,13 @@ func main() {
 	registerOptions(plugin)
 	registerMethods(plugin)
 	registerSubscriptions(plugin)
+	plugin.RegisterHooks(&glightning.Hooks{
+		PeerConnected:  OnPeerConnect,
+		DbWrite:        OnDbWrite,
+		InvoicePayment: OnInvoicePayment,
+		OpenChannel:    OnOpenChannel,
+		HtlcAccepted:   OnHtlcAccepted,
+	})
 	err := plugin.Start(os.Stdin, os.Stdout)
 	if err != nil {
 		log.Fatal(err)
@@ -81,3 +88,37 @@ func registerSubscriptions(p *glightning.Plugin) {
 	p.SubscribeDisconnect(OnDisconnect)
 }
 
+/* Hook Examples */
+func OnPeerConnect(event *glightning.PeerConnectedEvent) (*glightning.PeerConnectedResponse, error) {
+	log.Printf("peer connected called\n")
+
+	// See also: Disconnect(errMsg)
+	return event.Continue(), nil
+}
+
+func OnDbWrite(event *glightning.DbWriteEvent) (bool, error) {
+	log.Printf("dbwrite called\n")
+	// You can also return false
+	return true, nil
+}
+
+func OnInvoicePayment(event *glightning.InvoicePaymentEvent) (*glightning.InvoicePaymentResponse, error) {
+	log.Printf("invoice payment called\n")
+
+	// See also: Fail(failureCode)
+	return event.Continue(), nil
+}
+
+func OnOpenChannel(event *glightning.OpenChannelEvent) (*glightning.OpenChannelResponse, error) {
+	log.Printf("openchannel called\n")
+
+	// See also: Reject(errorMsg)
+	return event.Continue(), nil
+}
+
+func OnHtlcAccepted(event *glightning.HtlcAcceptedEvent) (*glightning.HtlcAcceptedResponse, error) {
+	log.Printf("htlc_accepted called\n")
+
+	// See also: Fail(failureCode), Resolve(paymentKey)
+	return event.Continue(), nil
+}
