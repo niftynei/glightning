@@ -131,6 +131,20 @@ You can make any calls provided on the Lightning RPC then.
 	log.Printf("You know about %d channels", len(channels))
 ```
 
+### Dynamic plugin loading and unloading
+
+Plugins can be configured to be dynamically controlled through the CLI/RPC.  By default a plugin loaded at startup will be stoppable.  This behavior can be overridden by calling the plugin's `SetDynamic` command.
+
+```
+func main() {
+	plugin := glightning.NewPlugin(initfn)
+	plugin.SetDynamic(false)
+}
+```
+
+will disable management with the [plugin control](https://github.com/ElementsProject/lightning/blob/master/doc/lightning-plugin.7.txt) feature.
+
+
 ## Logging as a c-lightning Plugin
 The c-lightning plugin subsystem uses stdin and stdout as its communication pipes. As most logging would interfere with normal operation of the plugin `glightning` overrides the `log` package to pipe all logs to c-lightning. When developing a plugin, it is best practice to use the `log` library write all print statements, so as not to interfere with normal operation of the plugin.
 
