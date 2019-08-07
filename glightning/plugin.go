@@ -428,6 +428,7 @@ type Manifest struct {
 	RpcMethods    []*RpcMethod `json:"rpcmethods"`
 	Subscriptions []string     `json:"subscriptions,omitempty"`
 	Hooks         []Hook       `json:"hooks,omitempty"`
+	Dynamic       bool         `json:"dynamic,omitempty"`
 }
 
 func (gm GetManifestMethod) Name() string {
@@ -465,6 +466,8 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 	for i, hook := range gm.plugin.hooks {
 		m.Hooks[i] = hook
 	}
+
+	m.Dynamic = gm.plugin.dynamic
 
 	return m, nil
 }
@@ -605,6 +608,7 @@ type Plugin struct {
 	initFn        func(plugin *Plugin, options map[string]string, c *Config)
 	Config        *Config
 	stopped       bool
+	dynamic       bool
 }
 
 func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plugin {
@@ -613,6 +617,7 @@ func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plu
 	plugin.options = make(map[string]*Option)
 	plugin.methods = make(map[string]*RpcMethod)
 	plugin.initFn = initHandler
+	plugin.dynamic = true
 	return plugin
 }
 
@@ -766,6 +771,10 @@ func (p *Plugin) SubscribeDisconnect(cb func(c *DisconnectEvent)) {
 func (p *Plugin) subscribe(subscription jrpc2.ServerMethod) {
 	p.server.Register(subscription)
 	p.subscriptions = append(p.subscriptions, subscription.Name())
+}
+
+func (p *Plugin) SetDynamic(d bool) {
+	p.dynamic = d
 }
 
 func getParamList(method jrpc2.ServerMethod) []string {
