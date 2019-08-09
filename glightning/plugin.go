@@ -363,6 +363,7 @@ func (o *Option) MarshalJSON() ([]byte, error) {
 		Type        string `json:"type"`
 		Default     string `json:"default"`
 		Description string `json:"description"`
+		Category    string `json:"category,omitempty"`
 	}{
 		Name:        o.Name,
 		Type:        "string", // all options are type string atm
@@ -376,6 +377,7 @@ type RpcMethod struct {
 	Desc     string
 	LongDesc string
 	Usage    string
+	Category string
 }
 
 func NewRpcMethod(method jrpc2.ServerMethod, desc string) *RpcMethod {
@@ -400,12 +402,14 @@ func (r *RpcMethod) MarshalJSON() ([]byte, error) {
 		Params   []string `json:"params,omitempty"`
 		LongDesc string   `json:"long_description,omitempty"`
 		Usage    string   `json:"usage,omitempty"`
+		Category string   `json:"category,omitempty"`
 	}{
 		Name:     r.Method.Name(),
 		Desc:     r.Description(),
 		LongDesc: r.LongDesc,
 		Params:   getParamList(r.Method),
 		Usage:    r.Usage,
+		Category: r.Category,
 	})
 }
 

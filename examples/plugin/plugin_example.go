@@ -72,6 +72,7 @@ func registerMethods(p *glightning.Plugin) {
 	rpcHello := glightning.NewRpcMethod(&Hello{}, "Say hello!")
 	rpcHello.LongDesc = `Send a message! Name is set
 by the 'name' option, passed in at startup `
+	rpcHello.Category = "utility"
 	p.RegisterMethod(rpcHello)
 }
 
