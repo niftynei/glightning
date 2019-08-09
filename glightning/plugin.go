@@ -555,18 +555,18 @@ type Hooks struct {
 }
 
 func (p *Plugin) RegisterHooks(hooks *Hooks) error {
-	if hooks.PeerConnected != nil {
-		err := p.server.Register(&PeerConnectedEvent{
-			hook: hooks.PeerConnected,
+	if hooks.DbWrite != nil {
+		err := p.server.Register(&DbWriteEvent{
+			hook: hooks.DbWrite,
 		})
 		if err != nil {
 			return err
 		}
 		p.hooks = append(p.hooks, _DbWrite)
 	}
-	if hooks.DbWrite != nil {
-		err := p.server.Register(&DbWriteEvent{
-			hook: hooks.DbWrite,
+	if hooks.PeerConnected != nil {
+		err := p.server.Register(&PeerConnectedEvent{
+			hook: hooks.PeerConnected,
 		})
 		if err != nil {
 			return err
