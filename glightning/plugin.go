@@ -210,19 +210,19 @@ func (oc *OpenChannelEvent) Continue() *OpenChannelResponse {
 //   plugin is idempotent if it talks to an external system.
 type HtlcAcceptedEvent struct {
 	Onion        Onion     `json:"onion"`
-	NextOnion    []byte    `json:"next_onion"`
-	SharedSecret string    `json:"shared_secret"`
 	Htlc         HtlcOffer `json:"htlc"`
 	hook         func(*HtlcAcceptedEvent) (*HtlcAcceptedResponse, error)
 }
 
 type Onion struct {
 	Payload string `json:"payload"`
+	NextOnion    string    `json:"next_onion"`
+	SharedSecret string    `json:"shared_secret"`
 	PerHop  PerHop `json:"per_hop_v0"`
 }
 
 type PerHop struct {
-	Realm                      byte   `json:"realm"`
+	Realm                      string `json:"realm"`
 	ShortChannelId             string `json:"short_channel_id"`
 	ForwardAmountMilliSatoshis string `json:"forward_amount"`
 	OutgoingCltvValue          int    `json:"outgoing_cltv_value"`
