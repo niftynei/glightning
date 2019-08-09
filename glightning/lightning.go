@@ -268,6 +268,7 @@ type Channel struct {
 	ShortChannelId      string `json:"short_channel_id"`
 	IsPublic            bool   `json:"public"`
 	Satoshis            uint64 `json:"satoshis"`
+	AmountMilliSatoshi  string `json:"amount_msat"`
 	MessageFlags        uint   `json:"message_flags"`
 	ChannelFlags        uint   `json:"channel_flags"`
 	IsActive            bool   `json:"active"`
@@ -275,6 +276,8 @@ type Channel struct {
 	BaseFeeMillisatoshi uint64 `json:"base_fee_millisatoshi"`
 	FeePerMillionth     uint64 `json:"fee_per_millionth"`
 	Delay               uint   `json:"delay"`
+	HtlcMinimumMilliSatoshis string `json:"htlc_minimum_msat"`
+	HtlcMaximumMilliSatoshis string `json:"htlc_maximum_msat"`
 }
 
 // Get channel by {shortChanId}
