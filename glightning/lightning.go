@@ -1517,19 +1517,23 @@ type FundsResult struct {
 }
 
 type FundOutput struct {
-	TxId    string `json:"txid"`
-	Output  int    `json:"output"`
-	Value   uint64 `json:"value"`
-	Address string `json:"address"`
-	Status  string `json:"status"`
+	TxId               string `json:"txid"`
+	Output             int    `json:"output"`
+	Value              uint64 `json:"value"`
+	AmountMilliSatoshi string `json:"amount_msat"`
+	Address            string `json:"address"`
+	Status             string `json:"status"`
 }
 
 type FundingChannel struct {
-	Id                  string `json:"peer_id"`
-	ShortChannelId      string `json:"short_channel_id"`
-	ChannelSatoshi      uint64 `json:"channel_sat"`
-	ChannelTotalSatoshi uint64 `json:"channel_total_sat"`
-	FundingTxId         string `json:"funding_txid"`
+	Id                    string `json:"peer_id"`
+	ShortChannelId        string `json:"short_channel_id"`
+	OurAmountMilliSatoshi string `json:"our_amount_msat"`
+	AmountMilliSatoshi    string `json:"amount_msat"`
+	ChannelSatoshi        uint64 `json:"channel_sat"`
+	ChannelTotalSatoshi   uint64 `json:"channel_total_sat"`
+	FundingTxId           string `json:"funding_txid"`
+	FundingOutput         int    `json:"funding_output"`
 }
 
 // Funds in wallet.

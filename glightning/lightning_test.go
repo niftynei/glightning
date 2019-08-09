@@ -876,7 +876,8 @@ func TestListFunds(t *testing.T) {
     {
       "txid": "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
       "output": 1,
-      "value": 983222176,
+      "value": 1250000000,
+      "amount_msat": "1250000000000msat",
       "address": "bcrt1qm9f2tleu0r9zcj8a3c454crfnzra69nwvp5frw",
       "status": "confirmed"
     }
@@ -885,9 +886,12 @@ func TestListFunds(t *testing.T) {
     {
       "peer_id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
       "short_channel_id": "103x1x0",
+      "our_amount_msat": "15799410000msat",
+      "amount_msat": "16777215000msat",
       "channel_sat": 16777215,
       "channel_total_sat": 16777215,
-      "funding_txid": "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c"
+      "funding_txid": "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
+      "funding_output": 0
     }
   ]
 } `)
@@ -900,20 +904,24 @@ func TestListFunds(t *testing.T) {
 	assert.Equal(t, &glightning.FundsResult{
 		Outputs: []*glightning.FundOutput{
 			&glightning.FundOutput{
-				TxId:    "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
-				Output:  1,
-				Value:   uint64(983222176),
-				Address: "bcrt1qm9f2tleu0r9zcj8a3c454crfnzra69nwvp5frw",
-				Status:  "confirmed",
+				TxId:               "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
+				Output:             1,
+				Value:              uint64(1250000000),
+				AmountMilliSatoshi: "1250000000000msat",
+				Address:            "bcrt1qm9f2tleu0r9zcj8a3c454crfnzra69nwvp5frw",
+				Status:             "confirmed",
 			},
 		},
 		Channels: []*glightning.FundingChannel{
 			&glightning.FundingChannel{
-				Id:                  "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-				ShortChannelId:      "103x1x0",
-				ChannelSatoshi:      16777215,
-				ChannelTotalSatoshi: 16777215,
-				FundingTxId:         "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
+				Id:                    "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
+				ShortChannelId:        "103x1x0",
+				ChannelSatoshi:        16777215,
+				AmountMilliSatoshi:    "16777215000msat",
+				OurAmountMilliSatoshi: "15799410000msat",
+				ChannelTotalSatoshi:   16777215,
+				FundingTxId:           "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
+				FundingOutput:         0,
 			},
 		},
 	}, funds)
