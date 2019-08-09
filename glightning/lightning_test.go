@@ -1087,14 +1087,16 @@ func TestListChannelsBySource(t *testing.T) {
       "short_channel_id": "556297x2967x0",
       "public": true,
       "satoshis": 500000,
+      "amount_msat": "500000000msat",
       "message_flags": 0,
       "channel_flags": 0,
-      "flags": 0,
       "active": true,
       "last_update": 1546213724,
       "base_fee_millisatoshi": 1000,
       "fee_per_millionth": 1,
-      "delay": 144
+      "delay": 144,
+      "htlc_minimum_msat": "0msat",
+      "htlc_maximum_msat": "4294967295msat"
     },
     {
       "source": "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
@@ -1102,14 +1104,16 @@ func TestListChannelsBySource(t *testing.T) {
       "short_channel_id": "556297x2967x0",
       "public": true,
       "satoshis": 500000,
+      "amount_msat": "500000000msat",
       "message_flags": 0,
       "channel_flags": 1,
-      "flags": 1,
       "active": true,
       "last_update": 1546213449,
       "base_fee_millisatoshi": 1000,
       "fee_per_millionth": 1,
-      "delay": 144
+      "delay": 144,
+      "htlc_minimum_msat": "0msat",
+      "htlc_maximum_msat": "4294967295msat"
     }
   ]
 }`)
@@ -1132,14 +1136,16 @@ func TestListChannels(t *testing.T) {
       "short_channel_id": "556297x2967x0",
       "public": true,
       "satoshis": 500000,
+      "amount_msat": "500000000msat",
       "message_flags": 0,
       "channel_flags": 0,
-      "flags": 0,
       "active": true,
       "last_update": 1546213724,
       "base_fee_millisatoshi": 1000,
       "fee_per_millionth": 1,
-      "delay": 144
+      "delay": 144,
+      "htlc_minimum_msat": "0msat",
+      "htlc_maximum_msat": "4294967295msat"
     },
     {
       "source": "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
@@ -1147,14 +1153,16 @@ func TestListChannels(t *testing.T) {
       "short_channel_id": "556297x2967x0",
       "public": true,
       "satoshis": 500000,
+      "amount_msat": "500000000msat",
       "message_flags": 0,
       "channel_flags": 1,
-      "flags": 1,
       "active": true,
       "last_update": 1546213449,
       "base_fee_millisatoshi": 1000,
       "fee_per_millionth": 1,
-      "delay": 144
+      "delay": 144,
+      "htlc_minimum_msat": "0msat",
+      "htlc_maximum_msat": "4294967295msat"
     }
   ]
 }`)
@@ -1177,6 +1185,10 @@ func TestListChannels(t *testing.T) {
 			BaseFeeMillisatoshi: 1000,
 			FeePerMillionth:     uint64(1),
 			Delay:               uint(144),
+			AmountMilliSatoshi:  "500000000msat",
+			HtlcMinimumMilliSatoshis: "0msat",
+			HtlcMaximumMilliSatoshis: "4294967295msat",
+
 		},
 		glightning.Channel{
 			Source:              "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
@@ -1191,6 +1203,9 @@ func TestListChannels(t *testing.T) {
 			BaseFeeMillisatoshi: 1000,
 			FeePerMillionth:     uint64(1),
 			Delay:               uint(144),
+			AmountMilliSatoshi:  "500000000msat",
+			HtlcMinimumMilliSatoshis: "0msat",
+			HtlcMaximumMilliSatoshis: "4294967295msat",
 		},
 	}, channels)
 }
