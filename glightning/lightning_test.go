@@ -1390,7 +1390,7 @@ func TestGetLog(t *testing.T) {
 
 func TestHelp(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
-	resp := wrapResult(1, `{"help": [{"command": "feerates style","description": "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).","verbose": "HELP! Please contribute a description for this json_command!"},{"command": "connect id [host] [port]","description": "Connect to {id} at {host} (which can end in ':port' if not default). {id} can also be of the form id@host","verbose": "HELP! Please contribute a description for this json_command!"}]}`)
+	resp := wrapResult(1,`{"help": [{"command": "feerates style", "description": "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).", "category":"bitcoin", "verbose": "HELP! Please contribute a description for this json_command!"}, {"command": "connect id [host] [port]", "description": "Connect to {id} at {host} (which can end in ':port' if not default). {id} can also be of the form id@host", "category":"network", "verbose": "HELP! Please contribute a description for this json_command!"}]}`)
 	req := "{\"jsonrpc\":\"2.0\",\"method\":\"help\",\"params\":{},\"id\":1}"
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	help, err := lightning.Help()
@@ -1402,11 +1402,13 @@ func TestHelp(t *testing.T) {
 			NameAndUsage: "feerates style",
 			Description:  "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).",
 			Verbose:      "HELP! Please contribute a description for this json_command!",
+			Category:     "bitcoin",
 		},
 		glightning.Command{
 			NameAndUsage: "connect id [host] [port]",
 			Description:  "Connect to {id} at {host} (which can end in ':port' if not default). {id} can also be of the form id@host",
 			Verbose:      "HELP! Please contribute a description for this json_command!",
+			Category:     "network",
 		},
 	}, help)
 }

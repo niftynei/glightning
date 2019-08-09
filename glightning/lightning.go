@@ -549,6 +549,7 @@ type Command struct {
 	NameAndUsage string `json:"command"`
 	Description  string `json:"description"`
 	Verbose      string `json:"verbose"`
+	Category     string `json:"category"`
 }
 
 // Show available c-lightning RPC commands
