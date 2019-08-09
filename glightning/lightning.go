@@ -943,6 +943,38 @@ func (l *Lightning) Pay(req *PayRequest) (*PaymentSuccess, error) {
 	return &result, err
 }
 
+type PaymentFields struct {
+	Bolt11 string `json:"bolt11"`
+	Status string `json:"status"`
+	PaymentPreImage string `json:"payment_preimage"`
+	AmountSentMilliSatoshi string `json:"amount_sent_msat"`
+	Label string `json:"label,omitempty"`
+}
+
+type ListPaysRequest struct {
+	Bolt11 string `json:"bolt11,omitempty"`
+}
+
+func (r *ListPaysRequest) Name() string {
+	return "listpays"
+}
+
+func (l *Lightning) ListPays() ([]PaymentFields, error) {
+	var result struct {
+		Payments []PaymentFields `json:"pays"`
+	}
+	err := l.client.Request(&ListPaysRequest{}, &result)
+	return result.Payments, err
+}
+
+func (l *Lightning) ListPaysToBolt11(bolt11 string) ([]PaymentFields, error) {
+	var result struct {
+		Payments []PaymentFields `json:"payments"`
+	}
+	err := l.client.Request(&ListPaysRequest{bolt11}, &result)
+	return result.Payments, err
+}
+
 type ListSendPaysRequest struct {
 	Bolt11      string `json:"bolt11,omitempty"`
 	PaymentHash string `json:"payment_hash,omitempty"`
