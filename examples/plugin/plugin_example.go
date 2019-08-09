@@ -76,6 +76,7 @@ by the 'name' option, passed in at startup `
 	p.RegisterMethod(rpcHello)
 }
 
+/* Subscription Examples */
 func OnConnect(c *glightning.ConnectEvent) {
 	log.Printf("connect called: id %s at %s:%d", c.PeerId, c.Address.Addr, c.Address.Port)
 }
@@ -84,9 +85,14 @@ func OnDisconnect(d *glightning.DisconnectEvent) {
 	log.Printf("disconnect called for %s\n", d.PeerId)
 }
 
+func OnInvoicePaid(payment *glightning.Payment) {
+	log.Printf("invoice paid for amount %s with preimage %s", payment.MilliSatoshis, payment.PreImage)
+}
+
 func registerSubscriptions(p *glightning.Plugin) {
 	p.SubscribeConnect(OnConnect)
 	p.SubscribeDisconnect(OnDisconnect)
+	p.SubscribeInvoicePaid(OnInvoicePaid)
 }
 
 /* Hook Examples */
