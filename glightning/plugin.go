@@ -18,6 +18,7 @@ type Hook string
 const (
 	_Connect        Subscription = "connect"
 	_Disconnect     Subscription = "disconnect"
+	_InvoicePaid    Subscription = "invoice_payment"
 	_PeerConnected  Hook         = "peer_connected"
 	_DbWrite        Hook         = "db_write"
 	_InvoicePayment Hook         = "invoice_payment"
@@ -323,6 +324,26 @@ func (e *DisconnectEvent) New() interface{} {
 
 func (e *DisconnectEvent) Call() (jrpc2.Result, error) {
 	e.cb(e)
+	return nil, nil
+}
+
+type InvoicePaidEvent struct {
+	Payment Payment `json:"invoice_payment"`
+	cb  func(e *Payment)
+}
+
+func (e *InvoicePaidEvent) Name() string {
+	return string(_InvoicePaid)
+}
+
+func (e *InvoicePaidEvent) New() interface{} {
+	return &InvoicePaidEvent{
+		cb: e.cb,
+	}
+}
+
+func (e *InvoicePaidEvent) Call() (jrpc2.Result, error) {
+	e.cb(&e.Payment)
 	return nil, nil
 }
 
@@ -773,6 +794,12 @@ func (p *Plugin) SubscribeConnect(cb func(c *ConnectEvent)) {
 
 func (p *Plugin) SubscribeDisconnect(cb func(c *DisconnectEvent)) {
 	p.subscribe(&DisconnectEvent{
+		cb: cb,
+	})
+}
+
+func (p *Plugin) SubscribeInvoicePaid(cb func(c *Payment)) {
+	p.subscribe(&InvoicePaidEvent{
 		cb: cb,
 	})
 }
