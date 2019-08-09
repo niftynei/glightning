@@ -1243,7 +1243,27 @@ func TestListNodes(t *testing.T) {
 func TestGetInfo(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	req := "{\"jsonrpc\":\"2.0\",\"method\":\"getinfo\",\"params\":{},\"id\":1}"
-	resp := wrapResult(1, `{ "id": "020631b6c35d614ebdf8856bfd2ccb5099337588b1b56453d5d7567654d6710b92", "alias": "LATENTNET-v0.6.2-291-g91c9ce7", "color": "020631", "num_peers": 2, "num_pending_channels": 3, "num_active_channels": 1, "num_inactive_channels": 8, "address": [ ], "binding": [ { "type": "ipv6", "address": "::", "port": 9735 }, { "type": "ipv4", "address": "0.0.0.0", "port": 9735 } ], "version": "v0.6.2-291-g91c9ce7", "blockheight": 556302, "network": "bitcoin", "msatoshi_fees_collected": 300 }`)
+	resp := wrapResult(1,
+		`{ "id": "020631b6c35d614ebdf8856bfd2ccb5099337588b1b56453d5d7567654d6710b92",
+ "alias": "LATENTNET-v0.6.2-291-g91c9ce7",
+ "color": "020631",
+ "num_peers": 2,
+ "num_pending_channels": 3,
+ "num_active_channels": 1,
+ "num_inactive_channels": 8,
+ "address": [ ],
+ "binding": [ { "type": "ipv6",
+ "address": "::",
+ "port": 9735 },
+ { "type": "ipv4",
+ "address": "0.0.0.0",
+ "port": 9735 } ],
+ "version": "v0.6.2-291-g91c9ce7",
+ "blockheight": 556302,
+ "network": "bitcoin",
+ "msatoshi_fees_collected": 300,
+ "fees_collected_msat": "300msat" }`)
+
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	info, err := lightning.GetInfo()
 	if err != nil {
@@ -1274,6 +1294,7 @@ func TestGetInfo(t *testing.T) {
 		Blockheight:                556302,
 		Network:                    "bitcoin",
 		FeesCollectedMilliSatoshis: 300,
+		FeesCollected:              "300msat",
 	}, info)
 }
 

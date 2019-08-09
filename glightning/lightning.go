@@ -704,6 +704,7 @@ type NodeInfo struct {
 	Blockheight                int               `json:"blockheight"`
 	Network                    string            `json:"network"`
 	FeesCollectedMilliSatoshis uint64            `json:"msatoshi_fees_collected"`
+	FeesCollected              string            `json:"fees_collected_msat"`
 }
 
 type AddressInternal struct {
