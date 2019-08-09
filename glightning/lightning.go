@@ -770,7 +770,7 @@ func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayR
 // to poll or wait for definite success or failure.
 //
 // 'description', if provided, will be returned in 'waitsendpay' and
-// 'listpayments' results.
+// 'listsendpays' results.
 //
 // 'msat', if provided, is the amount that will be recorded as the target
 // payment value. If not specified, it will be the final amount to the
@@ -949,7 +949,7 @@ type ListPaymentRequest struct {
 }
 
 func (r *ListPaymentRequest) Name() string {
-	return "listpayments"
+	return "listsendpays"
 }
 
 func (l *Lightning) ListPaymentsAll() ([]PaymentFields, error) {

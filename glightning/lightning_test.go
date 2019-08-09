@@ -182,7 +182,7 @@ func TestListForwards(t *testing.T) {
 }
 
 func TestListPayments(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"listpayments","params":{},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"listsendpays","params":{},"id":1}`
 	resp := wrapResult(1, `{                       
   "payments": [                                                      
     {          
@@ -409,7 +409,7 @@ func TestWaitSendPayError(t *testing.T) {
 func TestSendPay(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233x1x0","msatoshi":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263x1x0","msatoshi":10000,"delay":9}]},"id":1}`
 	resp := wrapResult(1, `{
-  "message": "Monitor status with listpayments or waitsendpay",
+  "message": "Monitor status with listsendpays or waitsendpay",
   "id": 1,
   "payment_hash": "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
   "destination": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
@@ -450,7 +450,7 @@ func TestSendPay(t *testing.T) {
 		Status:           "pending",
 	}
 	result := &glightning.SendPayResult{
-		"Monitor status with listpayments or waitsendpay",
+		"Monitor status with listsendpays or waitsendpay",
 		*paymentFields,
 	}
 	assert.Equal(t, result, invoice)
