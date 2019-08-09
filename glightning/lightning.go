@@ -1445,24 +1445,30 @@ type AddressType int
 const (
 	Bech32 AddressType = iota
 	P2SHSegwit
+	All
 )
 
+type NewAddrResult struct {
+	Bech32 string `json:"bech32"`
+	P2SHSegwit string `json:"p2sh-segwit"`
+}
+
 func (a AddressType) String() string {
-	return []string{"bech32", "p2sh-segwit"}[a]
+	return []string{"bech32", "p2sh-segwit", "all"}[a]
 }
 
 // Get new Bech32 address for the internal wallet.
 func (l *Lightning) NewAddr() (string, error) {
-	return l.NewAddressOfType(Bech32)
+	addr, err := l.NewAddress(Bech32)
+	return addr.Bech32, err
 }
 
-// Get new address of type {addrType} of the internal wallet.
-func (l *Lightning) NewAddressOfType(addrType AddressType) (string, error) {
-	var result struct {
-		Address string `json:"address"`
-	}
+// Get new address of type {addrType} from the internal wallet.
+func (l *Lightning) NewAddress(addrType AddressType) (*NewAddrResult, error) {
+	var result NewAddrResult
 	err := l.client.Request(&NewAddrRequest{addrType.String()}, &result)
-	return result.Address, err
+
+	return &result, err
 }
 
 type TxPrepare struct {

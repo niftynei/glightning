@@ -1571,23 +1571,29 @@ func TestPingWithLen(t *testing.T) {
 func TestNewAddr(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 
-	req := "{\"jsonrpc\":\"2.0\",\"method\":\"newaddr\",\"params\":{\"addresstype\":\"p2sh-segwit\"},\"id\":1}"
-	resp := wrapResult(1, `{ "address": "3LfQdff5doR791QNzjn5KdPkFfFn3dmYpc" } `)
+	req := "{\"jsonrpc\":\"2.0\",\"method\":\"newaddr\",\"params\":{\"addresstype\":\"bech32\"},\"id\":1}"
+	resp := wrapResult(1, `{ "bech32": "bcrt1qz59twysnrskg47ddyh8rca9sy2kesmwz2g6zdz"} `)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	addr, err := lightning.NewAddressOfType(glightning.P2SHSegwit)
+	addr, err := lightning.NewAddr()
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "3LfQdff5doR791QNzjn5KdPkFfFn3dmYpc", addr)
+	assert.Equal(t, "bcrt1qz59twysnrskg47ddyh8rca9sy2kesmwz2g6zdz", addr)
 
-	req = "{\"jsonrpc\":\"2.0\",\"method\":\"newaddr\",\"params\":{\"addresstype\":\"bech32\"},\"id\":2}"
-	resp = wrapResult(2, `{ "address": "bc1q4va8cea0ye7hr8f6rwmug7r2rlkvc7lz93zqmh" } `)
+	req = "{\"jsonrpc\":\"2.0\",\"method\":\"newaddr\",\"params\":{\"addresstype\":\"all\"},\"id\":2}"
+	resp = wrapResult(2, `{ "bech32": "bcrt1qz59twysnrskg47ddyh8rca9sy2kesmwz2g6zdz", "p2sh-segwit": "2N7sQnAocWxVArQqFaXieczDqxUD85WB5Cb"}`)
+
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	addr, err = lightning.NewAddressOfType(glightning.Bech32)
+	addrAll, err := lightning.NewAddress(glightning.All)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "bc1q4va8cea0ye7hr8f6rwmug7r2rlkvc7lz93zqmh", addr)
+	assert.Equal(t,
+		&glightning.NewAddrResult{
+			Bech32: "bcrt1qz59twysnrskg47ddyh8rca9sy2kesmwz2g6zdz",
+			P2SHSegwit: "2N7sQnAocWxVArQqFaXieczDqxUD85WB5Cb",
+		},
+	addrAll)
 }
 
 func TestFeeRate(t *testing.T) {
