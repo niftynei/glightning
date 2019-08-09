@@ -151,7 +151,7 @@ type OpenChannelEvent struct {
 	HtlcMinimumMillisatoshis          string `json:"htlc_minimum_msat"`
 	//FeeratePerKw ..//??
 	ToSelfDelay      uint16 `json:"to_self_delay"`
-	MaxAcceptedHtlcs uint16 `json"max_accepted_htlcs"`
+	MaxAcceptedHtlcs uint16 `json:"max_accepted_htlcs"`
 	ChannelFlags     uint16 `json:"channel_flags"`
 	hook             func(*OpenChannelEvent) (*OpenChannelResponse, error)
 }
@@ -712,7 +712,7 @@ func (p *Plugin) unregisterMethod(rpc *RpcMethod) error {
 	}
 	m := rpc.Method
 	if _, exists := p.methods[m.Name()]; !exists {
-		fmt.Errorf("Can't unregister, method %s is unknown", m.Name())
+		return fmt.Errorf("Can't unregister, method %s is unknown", m.Name())
 	}
 	delete(p.methods, m.Name())
 	return nil
