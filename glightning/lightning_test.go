@@ -181,7 +181,7 @@ func TestListForwards(t *testing.T) {
 	}, forwards)
 }
 
-func TestListPayments(t *testing.T) {
+func TestListSendPays(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"listsendpays","params":{},"id":1}`
 	resp := wrapResult(1, `{                       
   "payments": [                                                      
@@ -199,12 +199,12 @@ func TestListPayments(t *testing.T) {
 } `)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	payments, err := lightning.ListPaymentsAll()
+	payments, err := lightning.ListSendPaysAll()
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []glightning.PaymentFields{
-		glightning.PaymentFields{
+	assert.Equal(t, []glightning.SendPayFields{
+		glightning.SendPayFields{
 			Id:               1,
 			PaymentHash:      "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
 			Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
@@ -281,7 +281,7 @@ func TestPay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	paymentFields := &glightning.PaymentFields{
+	paymentFields := &glightning.SendPayFields{
 		Id:               5,
 		PaymentHash:      "be8b5435aa8738be31580c31cc747bc237d1c83fe946da338ee1c6bf8ac85a12",
 		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
@@ -357,7 +357,7 @@ func TestWaitSendPay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	paymentFields := &glightning.PaymentFields{
+	paymentFields := &glightning.SendPayFields{
 		Id:               4,
 		PaymentHash:      paymentHash,
 		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
@@ -440,7 +440,7 @@ func TestSendPay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	paymentFields := &glightning.PaymentFields{
+	paymentFields := &glightning.SendPayFields{
 		Id:               1,
 		PaymentHash:      "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
 		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",

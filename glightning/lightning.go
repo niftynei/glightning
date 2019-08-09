@@ -737,7 +737,7 @@ func (r *SendPayRequest) Name() string {
 	return "sendpay"
 }
 
-type PaymentFields struct {
+type SendPayFields struct {
 	Id               uint64 `json:"id"`
 	PaymentHash      string `json:"payment_hash"`
 	Destination      string `json:"destination"`
@@ -751,7 +751,7 @@ type PaymentFields struct {
 
 type SendPayResult struct {
 	Message string `json:"message"`
-	PaymentFields
+	SendPayFields
 }
 
 // SendPay, but without description or millisatoshi value
@@ -836,12 +836,12 @@ type PaymentErrorData struct {
 // If no 'timeout' is provided, the call waits indefinitely.
 //
 // NB: Blocking. Bypasses the default client request timeout mechanism
-func (l *Lightning) WaitSendPay(paymentHash string, timeout uint) (*PaymentFields, error) {
+func (l *Lightning) WaitSendPay(paymentHash string, timeout uint) (*SendPayFields, error) {
 	if paymentHash == "" {
 		return nil, fmt.Errorf("Must provide a payment hash to pay")
 	}
 
-	var result PaymentFields
+	var result SendPayFields
 	err := l.client.RequestNoTimeout(&WaitSendPayRequest{paymentHash, timeout}, &result)
 	if err, ok := err.(*jrpc2.RpcError); ok {
 		var paymentErrData PaymentErrorData
@@ -874,7 +874,7 @@ func (r *PayRequest) Name() string {
 // todo: there's lots of different data that comes back for
 // payment failures, that for now we totally lose
 type PaymentSuccess struct {
-	PaymentFields
+	SendPayFields
 	GetRouteTries int          `json:"getroute_tries"`
 	SendPayTries  int          `json:"sendpay_tries"`
 	Route         []RouteHop   `json:"route"`
@@ -921,7 +921,7 @@ func (l *Lightning) PayBolt(bolt11 string) (*PaymentSuccess, error) {
 // c-lightning will keep finding routes and retrying payment until it succeeds
 // or the given 'RetryFor' seconds have elapsed.  Note that the command may
 // stop retrying while payment is pending. You can continuing monitoring
-// payment status with the ListPayments or WaitSendPay. 'RetryFor' defaults
+// payment status with the ListSendPays or WaitSendPay. 'RetryFor' defaults
 // to 60 seconds.
 //
 // 'MaxDelay' is used when determining whether a route incurs an acceptable
@@ -943,36 +943,36 @@ func (l *Lightning) Pay(req *PayRequest) (*PaymentSuccess, error) {
 	return &result, err
 }
 
-type ListPaymentRequest struct {
+type ListSendPaysRequest struct {
 	Bolt11      string `json:"bolt11,omitempty"`
 	PaymentHash string `json:"payment_hash,omitempty"`
 }
 
-func (r *ListPaymentRequest) Name() string {
+func (r *ListSendPaysRequest) Name() string {
 	return "listsendpays"
 }
 
-func (l *Lightning) ListPaymentsAll() ([]PaymentFields, error) {
-	return l.listPayments(&ListPaymentRequest{})
+func (l *Lightning) ListSendPaysAll() ([]SendPayFields, error) {
+	return l.listSendPays(&ListSendPaysRequest{})
 }
 
 // Show outgoing payments, regarding {bolt11}
-func (l *Lightning) ListPayments(bolt11 string) ([]PaymentFields, error) {
-	return l.listPayments(&ListPaymentRequest{
+func (l *Lightning) ListSendPays(bolt11 string) ([]SendPayFields, error) {
+	return l.listSendPays(&ListSendPaysRequest{
 		Bolt11: bolt11,
 	})
 }
 
 // Show outgoing payments, regarding {paymentHash}
-func (l *Lightning) ListPaymentsHash(paymentHash string) ([]PaymentFields, error) {
-	return l.listPayments(&ListPaymentRequest{
+func (l *Lightning) ListSendPaysByHash(paymentHash string) ([]SendPayFields, error) {
+	return l.listSendPays(&ListSendPaysRequest{
 		PaymentHash: paymentHash,
 	})
 }
 
-func (l *Lightning) listPayments(req *ListPaymentRequest) ([]PaymentFields, error) {
+func (l *Lightning) listSendPays(req *ListSendPaysRequest) ([]SendPayFields, error) {
 	var result struct {
-		Payments []PaymentFields `json:"payments"`
+		Payments []SendPayFields `json:"payments"`
 	}
 	err := l.client.Request(req, &result)
 	return result.Payments, err
