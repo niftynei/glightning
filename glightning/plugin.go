@@ -209,16 +209,16 @@ func (oc *OpenChannelEvent) Continue() *OpenChannelResponse {
 //   may see the same HTLC again during startup. It is therefore paramount that the
 //   plugin is idempotent if it talks to an external system.
 type HtlcAcceptedEvent struct {
-	Onion        Onion     `json:"onion"`
-	Htlc         HtlcOffer `json:"htlc"`
-	hook         func(*HtlcAcceptedEvent) (*HtlcAcceptedResponse, error)
+	Onion Onion     `json:"onion"`
+	Htlc  HtlcOffer `json:"htlc"`
+	hook  func(*HtlcAcceptedEvent) (*HtlcAcceptedResponse, error)
 }
 
 type Onion struct {
-	Payload string `json:"payload"`
-	NextOnion    string    `json:"next_onion"`
-	SharedSecret string    `json:"shared_secret"`
-	PerHop  PerHop `json:"per_hop_v0"`
+	Payload      string `json:"payload"`
+	NextOnion    string `json:"next_onion"`
+	SharedSecret string `json:"shared_secret"`
+	PerHop       PerHop `json:"per_hop_v0"`
 }
 
 type PerHop struct {
