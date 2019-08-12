@@ -199,14 +199,14 @@ func handleReply(rawResp *RawResponse, resp interface{}) error {
 	// when the response comes back, it will either have an error,
 	// that we should parse into an 'error' (depending on the code?)
 	if rawResp.Error != nil {
-		if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO_RPC_ERR"); ok {
+		if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO_IN"); ok {
 			log.Printf("%d:%s", rawResp.Error.Code, rawResp.Error.Message)
 			log.Println(string(rawResp.Error.Data))
 		}
 		return rawResp.Error
 	}
 
-	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO_RPC"); ok {
+	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO_IN"); ok {
 		log.Println(string(rawResp.Raw))
 	}
 
