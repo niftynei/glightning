@@ -9,6 +9,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"sync"
 	"testing"
 )
 
@@ -409,6 +410,116 @@ func TestHook_InvoicePaymentFail(t *testing.T) {
 	msg := `{"jsonrpc":"2.0","id":"aloha","method":"invoice_payment","params":{"payment":{"label":"test_4","preimage":"09d686f01fbbc6d36996f6c68b09d62600b9da32bd249892904350e31bc51c6e","msat":"50000msat"}}}`
 	resp := `{"jsonrpc":"2.0","result":{"failure_code":44},"id":"aloha"}`
 	runTest(t, plugin, msg+"\n\n", resp)
+}
+
+func TestSubscription_Warning(t *testing.T) {
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.SubscribeWarnings(func(event *glightning.Warning) {
+		defer wg.Done()
+		expected := &glightning.Warning{
+			Level: "warn",
+			Time: "1565639989.291189188",
+			Source: "lightningd(23822):",
+			Log: "Unable to estimate ECONOMICAL/100 fee",
+		}
+		assert.Equal(t, expected, event)
+	})
+
+
+	msg := `{"jsonrpc":"2.0","method":"warning","params":{"warning":{"level":"warn","time":"1565639989.291189188","source":"lightningd(23822):","log":"Unable to estimate ECONOMICAL/100 fee"}}}`
+
+	runTest(t, plugin, msg+"\n\n", "")
+
+	// Wait for callback to finish!
+	wg.Wait()
+}
+
+func TestSubscription_ChannelOpened(t *testing.T) {
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.SubscribeChannelOpened(func(event *glightning.ChannelOpened) {
+		defer wg.Done()
+		expected := &glightning.ChannelOpened{
+			PeerId: "026bbfba23a5a0034181ec46bfe99eb03f135f765eeaf89cc7c84f4daeb7289462",
+			FundingSatoshis: "100000000msat",
+			FundingTxId: "db31fc18891b5d75207051f2dbea94d01ed14939d2a61cc4cd5f88e7bd42aa71",
+			FundingLocked: true,
+		}
+		assert.Equal(t, expected, event)
+	})
+
+
+	msg := `{"jsonrpc":"2.0","method":"channel_opened","params":{"channel_opened":{"id":"026bbfba23a5a0034181ec46bfe99eb03f135f765eeaf89cc7c84f4daeb7289462","amount":"100000000msat","funding_txid":"db31fc18891b5d75207051f2dbea94d01ed14939d2a61cc4cd5f88e7bd42aa71","funding_locked":true}}}`
+
+	runTest(t, plugin, msg+"\n\n", "")
+
+	// Wait for callback to finish!
+	wg.Wait()
+}
+
+func TestSubscription_Connected(t *testing.T) {
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.SubscribeConnect (func(event *glightning.ConnectEvent) {
+		defer wg.Done()
+		expected := &glightning.ConnectEvent{
+			PeerId: "02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6",
+			Address: glightning.Address{
+				Type: "ipv4",
+				Addr: "127.0.0.1",
+				Port: 9090,
+			},
+		}
+		assert.Equal(t, expected.PeerId, event.PeerId)
+		assert.Equal(t, expected.Address, event.Address)
+	})
+
+	msg := `{"jsonrpc":"2.0","method":"connect","params":{"id":"02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6","address":{"type":"ipv4","address":"127.0.0.1","port":9090}}}`
+
+	runTest(t, plugin, msg+"\n\n", "")
+
+	// Wait for callback to finish!
+	wg.Wait()
+}
+
+func TestSubscription_Disconnected(t *testing.T) {
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.SubscribeDisconnect(func(event *glightning.DisconnectEvent) {
+		defer wg.Done()
+		expected := &glightning.DisconnectEvent{
+			PeerId: "02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6",
+		}
+		assert.Equal(t, expected.PeerId, event.PeerId)
+	})
+
+	msg := `{"jsonrpc":"2.0","method":"disconnect","params":{"id":"02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6"}}`
+
+	runTest(t, plugin, msg+"\n\n", "")
+
+	// Wait for callback to finish!
+	wg.Wait()
 }
 
 func runTest(t *testing.T, plugin *glightning.Plugin, inputMsg, expectedMsg string) {
