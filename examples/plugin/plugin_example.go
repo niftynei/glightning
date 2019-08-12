@@ -89,10 +89,20 @@ func OnInvoicePaid(payment *glightning.Payment) {
 	log.Printf("invoice paid for amount %s with preimage %s", payment.MilliSatoshis, payment.PreImage)
 }
 
+func OnChannelOpened(co *glightning.ChannelOpened) {
+	log.Printf("channel opened with %s for %s. is locked? %v", co.PeerId, co.FundingSatoshis, co.FundingLocked)
+}
+
+func OnWarning(warn *glightning.Warning) {
+	log.Printf("Got a warning!! %s", warn.Log)
+}
+
 func registerSubscriptions(p *glightning.Plugin) {
 	p.SubscribeConnect(OnConnect)
 	p.SubscribeDisconnect(OnDisconnect)
 	p.SubscribeInvoicePaid(OnInvoicePaid)
+	p.SubscribeChannelOpened(OnChannelOpened)
+	p.SubscribeWarnings(OnWarning)
 }
 
 /* Hook Examples */

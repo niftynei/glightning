@@ -19,6 +19,8 @@ const (
 	_Connect        Subscription = "connect"
 	_Disconnect     Subscription = "disconnect"
 	_InvoicePaid    Subscription = "invoice_payment"
+	_ChannelOpened  Subscription = "channel_opened"
+	_Warning        Subscription = "warning"
 	_PeerConnected  Hook         = "peer_connected"
 	_DbWrite        Hook         = "db_write"
 	_InvoicePayment Hook         = "invoice_payment"
@@ -344,6 +346,60 @@ func (e *InvoicePaidEvent) New() interface{} {
 
 func (e *InvoicePaidEvent) Call() (jrpc2.Result, error) {
 	e.cb(&e.Payment)
+	return nil, nil
+}
+
+type ChannelOpenedEvent struct {
+	ChannelOpened ChannelOpened `json:"channel_opened"`
+	cb func(e *ChannelOpened)
+}
+
+type ChannelOpened struct {
+	PeerId string `json:"id"`
+	FundingSatoshis string `json:"amount"`
+	FundingTxId string `json:"funding_txid"`
+	FundingLocked bool `json:"funding_locked"`
+}
+
+func (e *ChannelOpenedEvent) Name() string {
+	return string(_ChannelOpened)
+}
+
+func (e *ChannelOpenedEvent) New() interface{} {
+	return &ChannelOpenedEvent{
+		cb: e.cb,
+	}
+}
+
+func (e *ChannelOpenedEvent) Call() (jrpc2.Result, error) {
+	e.cb(&e.ChannelOpened)
+	return nil, nil
+}
+
+type WarnEvent struct {
+	Warning Warning `json:"warning"`
+	cb func(*Warning)
+}
+
+type Warning struct {
+	Level string `json:"level"`
+	Time string `json:"time"`
+	Source string `json:"source"`
+	Log string `json:"log"`
+}
+
+func (e *WarnEvent) Name() string {
+	return string(_Warning)
+}
+
+func (e *WarnEvent) New() interface{} {
+	return &WarnEvent{
+		cb: e.cb,
+	}
+}
+
+func (e *WarnEvent) Call() (jrpc2.Result, error) {
+	e.cb(&e.Warning)
 	return nil, nil
 }
 
@@ -800,6 +856,18 @@ func (p *Plugin) SubscribeDisconnect(cb func(c *DisconnectEvent)) {
 
 func (p *Plugin) SubscribeInvoicePaid(cb func(c *Payment)) {
 	p.subscribe(&InvoicePaidEvent{
+		cb: cb,
+	})
+}
+
+func (p *Plugin) SubscribeChannelOpened(cb func(c *ChannelOpened)) {
+	p.subscribe(&ChannelOpenedEvent{
+		cb: cb,
+	})
+}
+
+func (p *Plugin) SubscribeWarnings(cb func(c *Warning)) {
+	p.subscribe(&WarnEvent{
 		cb: cb,
 	})
 }
