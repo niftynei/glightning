@@ -435,6 +435,11 @@ func runTest(t *testing.T, plugin *glightning.Plugin, inputMsg, expectedMsg stri
 	// would using a client implementation be nice here?
 	testOut.Write([]byte(inputMsg))
 
+	// Allow early escape for notifications
+	if expectedMsg == "" {
+		return
+	}
+
 	scanner := bufio.NewScanner(testIn)
 	scanner.Split(func(data []byte, eof bool) (advance int, token []byte, err error) {
 		for i := 0; i < len(data); i++ {
