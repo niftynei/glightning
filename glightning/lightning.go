@@ -104,27 +104,42 @@ type PeerChannel struct {
 	Status                           []string          `json:"status"`
 	Private                          bool              `json:"private"`
 	FundingAllocations               map[string]uint64 `json:"funding_allocation_msat"`
+	FundingMsat                      map[string]string `json:"funding_msat"`
 	MilliSatoshiToUs                 uint64            `json:"msatoshi_to_us"`
+	ToUsMsat                         string            `json:"to_us_msat"`
 	MilliSatoshiToUsMin              uint64            `json:"msatoshi_to_us_min"`
+	MinToUsMsat                      string            `json:"min_to_us_msat"`
 	MilliSatoshiToUsMax              uint64            `json:"msatoshi_to_us_max"`
+	MaxToUsMsat                      string            `json:"max_to_us_msat"`
 	MilliSatoshiTotal                uint64            `json:"msatoshi_total"`
+	TotalMsat                        string            `json:"total_msat"`
 	DustLimitSatoshi                 uint64            `json:"dust_limit_satoshis"`
+	DustLimitMsat                    string            `json:"dust_limit_msat"`
 	MaxHtlcValueInFlightMilliSatoshi uint64            `json:"max_htlc_value_in_flight_msat"`
+	MaxHtlcValueInFlightMsat         string            `json:"max_total_htlc_in_msat"`
 	TheirChannelReserveSatoshi       uint64            `json:"their_channel_reserve_satoshis"`
+	TheirReserveMsat                 string            `json:"their_reserve_msat"`
 	OurChannelReserveSatoshi         uint64            `json:"our_channel_reserve_satoshis"`
+	OurReserveMsat                   string            `json:"our_reserve_msat"`
 	SpendableMilliSatoshi            uint64            `json:"spendable_msatoshi"`
+	SpendableMsat                    string            `json:"spendable_msat"`
 	HtlcMinMilliSatoshi              uint64            `json:"htlc_minimum_msat"`
+	MinimumHtlcInMsat                string            `json:"minimum_htlc_in_msat"`
 	TheirToSelfDelay                 uint              `json:"their_to_self_delay"`
 	OurToSelfDelay                   uint              `json:"our_to_self_delay"`
 	MaxAcceptedHtlcs                 uint              `json:"max_accepted_htlcs"`
 	InPaymentsOffered                uint64            `json:"in_payments_offered"`
 	InMilliSatoshiOffered            uint64            `json:"in_msatoshi_offered"`
+	IncomingOfferedMsat              string            `json:"in_offered_msat"`
 	InPaymentsFulfilled              uint64            `json:"in_payments_fulfilled"`
 	InMilliSatoshiFulfilled          uint64            `json:"in_msatoshi_fulfilled"`
+	IncomingFulfilledMsat            string            `json:"in_fulfilled_msat"`
 	OutPaymentsOffered               uint64            `json:"out_payments_offered"`
 	OutMilliSatoshiOffered           uint64            `json:"out_msatoshi_offered"`
+	OutgoingOfferedMsat              string            `json:"out_offered_msat"`
 	OutPaymentsFulfilled             uint64            `json:"out_payments_fulfilled"`
 	OutMilliSatoshiFulfilled         uint64            `json:"out_msatoshi_fulfilled"`
+	OutgoingFulfilledMsat            string            `json:"out_fulfilled_msat"`
 	Htlcs                            []*Htlc           `json:"htlcs"`
 }
 
@@ -132,9 +147,11 @@ type Htlc struct {
 	Direction    string `json:"direction"`
 	Id           uint64 `json:"id"`
 	MilliSatoshi uint64 `json:"msatoshi"`
+	AmountMsat   string `json:"amount_msat"`
 	Expiry       uint64 `json:"expiry"`
 	PaymentHash  string `json:"payment_hash"`
 	State        string `json:"state"`
+	LocalTrimmed bool   `json:"local_trimmed"`
 }
 
 // Show current peer {peerId}. If {level} is set, include logs.
@@ -223,6 +240,7 @@ type RouteHop struct {
 	Id             string `json:"id"`
 	ShortChannelId string `json:"channel"`
 	MilliSatoshi   uint64 `json:"msatoshi"`
+	AmountMsat     string `json:"amount_msat,omitempty"`
 	Delay          uint   `json:"delay"`
 }
 
@@ -293,7 +311,7 @@ type Channel struct {
 	ShortChannelId           string `json:"short_channel_id"`
 	IsPublic                 bool   `json:"public"`
 	Satoshis                 uint64 `json:"satoshis"`
-	AmountMilliSatoshi       string `json:"amount_msat"`
+	AmountMsat               string `json:"amount_msat"`
 	MessageFlags             uint   `json:"message_flags"`
 	ChannelFlags             uint   `json:"channel_flags"`
 	IsActive                 bool   `json:"active"`
@@ -487,7 +505,9 @@ type CompletedInvoice struct {
 	Description          string `json:"description"`
 	PayIndex             int    `json:"pay_index"`
 	MilliSatoshi         uint64 `json:"msatoshi"`
+	AmountMsat           string `json:"amount_msat"`
 	MilliSatoshiReceived uint64 `json:"msatoshi_received"`
+	ReceivedMsat         string `json:"amount_received_msat"`
 	PaidAt               uint64 `json:"paid_at"`
 	ExpiresAt            uint64 `json:"expires_at"`
 }
@@ -520,6 +540,7 @@ type DecodedBolt11 struct {
 	Expiry             uint64        `json:"expiry"`
 	Payee              string        `json:"payee"`
 	MilliSatoshis      uint64        `json:"msatoshi"`
+	AmountMsat         string        `json:"amount_msat"`
 	Description        string        `json:"description"`
 	DescriptionHash    string        `json:"description_hash"`
 	MinFinalCltvExpiry int           `json:"min_final_cltv_expiry"`
@@ -784,7 +805,9 @@ type SendPayFields struct {
 	PaymentHash      string `json:"payment_hash"`
 	Destination      string `json:"destination"`
 	MilliSatoshi     uint64 `json:"msatoshi"`
+	AmountMsat       string `json:"amount_msat"`
 	MilliSatoshiSent uint64 `json:"msatoshi_sent"`
+	AmountSentMsat   string `json:"amount_sent_msat"`
 	CreatedAt        uint64 `json:"created_at"`
 	Status           string `json:"status"`
 	PaymentPreimage  string `json:"payment_preimage"`

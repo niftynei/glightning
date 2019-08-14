@@ -40,16 +40,30 @@ func TestListPeers(t *testing.T) {
             "03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4": 0,
             "028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764": 1000000000
           },
+	  "funding_msat": {
+            "03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4": "0msat",
+            "028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764": "1000000000msat"
+	  },
           "msatoshi_to_us": 16777215000,
+	  "to_us_msat": "16777215000msat",
           "msatoshi_to_us_min": 16777215000,
+	  "min_to_us_msat": "16777215000msat",
           "msatoshi_to_us_max": 16777215000,
+	  "max_to_us_msat": "16777215000msat",
           "msatoshi_total": 16777215000,
+	  "total_msat": "16777215000msat",
           "dust_limit_satoshis": 546,
+	  "dust_limit_msat": "546000msat",
           "max_htlc_value_in_flight_msat": 18446744073709551615,
+          "max_total_htlc_in_msat": "18446744073709551615msat",
           "their_channel_reserve_satoshis": 167773,
+	  "their_reserve_msat": "167773000msat",
           "our_channel_reserve_satoshis": 167773,
+	  "our_reserve_msat": "167773000msat",
           "spendable_msatoshi": 16609442000,
+	  "spendable_msat": "16609442000msat",
           "htlc_minimum_msat": 10,
+          "minimum_htlc_in_msat": "10msat",
           "their_to_self_delay": 6,
           "our_to_self_delay": 6,
           "max_accepted_htlcs": 483,
@@ -58,20 +72,26 @@ func TestListPeers(t *testing.T) {
           ],
           "in_payments_offered": 110,
           "in_msatoshi_offered": 123,
+	  "in_offered_msat": "123msat",
           "in_payments_fulfilled": 123,
           "in_msatoshi_fulfilled": 123,
+	  "in_fulfilled_msat": "123msat",
           "out_payments_offered": 123,
           "out_msatoshi_offered": 123,
+	  "out_offered_msat": "123msat",
           "out_payments_fulfilled": 123,
           "out_msatoshi_fulfilled": 123,
+	  "out_fulfilled_msat": "123msat",
           "htlcs": [
             {
               "direction": "out",
               "id": 1,
               "msatoshi": 1437433749,
+	      "amount_msat": "1437433749msat",
               "expiry": 556832,
               "payment_hash": "3525b49c055604a7997512f866694b6154987a32cc60e1c374113246d38bd5ad",
-              "state": "SENT_REMOVE_ACK_COMMIT"
+              "state": "SENT_REMOVE_ACK_COMMIT",
+	      "local_trimmed": true
             }
           ]
         }
@@ -89,14 +109,20 @@ func TestListPeers(t *testing.T) {
 	fundingAlloc := make(map[string]uint64)
 	fundingAlloc["03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4"] = uint64(0)
 	fundingAlloc["028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764"] = uint64(1000000000)
+
+	fundingAllocMsat := make(map[string]string)
+	fundingAllocMsat["03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4"] = "0msat"
+	fundingAllocMsat["028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764"] = "1000000000msat"
 	htlcs := []*glightning.Htlc{
 		&glightning.Htlc{
 			Direction:    "out",
 			Id:           1,
 			MilliSatoshi: 1437433749,
+			AmountMsat:   "1437433749msat",
 			Expiry:       556832,
 			PaymentHash:  "3525b49c055604a7997512f866694b6154987a32cc60e1c374113246d38bd5ad",
 			State:        "SENT_REMOVE_ACK_COMMIT",
+			LocalTrimmed: true,
 		},
 	}
 	expected := []glightning.Peer{
@@ -117,16 +143,27 @@ func TestListPeers(t *testing.T) {
 					FundingTxId:                      "38154ece6c99e26c9be161039fe38ee744479ac568592c22302ff17c34f11554",
 					Private:                          true,
 					FundingAllocations:               fundingAlloc,
+					FundingMsat:                      fundingAllocMsat,
 					MilliSatoshiToUs:                 16777215000,
+					ToUsMsat:                         "16777215000msat",
 					MilliSatoshiToUsMin:              16777215000,
+					MinToUsMsat:                      "16777215000msat",
 					MilliSatoshiToUsMax:              16777215000,
+					MaxToUsMsat:                      "16777215000msat",
 					MilliSatoshiTotal:                16777215000,
+					TotalMsat:                        "16777215000msat",
 					DustLimitSatoshi:                 546,
+					DustLimitMsat:                    "546000msat",
 					MaxHtlcValueInFlightMilliSatoshi: 18446744073709551615,
+					MaxHtlcValueInFlightMsat:         "18446744073709551615msat",
 					TheirChannelReserveSatoshi:       167773,
+					TheirReserveMsat:                 "167773000msat",
 					OurChannelReserveSatoshi:         167773,
+					OurReserveMsat:                   "167773000msat",
 					SpendableMilliSatoshi:            16609442000,
+					SpendableMsat:                    "16609442000msat",
 					HtlcMinMilliSatoshi:              10,
+					MinimumHtlcInMsat:                "10msat",
 					TheirToSelfDelay:                 6,
 					OurToSelfDelay:                   6,
 					MaxAcceptedHtlcs:                 483,
@@ -135,12 +172,16 @@ func TestListPeers(t *testing.T) {
 					},
 					InPaymentsOffered:        110,
 					InMilliSatoshiOffered:    123,
+					IncomingOfferedMsat:      "123msat",
 					InPaymentsFulfilled:      123,
 					InMilliSatoshiFulfilled:  123,
+					IncomingFulfilledMsat:    "123msat",
 					OutPaymentsOffered:       123,
 					OutMilliSatoshiOffered:   123,
+					OutgoingOfferedMsat:      "123msat",
 					OutPaymentsFulfilled:     123,
 					OutMilliSatoshiFulfilled: 123,
+					OutgoingFulfilledMsat:    "123msat",
 					Htlcs:                    htlcs,
 				},
 			},
@@ -188,7 +229,7 @@ func TestListForwards(t *testing.T) {
 			Status:          "settled",
 			ReceivedTime:    1565810857.345,
 			ResolvedTime:    1565810858.454,
-			PaymentHash: "e04bccfb6d8cf6b910ee5d4ce23d9b91854784a10b231a83cfd2f0c9a44cd243",
+			PaymentHash:     "e04bccfb6d8cf6b910ee5d4ce23d9b91854784a10b231a83cfd2f0c9a44cd243",
 		},
 	}, forwards)
 }
@@ -234,7 +275,9 @@ func TestListSendPays(t *testing.T) {
       "payment_hash": "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
       "destination": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
       "msatoshi": 10000,                
+      "amount_msat": "10000msat",
       "msatoshi_sent": 10001,
+      "amount_sent_msat": "10001msat",
       "created_at": 1546480001,
       "status": "complete",
       "payment_preimage": "1ca5dd46bb09fdb03cbb888800f8d18954da991c5368a37cd3d62968ae5bf089"
@@ -253,7 +296,9 @@ func TestListSendPays(t *testing.T) {
 			PaymentHash:      "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
 			Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			MilliSatoshi:     10000,
+			AmountMsat:       "10000msat",
 			MilliSatoshiSent: 10001,
+			AmountSentMsat:   "10001msat",
 			CreatedAt:        1546480001,
 			Status:           "complete",
 			PaymentPreimage:  "1ca5dd46bb09fdb03cbb888800f8d18954da991c5368a37cd3d62968ae5bf089",
@@ -270,7 +315,9 @@ func TestPay(t *testing.T) {
   "payment_hash": "be8b5435aa8738be31580c31cc747bc237d1c83fe946da338ee1c6bf8ac85a12",
   "destination": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
   "msatoshi": 300000,
+  "amount_msat": "300000msat",
   "msatoshi_sent": 301080,
+  "amount_sent_msat": "301080msat",
   "created_at": 1546484611,
   "status": "complete",
   "payment_preimage": "b368340fc5fb5839beaaf59885efa6636557715746be26601cddf876a2bc489b",
@@ -282,12 +329,14 @@ func TestPay(t *testing.T) {
       "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
       "channel": "233x1x0",
       "msatoshi": 301080,
+      "amount_msat": "301080msat",
       "delay": 16
     },
     {
       "id": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
       "channel": "263x1x0",
       "msatoshi": 301076,
+      "amount_msat": "301076msat",
       "delay": 10
     }
   ],
@@ -305,12 +354,14 @@ func TestPay(t *testing.T) {
           "id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
           "channel": "233x1x0",
           "msatoshi": 300660,
+	  "amount_msat": "300660msat",
           "delay": 16
         },
         {
           "id": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
           "channel": "263x1x0",
           "msatoshi": 300656,
+	  "amount_msat": "300656msat",
           "delay": 10
         }
       ]
@@ -330,7 +381,9 @@ func TestPay(t *testing.T) {
 		PaymentHash:      "be8b5435aa8738be31580c31cc747bc237d1c83fe946da338ee1c6bf8ac85a12",
 		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 		MilliSatoshi:     300000,
+		AmountMsat:       "300000msat",
 		MilliSatoshiSent: 301080,
+		AmountSentMsat:   "301080msat",
 		CreatedAt:        1546484611,
 		Status:           "complete",
 		PaymentPreimage:  "b368340fc5fb5839beaaf59885efa6636557715746be26601cddf876a2bc489b",
@@ -341,12 +394,14 @@ func TestPay(t *testing.T) {
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
 			MilliSatoshi:   301080,
+			AmountMsat:     "301080msat",
 			Delay:          16,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
 			MilliSatoshi:   301076,
+			AmountMsat:     "301076msat",
 			Delay:          10,
 		},
 	}
@@ -355,12 +410,14 @@ func TestPay(t *testing.T) {
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
 			MilliSatoshi:   300660,
+			AmountMsat:     "300660msat",
 			Delay:          16,
 		},
 		glightning.RouteHop{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
 			MilliSatoshi:   300656,
+			AmountMsat:     "300656msat",
 			Delay:          10,
 		},
 	}
@@ -387,7 +444,9 @@ func TestWaitSendPay(t *testing.T) {
   "payment_hash": "37ef7c6ff62d5a2fbce1940ab2f4de2785045b922f93944b73f7bc5123ed698f",
   "destination": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
   "msatoshi": 10000,
+  "amount_msat": "10000msat",
   "msatoshi_sent": 10001,
+  "amount_sent_msat": "10001msat",
   "created_at": 1546483736,
   "status": "complete",
   "payment_preimage": "eb7608df66f66d34c688b90346b8fcd904170b10278d797b608cc1168317458d"
@@ -406,7 +465,9 @@ func TestWaitSendPay(t *testing.T) {
 		PaymentHash:      paymentHash,
 		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 		MilliSatoshi:     10000,
+		AmountMsat:       "10000msat",
 		MilliSatoshiSent: 10001,
+		AmountSentMsat:   "10001msat",
 		CreatedAt:        1546483736,
 		Status:           "complete",
 		PaymentPreimage:  "eb7608df66f66d34c688b90346b8fcd904170b10278d797b608cc1168317458d",
@@ -458,7 +519,9 @@ func TestSendPay(t *testing.T) {
   "payment_hash": "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
   "destination": "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
   "msatoshi": 10000,
+  "amount_msat": "10000msat",
   "msatoshi_sent": 10001,
+  "amount_sent_msat": "10001msat",
   "created_at": 1546480001,
   "status": "pending"
 }`)
@@ -479,6 +542,7 @@ func TestSendPay(t *testing.T) {
 			Delay:          9,
 		},
 	}
+
 	paymentHash := "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993"
 	invoice, err := lightning.SendPay(route, paymentHash, "", 0, "")
 	if err != nil {
@@ -489,7 +553,9 @@ func TestSendPay(t *testing.T) {
 		PaymentHash:      "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
 		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 		MilliSatoshi:     10000,
+		AmountMsat:       "10000msat",
 		MilliSatoshiSent: 10001,
+		AmountSentMsat:   "10001msat",
 		CreatedAt:        1546480001,
 		Status:           "pending",
 	}
@@ -507,9 +573,11 @@ func TestWaitAnyInvoice(t *testing.T) {
   "bolt11": "lnbcrt100n1pwz6a8wpp5249mj72sysuemctra4gsmexjec066g2ra7qkkp2rwvuzxuyhhesqdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqc9ua2tv4kqglsgxnt7l2lcrdajc4juwhtl3jkqqvdnzqfyth5lefx25n0ef8emstfxm4v6dcx8s5ae8ef0ug64nquwdxv9zduggxr8lgpg9m473",
   "payment_hash": "554bb9795024399de163ed510de4d2ce1fad2143ef816b05437338237097be60",
   "msatoshi": 10000,
+  "amount_msat": "10000msat",
   "status": "paid",
   "pay_index": 2,
   "msatoshi_received": 10000, 
+  "amount_received_msat": "10000msat",
   "paid_at": 1546482927,
   "description": "desc",
   "expires_at": 1546482931              
@@ -529,7 +597,9 @@ func TestWaitAnyInvoice(t *testing.T) {
 		Description:          "desc",
 		ExpiresAt:            1546482931,
 		MilliSatoshiReceived: 10000,
+		ReceivedMsat:         "10000msat",
 		MilliSatoshi:         10000,
+		AmountMsat:           "10000msat",
 		PayIndex:             2,
 		PaidAt:               1546482927,
 	}, invoice)
@@ -543,9 +613,11 @@ func TestWaitInvoice(t *testing.T) {
   "bolt11": "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
   "payment_hash": "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
   "msatoshi": 10000,    
+  "amount_msat": "10000msat",
   "status": "paid",
   "pay_index": 1,
   "msatoshi_received": 10000,
+  "amount_received_msat": "10000msat",
   "paid_at": 1546480002,
   "description": "desc",                                                                                                                                                                     
   "expires_at": 1546480005                                                                                                                                                                   
@@ -565,7 +637,9 @@ func TestWaitInvoice(t *testing.T) {
 		Description:          "desc",
 		ExpiresAt:            1546480005,
 		MilliSatoshiReceived: 10000,
+		ReceivedMsat:         "10000msat",
 		MilliSatoshi:         10000,
+		AmountMsat:           "10000msat",
 		PayIndex:             1,
 		PaidAt:               1546480002,
 	}, invoice)
@@ -1237,7 +1311,7 @@ func TestListChannels(t *testing.T) {
 			BaseFeeMillisatoshi:      1000,
 			FeePerMillionth:          uint64(1),
 			Delay:                    uint(144),
-			AmountMilliSatoshi:       "500000000msat",
+			AmountMsat:               "500000000msat",
 			HtlcMinimumMilliSatoshis: "0msat",
 			HtlcMaximumMilliSatoshis: "4294967295msat",
 		},
@@ -1254,7 +1328,7 @@ func TestListChannels(t *testing.T) {
 			BaseFeeMillisatoshi:      1000,
 			FeePerMillionth:          uint64(1),
 			Delay:                    uint(144),
-			AmountMilliSatoshi:       "500000000msat",
+			AmountMsat:               "500000000msat",
 			HtlcMinimumMilliSatoshis: "0msat",
 			HtlcMaximumMilliSatoshis: "4294967295msat",
 		},
@@ -1445,7 +1519,7 @@ func TestDecodePay(t *testing.T) {
 
 	bolt11 := "lnbc2500u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsxqzpuaztrnwngzn3kdzw5hydlzf03qdgm2hdq27cqv3agm2awhz5se903vruatfhq77w3ls4evs3ch9zw97j25emudupq63nyw24cg27h2rspfj9srp"
 	req := "{\"jsonrpc\":\"2.0\",\"method\":\"decodepay\",\"params\":{\"bolt11\":\"lnbc2500u1pvjluezpp5qqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqqqsyqcyq5rqwzqfqypqdq5xysxxatsyp3k7enxv4jsxqzpuaztrnwngzn3kdzw5hydlzf03qdgm2hdq27cqv3agm2awhz5se903vruatfhq77w3ls4evs3ch9zw97j25emudupq63nyw24cg27h2rspfj9srp\"},\"id\":1}"
-	resp := wrapResult(1, `{ "currency": "bc", "created_at": 1496314658, "expiry": 60, "payee": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad", "msatoshi": 250000000, "description": "1 cup of coffee", "min_final_cltv_expiry": 9, "payment_hash": "0001020304050607080900010203040506070809000102030405060708090102", "signature": "3045022100e89639ba6814e36689d4b91bf125f10351b55da057b00647a8dabaeb8a90c95f0220160f9d5a6e0f79d1fc2b964238b944e2fa4aa677c6f020d466472ab842bd750e" } `)
+	resp := wrapResult(1, `{ "currency": "bc", "created_at": 1496314658, "expiry": 60, "payee": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad", "msatoshi": 250000000,"amount_msat":"250000000msat","description": "1 cup of coffee", "min_final_cltv_expiry": 9, "payment_hash": "0001020304050607080900010203040506070809000102030405060708090102", "signature": "3045022100e89639ba6814e36689d4b91bf125f10351b55da057b00647a8dabaeb8a90c95f0220160f9d5a6e0f79d1fc2b964238b944e2fa4aa677c6f020d466472ab842bd750e" } `)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	decodedBolt, err := lightning.DecodePay(bolt11, "")
 	if err != nil {
@@ -1457,6 +1531,7 @@ func TestDecodePay(t *testing.T) {
 		Expiry:             uint64(60),
 		Payee:              "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
 		MilliSatoshis:      250000000,
+		AmountMsat:         "250000000msat",
 		Description:        "1 cup of coffee",
 		MinFinalCltvExpiry: 9,
 		PaymentHash:        "0001020304050607080900010203040506070809000102030405060708090102",
@@ -1476,6 +1551,7 @@ func TestDecodePayWithDescAndFallbacks(t *testing.T) {
   "expiry": 3600,
   "payee": "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
   "msatoshi": 2000000000,
+  "amount_msat": "2000000000msat",
   "description_hash": "3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1",
   "min_final_cltv_expiry": 9,
   "fallbacks": [
@@ -1517,6 +1593,7 @@ func TestDecodePayWithDescAndFallbacks(t *testing.T) {
 		Expiry:             uint64(3600),
 		Payee:              "03e7156ae33b0a208d0744199163177e909e80176e55d97a2f221ede0f934dd9ad",
 		MilliSatoshis:      2000000000,
+		AmountMsat:         "2000000000msat",
 		DescriptionHash:    "3925b6f67e2c340036ed12093dd44e0368df1b6ea26c53dbe4811f58fd5db8c1",
 		MinFinalCltvExpiry: 9,
 		PaymentHash:        "0001020304050607080900010203040506070809000102030405060708090102",
