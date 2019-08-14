@@ -214,6 +214,31 @@ func TestConfigsRpc(t *testing.T) {
 	assert.Equal(t, "regtest", network)
 }
 
+func TestHelpRpc(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid := Init()
+	defer CleanUp(testDir)
+	l1, err := LnNode(testDir, dataDir, btcPid, "one")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	commands, err := l1.rpc.Help()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(commands) == 0 {
+		t.Error("No help commands returned")
+	}
+
+	cmd, err := l1.rpc.HelpFor("help")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "help [command]", cmd.NameAndUsage)
+}
+
 // ok, now let's check the dynamic plugin loader
 func TestPlugins(t *testing.T) {
 	short(t)

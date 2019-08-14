@@ -1,6 +1,7 @@
 package glightning
 
 import (
+	"errors"
 	"fmt"
 	"github.com/niftynei/glightning/jrpc2"
 	"log"
@@ -563,7 +564,9 @@ func (l *Lightning) DecodePay(bolt11, desc string) (*DecodedBolt11, error) {
 	return &result, err
 }
 
-type HelpRequest struct{}
+type HelpRequest struct{
+	Command string `json:"command,omitempty"`
+}
 
 func (r *HelpRequest) Name() string {
 	return "help"
@@ -577,12 +580,26 @@ type Command struct {
 }
 
 // Show available c-lightning RPC commands
-func (l *Lightning) Help() ([]Command, error) {
+func (l *Lightning) Help() ([]*Command, error) {
 	var result struct {
-		Commands []Command `json:"help"`
+		Commands []*Command `json:"help"`
 	}
 	err := l.client.Request(&HelpRequest{}, &result)
 	return result.Commands, err
+}
+
+func (l *Lightning) HelpFor(command string) (*Command, error) {
+	var result struct {
+		Commands []*Command `json:"help"`
+	}
+	err := l.client.Request(&HelpRequest{command}, &result)
+	if err != nil {
+		return nil, err
+	}
+	if len(result.Commands) <= 0 {
+		return nil, errors.New(fmt.Sprintf("Command '%s' not found", command))
+	}
+	return result.Commands[0], nil
 }
 
 type StopRequest struct{}
