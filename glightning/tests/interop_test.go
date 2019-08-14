@@ -190,6 +190,30 @@ func TestConnectRpc(t *testing.T) {
 	assert.Equal(t, peerId, l1Info.Id)
 }
 
+func TestConfigsRpc(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid := Init()
+	defer CleanUp(testDir)
+	l1, err := LnNode(testDir, dataDir, btcPid, "one")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	configs, err := l1.rpc.ListConfigs()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "lightning-rpc", configs["rpc-file"])
+	assert.Equal(t, false, configs["always-use-proxy"])
+
+	network, err := l1.rpc.GetConfig("network")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "regtest", network)
+}
+
 // ok, now let's check the dynamic plugin loader
 func TestPlugins(t *testing.T) {
 	short(t)
