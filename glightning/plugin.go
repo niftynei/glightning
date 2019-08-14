@@ -449,6 +449,8 @@ func (o *Option) MarshalJSON() ([]byte, error) {
 	})
 }
 
+const FormatSimple string = "simple"
+
 type RpcMethod struct {
 	Method   jrpc2.ServerMethod
 	Desc     string

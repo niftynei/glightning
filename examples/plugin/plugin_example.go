@@ -20,7 +20,32 @@ func (h *Hello) Name() string {
 
 func (h *Hello) Call() (jrpc2.Result, error) {
 	name := plugin.GetOptionValue("name")
-	return fmt.Sprintf("Howdy %s!", name), nil
+	return fmt.Sprintf("Howdy %s\n\n", name), nil
+}
+
+type PrettyHello struct{}
+
+func (h *PrettyHello) New() interface{} {
+	return &PrettyHello{}
+}
+
+func (h *PrettyHello) Name() string {
+	return "pretty-hi"
+}
+
+func (h *PrettyHello) Call() (jrpc2.Result, error) {
+	name := plugin.GetOptionValue("name")
+	result := &struct {
+		Result string `json:"hi"`
+		// If you want the result returned to be 'simply' formatted
+		// return a field called "format-hint" set to `FormatSimple`
+		FormatHint string `json:"format-hint,omitempty"`
+	}{
+		Result: fmt.Sprintf("\n\tHowdy %s!\n\n", name),
+		FormatHint: glightning.FormatSimple,
+	}
+
+	return &result, nil
 }
 
 var lightning *glightning.Lightning
@@ -74,6 +99,11 @@ func registerMethods(p *glightning.Plugin) {
 by the 'name' option, passed in at startup `
 	rpcHello.Category = "utility"
 	p.RegisterMethod(rpcHello)
+
+	rpcPretty := glightning.NewRpcMethod(&PrettyHello{}, "Pretty hello!")
+	rpcPretty.LongDesc = `Pretty much the same as 'say-hi' but formatted`
+	rpcPretty.Category = "utility"
+	p.RegisterMethod(rpcPretty)
 }
 
 /* Subscription Examples */
