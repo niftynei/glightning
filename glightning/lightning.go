@@ -48,6 +48,30 @@ func (l *Lightning) Request(m jrpc2.Method, resp interface{}) error {
 	return l.client.Request(m, resp)
 }
 
+type ListConfigsRequest struct {
+	Config string `json:"config,omitempty"`
+}
+
+func (r *ListConfigsRequest) Name() string {
+	return "listconfigs"
+}
+
+func (r *ListConfigsRequest) New() interface{} {
+	return &ListConfigsRequest{}
+}
+
+func (l *Lightning) ListConfigs() (map[string]interface{}, error) {
+	var result map[string]interface{}
+	err := l.client.Request(&ListConfigsRequest{}, &result)
+	return result, err
+}
+
+func (l *Lightning) GetConfig(config string) (interface{}, error) {
+	var result map[string]interface{}
+	err := l.client.Request(&ListConfigsRequest{config}, &result)
+	return result[config], err
+}
+
 type ListPeersRequest struct {
 	PeerId string `json:"id,omitempty"`
 	Level  string `json:"level,omitempty"`
