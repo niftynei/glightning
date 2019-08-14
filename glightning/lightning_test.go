@@ -1397,20 +1397,37 @@ func TestHelp(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []glightning.Command{
-		glightning.Command{
+	assert.Equal(t, []*glightning.Command{
+		&glightning.Command{
 			NameAndUsage: "feerates style",
 			Description:  "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).",
 			Verbose:      "HELP! Please contribute a description for this json_command!",
 			Category:     "bitcoin",
 		},
-		glightning.Command{
+		&glightning.Command{
 			NameAndUsage: "connect id [host] [port]",
 			Description:  "Connect to {id} at {host} (which can end in ':port' if not default). {id} can also be of the form id@host",
 			Verbose:      "HELP! Please contribute a description for this json_command!",
 			Category:     "network",
 		},
 	}, help)
+}
+
+func TestHelpFor(t *testing.T) {
+	lightning, requestQ, replyQ := startupServer(t)
+	resp := wrapResult(1,`{"help": [{"command": "feerates style", "description": "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).", "category":"bitcoin", "verbose": "HELP! Please contribute a description for this json_command!"}]}`)
+	req := "{\"jsonrpc\":\"2.0\",\"method\":\"help\",\"params\":{\"command\":\"feerates\"},\"id\":1}"
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	cmd, err := lightning.HelpFor("feerates")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, &glightning.Command{
+			NameAndUsage: "feerates style",
+			Description:  "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).",
+			Verbose:      "HELP! Please contribute a description for this json_command!",
+			Category:     "bitcoin",
+	}, cmd)
 }
 
 func TestDecodePay(t *testing.T) {
