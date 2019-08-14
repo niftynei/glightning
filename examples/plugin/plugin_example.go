@@ -47,7 +47,7 @@ func (h *PrettyHello) Call() (jrpc2.Result, error) {
 		// return a field called "format-hint" set to `FormatSimple`
 		FormatHint string `json:"format-hint,omitempty"`
 	}{
-		Result: fmt.Sprintf("\n\tHowdy %s!\n\n", name),
+		Result:     fmt.Sprintf("\n\tHowdy %s!\n\n", name),
 		FormatHint: glightning.FormatSimple,
 	}
 

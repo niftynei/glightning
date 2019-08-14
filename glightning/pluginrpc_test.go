@@ -24,7 +24,6 @@ func (p *ParamMethod) Call() (jrpc2.Result, error) {
 	return fmt.Sprintf("Called with %s and [%s]", p.Required, p.Optional), nil
 }
 
-
 func TestManifestWithUsage(t *testing.T) {
 	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
@@ -36,4 +35,3 @@ func TestManifestWithUsage(t *testing.T) {
 	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[],\"rpcmethods\":[{\"name\":\"param-test\",\"description\":\"Call a param\",\"usage\":\"required [optional]\"}],\"dynamic\":true},\"id\":\"aloha\"}"
 	runTest(t, plugin, msg, resp)
 }
-

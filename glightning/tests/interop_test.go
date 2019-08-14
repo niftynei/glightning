@@ -268,7 +268,7 @@ func TestPlugins(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, pluginCount + 1, len(plugins))
+	assert.Equal(t, pluginCount+1, len(plugins))
 	err = l1.waitForLog("Is this initial node startup? false", 1)
 	if err != nil {
 		t.Fatal(err)
