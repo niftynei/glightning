@@ -456,7 +456,6 @@ type RpcMethod struct {
 	Method   jrpc2.ServerMethod
 	Desc     string
 	LongDesc string
-	Usage    string
 	Category string
 }
 
@@ -479,7 +478,6 @@ func (r *RpcMethod) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Name     string   `json:"name"`
 		Desc     string   `json:"description"`
-		Params   []string `json:"params,omitempty"`
 		LongDesc string   `json:"long_description,omitempty"`
 		Usage    string   `json:"usage,omitempty"`
 		Category string   `json:"category,omitempty"`
@@ -487,8 +485,7 @@ func (r *RpcMethod) MarshalJSON() ([]byte, error) {
 		Name:     r.Method.Name(),
 		Desc:     r.Description(),
 		LongDesc: r.LongDesc,
-		Params:   getParamList(r.Method),
-		Usage:    r.Usage,
+		Usage:    getUsageList(r.Method),
 		Category: r.Category,
 	})
 }
@@ -892,16 +889,41 @@ func (p *Plugin) SetDynamic(d bool) {
 	p.dynamic = d
 }
 
-func getParamList(method jrpc2.ServerMethod) []string {
-	paramList := make([]string, 0)
+// Returns a list of params for this call, wrap
+// optional (i.e. omitempty) marked params with []
+func getUsageList(method jrpc2.ServerMethod) string {
+	var sb strings.Builder
+
 	v := reflect.Indirect(reflect.ValueOf(method))
+	t := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		if !field.CanInterface() {
+		fieldVal := v.Field(i)
+		fieldType := t.Field(i)
+		if !fieldVal.CanInterface() {
 			continue
 		}
-		paramList = append(paramList, field.Type().Name())
+		tag, _ := fieldType.Tag.Lookup("json")
+		// Ignore ignored fields
+		if tag == "-" {
+			continue
+		}
+		optional := strings.Contains(tag, "omitempty")
+		if i := strings.Index(tag, ","); i > -1 {
+			tag = tag[:i]
+		}
+
+		if sb.Len() > 0 {
+			sb.WriteRune(' ')
+		}
+		if optional {
+			sb.WriteRune('[')
+		}
+		sb.WriteString(tag)
+		if optional {
+			sb.WriteRune(']')
+		}
 	}
-	return paramList
+
+	return sb.String()
 }
