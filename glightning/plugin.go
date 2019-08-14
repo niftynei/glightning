@@ -3,6 +3,7 @@ package glightning
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/niftynei/glightning/jrpc2"
 	"io"
@@ -828,12 +829,20 @@ func (p *Plugin) UnregisterOption(o *Option) error {
 	return nil
 }
 
-func (p *Plugin) GetOption(name string) *Option {
-	return p.options[name]
+func (p *Plugin) GetOption(name string) (*Option, error) {
+	opt := p.options[name]
+	if opt == nil {
+		return nil, errors.New(fmt.Sprintf("Option '%s' not found", name))
+	}
+	return opt, nil
 }
 
-func (p *Plugin) GetOptionValue(name string) string {
-	return p.GetOption(name).Val
+func (p *Plugin) GetOptionValue(name string) (string, error) {
+	opt, err := p.GetOption(name)
+	if err != nil {
+		return "", err
+	}
+	return opt.Val, nil
 }
 
 func (p *Plugin) getOptionSet() map[string]string {

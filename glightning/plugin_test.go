@@ -32,7 +32,10 @@ func (hi *HiMethod) New() interface{} {
 }
 
 func (hi *HiMethod) Call() (jrpc2.Result, error) {
-	gOpt := hi.plugin.GetOption("greeting")
+	gOpt, err := hi.plugin.GetOption("greeting")
+	if err != nil {
+		return nil, err
+	}
 	return fmt.Sprintf("Hello, %s", gOpt.Value()), nil
 }
 
@@ -129,6 +132,19 @@ func TestInit(t *testing.T) {
 	initJson := "{\"jsonrpc\":\"2.0\",\"method\":\"init\",\"params\":{\"options\":{\"greeting\":\"Jenny\"},\"configuration\":{\"rpc-file\":\"rpc.file\",\"startup\":true,\"lightning-dir\":\"dirforlightning\"}},\"id\":1}\n\n"
 
 	expectedJson := "{\"jsonrpc\":\"2.0\",\"result\":\"ok\",\"id\":1}"
+	runTest(t, plugin, initJson, expectedJson)
+}
+
+func TestMissingOptionRpcCall(t *testing.T) {
+	initTestFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initTestFn)
+	// No 'greeting' options is registered, should return an error
+	plugin.RegisterMethod(glightning.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
+
+	initJson := "{\"jsonrpc\":\"2.0\",\"method\":\"hi\",\"params\":{},\"id\":1}\n\n"
+	expectedJson := "{\"jsonrpc\":\"2.0\",\"error\":{\"code\":-1,\"message\":\"Option 'greeting' not found\"},\"id\":1}"
 	runTest(t, plugin, initJson, expectedJson)
 }
 

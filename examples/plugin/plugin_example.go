@@ -19,7 +19,10 @@ func (h *Hello) Name() string {
 }
 
 func (h *Hello) Call() (jrpc2.Result, error) {
-	name := plugin.GetOptionValue("name")
+	name, err := plugin.GetOptionValue("name")
+	if err != nil {
+		return nil, err
+	}
 	return fmt.Sprintf("Howdy %s\n\n", name), nil
 }
 
@@ -34,7 +37,10 @@ func (h *PrettyHello) Name() string {
 }
 
 func (h *PrettyHello) Call() (jrpc2.Result, error) {
-	name := plugin.GetOptionValue("name")
+	name, err := plugin.GetOptionValue("name")
+	if err != nil {
+		return nil, err
+	}
 	result := &struct {
 		Result string `json:"hi"`
 		// If you want the result returned to be 'simply' formatted
