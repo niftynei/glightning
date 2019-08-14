@@ -229,7 +229,7 @@ func TestPlugins(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	assert.Equal(t, 2, len(plugins))
+	pluginCount := len(plugins)
 
 	// Get the path to our current test binary
 	var val string
@@ -243,7 +243,7 @@ func TestPlugins(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, 3, len(plugins))
+	assert.Equal(t, pluginCount + 1, len(plugins))
 	err = l1.waitForLog("Is this initial node startup? false", 1)
 	if err != nil {
 		t.Fatal(err)
