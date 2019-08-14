@@ -439,14 +439,13 @@ func TestSubscription_Warning(t *testing.T) {
 	plugin.SubscribeWarnings(func(event *glightning.Warning) {
 		defer wg.Done()
 		expected := &glightning.Warning{
-			Level: "warn",
-			Time: "1565639989.291189188",
+			Level:  "warn",
+			Time:   "1565639989.291189188",
 			Source: "lightningd(23822):",
-			Log: "Unable to estimate ECONOMICAL/100 fee",
+			Log:    "Unable to estimate ECONOMICAL/100 fee",
 		}
 		assert.Equal(t, expected, event)
 	})
-
 
 	msg := `{"jsonrpc":"2.0","method":"warning","params":{"warning":{"level":"warn","time":"1565639989.291189188","source":"lightningd(23822):","log":"Unable to estimate ECONOMICAL/100 fee"}}}`
 
@@ -467,14 +466,13 @@ func TestSubscription_ChannelOpened(t *testing.T) {
 	plugin.SubscribeChannelOpened(func(event *glightning.ChannelOpened) {
 		defer wg.Done()
 		expected := &glightning.ChannelOpened{
-			PeerId: "026bbfba23a5a0034181ec46bfe99eb03f135f765eeaf89cc7c84f4daeb7289462",
+			PeerId:          "026bbfba23a5a0034181ec46bfe99eb03f135f765eeaf89cc7c84f4daeb7289462",
 			FundingSatoshis: "100000000msat",
-			FundingTxId: "db31fc18891b5d75207051f2dbea94d01ed14939d2a61cc4cd5f88e7bd42aa71",
-			FundingLocked: true,
+			FundingTxId:     "db31fc18891b5d75207051f2dbea94d01ed14939d2a61cc4cd5f88e7bd42aa71",
+			FundingLocked:   true,
 		}
 		assert.Equal(t, expected, event)
 	})
-
 
 	msg := `{"jsonrpc":"2.0","method":"channel_opened","params":{"channel_opened":{"id":"026bbfba23a5a0034181ec46bfe99eb03f135f765eeaf89cc7c84f4daeb7289462","amount":"100000000msat","funding_txid":"db31fc18891b5d75207051f2dbea94d01ed14939d2a61cc4cd5f88e7bd42aa71","funding_locked":true}}}`
 
@@ -492,7 +490,7 @@ func TestSubscription_Connected(t *testing.T) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
-	plugin.SubscribeConnect (func(event *glightning.ConnectEvent) {
+	plugin.SubscribeConnect(func(event *glightning.ConnectEvent) {
 		defer wg.Done()
 		expected := &glightning.ConnectEvent{
 			PeerId: "02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6",

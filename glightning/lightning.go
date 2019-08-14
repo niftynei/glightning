@@ -288,19 +288,19 @@ func (lc *ListChannelRequest) Name() string {
 }
 
 type Channel struct {
-	Source              string `json:"source"`
-	Destination         string `json:"destination"`
-	ShortChannelId      string `json:"short_channel_id"`
-	IsPublic            bool   `json:"public"`
-	Satoshis            uint64 `json:"satoshis"`
-	AmountMilliSatoshi  string `json:"amount_msat"`
-	MessageFlags        uint   `json:"message_flags"`
-	ChannelFlags        uint   `json:"channel_flags"`
-	IsActive            bool   `json:"active"`
-	LastUpdate          uint   `json:"last_update"`
-	BaseFeeMillisatoshi uint64 `json:"base_fee_millisatoshi"`
-	FeePerMillionth     uint64 `json:"fee_per_millionth"`
-	Delay               uint   `json:"delay"`
+	Source                   string `json:"source"`
+	Destination              string `json:"destination"`
+	ShortChannelId           string `json:"short_channel_id"`
+	IsPublic                 bool   `json:"public"`
+	Satoshis                 uint64 `json:"satoshis"`
+	AmountMilliSatoshi       string `json:"amount_msat"`
+	MessageFlags             uint   `json:"message_flags"`
+	ChannelFlags             uint   `json:"channel_flags"`
+	IsActive                 bool   `json:"active"`
+	LastUpdate               uint   `json:"last_update"`
+	BaseFeeMillisatoshi      uint64 `json:"base_fee_millisatoshi"`
+	FeePerMillionth          uint64 `json:"fee_per_millionth"`
+	Delay                    uint   `json:"delay"`
 	HtlcMinimumMilliSatoshis string `json:"htlc_minimum_msat"`
 	HtlcMaximumMilliSatoshis string `json:"htlc_maximum_msat"`
 }
@@ -564,7 +564,7 @@ func (l *Lightning) DecodePay(bolt11, desc string) (*DecodedBolt11, error) {
 	return &result, err
 }
 
-type HelpRequest struct{
+type HelpRequest struct {
 	Command string `json:"command,omitempty"`
 }
 
@@ -986,11 +986,11 @@ func (l *Lightning) Pay(req *PayRequest) (*PaymentSuccess, error) {
 }
 
 type PaymentFields struct {
-	Bolt11 string `json:"bolt11"`
-	Status string `json:"status"`
-	PaymentPreImage string `json:"payment_preimage"`
+	Bolt11                 string `json:"bolt11"`
+	Status                 string `json:"status"`
+	PaymentPreImage        string `json:"payment_preimage"`
 	AmountSentMilliSatoshi string `json:"amount_sent_msat"`
-	Label string `json:"label,omitempty"`
+	Label                  string `json:"label,omitempty"`
 }
 
 type ListPaysRequest struct {
@@ -1491,7 +1491,7 @@ const (
 )
 
 type NewAddrResult struct {
-	Bech32 string `json:"bech32"`
+	Bech32     string `json:"bech32"`
 	P2SHSegwit string `json:"p2sh-segwit"`
 }
 

@@ -332,7 +332,7 @@ func (e *DisconnectEvent) Call() (jrpc2.Result, error) {
 
 type InvoicePaidEvent struct {
 	Payment Payment `json:"invoice_payment"`
-	cb  func(e *Payment)
+	cb      func(e *Payment)
 }
 
 func (e *InvoicePaidEvent) Name() string {
@@ -352,14 +352,14 @@ func (e *InvoicePaidEvent) Call() (jrpc2.Result, error) {
 
 type ChannelOpenedEvent struct {
 	ChannelOpened ChannelOpened `json:"channel_opened"`
-	cb func(e *ChannelOpened)
+	cb            func(e *ChannelOpened)
 }
 
 type ChannelOpened struct {
-	PeerId string `json:"id"`
+	PeerId          string `json:"id"`
 	FundingSatoshis string `json:"amount"`
-	FundingTxId string `json:"funding_txid"`
-	FundingLocked bool `json:"funding_locked"`
+	FundingTxId     string `json:"funding_txid"`
+	FundingLocked   bool   `json:"funding_locked"`
 }
 
 func (e *ChannelOpenedEvent) Name() string {
@@ -379,14 +379,14 @@ func (e *ChannelOpenedEvent) Call() (jrpc2.Result, error) {
 
 type WarnEvent struct {
 	Warning Warning `json:"warning"`
-	cb func(*Warning)
+	cb      func(*Warning)
 }
 
 type Warning struct {
-	Level string `json:"level"`
-	Time string `json:"time"`
+	Level  string `json:"level"`
+	Time   string `json:"time"`
 	Source string `json:"source"`
-	Log string `json:"log"`
+	Log    string `json:"log"`
 }
 
 func (e *WarnEvent) Name() string {
@@ -476,11 +476,11 @@ func (r *RpcMethod) Description() string {
 
 func (r *RpcMethod) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Name     string   `json:"name"`
-		Desc     string   `json:"description"`
-		LongDesc string   `json:"long_description,omitempty"`
-		Usage    string   `json:"usage,omitempty"`
-		Category string   `json:"category,omitempty"`
+		Name     string `json:"name"`
+		Desc     string `json:"description"`
+		LongDesc string `json:"long_description,omitempty"`
+		Usage    string `json:"usage,omitempty"`
+		Category string `json:"category,omitempty"`
 	}{
 		Name:     r.Method.Name(),
 		Desc:     r.Description(),

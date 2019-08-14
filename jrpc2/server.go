@@ -283,7 +283,7 @@ func (s *Server) Unmarshal(data []byte, r *Request) *CodedError {
 	var obj interface{}
 	err = json.Unmarshal(raw.Params, &obj)
 	if err != nil {
-		return NewError(raw.Id, ParseError, "Parse error:" + err.Error())
+		return NewError(raw.Id, ParseError, "Parse error:"+err.Error())
 	}
 	switch obj.(type) {
 	case []interface{}:

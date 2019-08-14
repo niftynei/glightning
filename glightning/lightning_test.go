@@ -216,15 +216,14 @@ func TestListPays(t *testing.T) {
 	}
 	assert.Equal(t, []glightning.PaymentFields{
 		glightning.PaymentFields{
-			Bolt11:"lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
-			PaymentPreImage: "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
-			Status:          "complete",
-			Label: "optional",
+			Bolt11:                 "lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
+			PaymentPreImage:        "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
+			Status:                 "complete",
+			Label:                  "optional",
 			AmountSentMilliSatoshi: "10000msat",
 		},
 	}, forwards)
 }
-
 
 func TestListSendPays(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"listsendpays","params":{},"id":1}`
@@ -1226,37 +1225,36 @@ func TestListChannels(t *testing.T) {
 	}
 	assert.Equal(t, []glightning.Channel{
 		glightning.Channel{
-			Source:              "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
-			Destination:         "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
-			ShortChannelId:      "556297x2967x0",
-			IsPublic:            true,
-			Satoshis:            500000,
-			MessageFlags:        uint(0),
-			ChannelFlags:        uint(0),
-			IsActive:            true,
-			LastUpdate:          uint(1546213724),
-			BaseFeeMillisatoshi: 1000,
-			FeePerMillionth:     uint64(1),
-			Delay:               uint(144),
-			AmountMilliSatoshi:  "500000000msat",
+			Source:                   "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
+			Destination:              "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
+			ShortChannelId:           "556297x2967x0",
+			IsPublic:                 true,
+			Satoshis:                 500000,
+			MessageFlags:             uint(0),
+			ChannelFlags:             uint(0),
+			IsActive:                 true,
+			LastUpdate:               uint(1546213724),
+			BaseFeeMillisatoshi:      1000,
+			FeePerMillionth:          uint64(1),
+			Delay:                    uint(144),
+			AmountMilliSatoshi:       "500000000msat",
 			HtlcMinimumMilliSatoshis: "0msat",
 			HtlcMaximumMilliSatoshis: "4294967295msat",
-
 		},
 		glightning.Channel{
-			Source:              "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
-			Destination:         "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
-			ShortChannelId:      "556297x2967x0",
-			IsPublic:            true,
-			Satoshis:            500000,
-			MessageFlags:        uint(0),
-			ChannelFlags:        uint(1),
-			IsActive:            true,
-			LastUpdate:          uint(1546213449),
-			BaseFeeMillisatoshi: 1000,
-			FeePerMillionth:     uint64(1),
-			Delay:               uint(144),
-			AmountMilliSatoshi:  "500000000msat",
+			Source:                   "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
+			Destination:              "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
+			ShortChannelId:           "556297x2967x0",
+			IsPublic:                 true,
+			Satoshis:                 500000,
+			MessageFlags:             uint(0),
+			ChannelFlags:             uint(1),
+			IsActive:                 true,
+			LastUpdate:               uint(1546213449),
+			BaseFeeMillisatoshi:      1000,
+			FeePerMillionth:          uint64(1),
+			Delay:                    uint(144),
+			AmountMilliSatoshi:       "500000000msat",
 			HtlcMinimumMilliSatoshis: "0msat",
 			HtlcMaximumMilliSatoshis: "4294967295msat",
 		},
@@ -1402,7 +1400,7 @@ func TestGetLog(t *testing.T) {
 
 func TestHelp(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
-	resp := wrapResult(1,`{"help": [{"command": "feerates style", "description": "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).", "category":"bitcoin", "verbose": "HELP! Please contribute a description for this json_command!"}, {"command": "connect id [host] [port]", "description": "Connect to {id} at {host} (which can end in ':port' if not default). {id} can also be of the form id@host", "category":"network", "verbose": "HELP! Please contribute a description for this json_command!"}]}`)
+	resp := wrapResult(1, `{"help": [{"command": "feerates style", "description": "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).", "category":"bitcoin", "verbose": "HELP! Please contribute a description for this json_command!"}, {"command": "connect id [host] [port]", "description": "Connect to {id} at {host} (which can end in ':port' if not default). {id} can also be of the form id@host", "category":"network", "verbose": "HELP! Please contribute a description for this json_command!"}]}`)
 	req := "{\"jsonrpc\":\"2.0\",\"method\":\"help\",\"params\":{},\"id\":1}"
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	help, err := lightning.Help()
@@ -1427,7 +1425,7 @@ func TestHelp(t *testing.T) {
 
 func TestHelpFor(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
-	resp := wrapResult(1,`{"help": [{"command": "feerates style", "description": "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).", "category":"bitcoin", "verbose": "HELP! Please contribute a description for this json_command!"}]}`)
+	resp := wrapResult(1, `{"help": [{"command": "feerates style", "description": "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).", "category":"bitcoin", "verbose": "HELP! Please contribute a description for this json_command!"}]}`)
 	req := "{\"jsonrpc\":\"2.0\",\"method\":\"help\",\"params\":{\"command\":\"feerates\"},\"id\":1}"
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	cmd, err := lightning.HelpFor("feerates")
@@ -1435,10 +1433,10 @@ func TestHelpFor(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, &glightning.Command{
-			NameAndUsage: "feerates style",
-			Description:  "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).",
-			Verbose:      "HELP! Please contribute a description for this json_command!",
-			Category:     "bitcoin",
+		NameAndUsage: "feerates style",
+		Description:  "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).",
+		Verbose:      "HELP! Please contribute a description for this json_command!",
+		Category:     "bitcoin",
 	}, cmd)
 }
 
@@ -1621,10 +1619,10 @@ func TestNewAddr(t *testing.T) {
 	}
 	assert.Equal(t,
 		&glightning.NewAddrResult{
-			Bech32: "bcrt1qz59twysnrskg47ddyh8rca9sy2kesmwz2g6zdz",
+			Bech32:     "bcrt1qz59twysnrskg47ddyh8rca9sy2kesmwz2g6zdz",
 			P2SHSegwit: "2N7sQnAocWxVArQqFaXieczDqxUD85WB5Cb",
 		},
-	addrAll)
+		addrAll)
 }
 
 func TestFeeRate(t *testing.T) {
