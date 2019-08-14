@@ -1630,12 +1630,20 @@ func (r *ListForwardsRequest) Name() string {
 }
 
 type Forwarding struct {
-	InChannel       string `json:"in_channel"`
-	OutChannel      string `json:"out_channel"`
-	MilliSatoshiIn  uint64 `json:"in_msatoshi"`
-	MilliSatoshiOut uint64 `json:"out_msatoshi"`
-	Fee             uint64 `json:"fee"`
-	Status          string `json:"status"`
+	InChannel       string  `json:"in_channel"`
+	OutChannel      string  `json:"out_channel"`
+	MilliSatoshiIn  uint64  `json:"in_msatoshi"`
+	InMsat          string  `json:"in_msat"`
+	MilliSatoshiOut uint64  `json:"out_msatoshi"`
+	OutMsat         string  `json:"out_msat"`
+	Fee             uint64  `json:"fee"`
+	FeeMsat         string  `json:"fee_msat"`
+	Status          string  `json:"status"`
+	PaymentHash     string  `json:"payment_hash"`
+	FailCode        int     `json:"failcode"`
+	FailReason      string  `json:"failreason"`
+	ReceivedTime    float64 `json:"received_time"`
+	ResolvedTime    float64 `json:"resolved_time"`
 }
 
 // List all forwarded payments and their information

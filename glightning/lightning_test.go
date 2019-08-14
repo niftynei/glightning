@@ -152,16 +152,22 @@ func TestListPeers(t *testing.T) {
 func TestListForwards(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"listforwards","params":{},"id":1}`
 	resp := wrapResult(1, `{
-  "forwards": [
-    {
-      "in_channel": "233x1x0",
-      "out_channel": "263x1x0",
-      "in_msatoshi": 10001,
-      "out_msatoshi": 10000,
-      "fee": 1,
-      "status": "settled"
-    }
-  ]
+   "forwards": [
+      {
+         "payment_hash": "e04bccfb6d8cf6b910ee5d4ce23d9b91854784a10b231a83cfd2f0c9a44cd243",
+         "in_channel": "1231x2x0",
+         "out_channel": "1231x1x0",
+         "in_msatoshi": 10002,
+         "in_msat": "10002msat",
+         "out_msatoshi": 100000,
+         "out_msat": "10000msat",
+         "fee": 2,
+         "fee_msat": "2msat",
+         "status": "settled",
+         "received_time": 1565810857.345,
+         "resolved_time": 1565810858.454
+      }
+   ]
 }`)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
@@ -171,12 +177,18 @@ func TestListForwards(t *testing.T) {
 	}
 	assert.Equal(t, []glightning.Forwarding{
 		glightning.Forwarding{
-			InChannel:       "233x1x0",
-			OutChannel:      "263x1x0",
-			MilliSatoshiIn:  10001,
-			MilliSatoshiOut: 10000,
-			Fee:             1,
+			InChannel:       "1231x2x0",
+			OutChannel:      "1231x1x0",
+			MilliSatoshiIn:  10002,
+			InMsat:          "10002msat",
+			MilliSatoshiOut: 100000,
+			OutMsat:         "10000msat",
+			Fee:             2,
+			FeeMsat:         "2msat",
 			Status:          "settled",
+			ReceivedTime:    1565810857.345,
+			ResolvedTime:    1565810858.454,
+			PaymentHash: "e04bccfb6d8cf6b910ee5d4ce23d9b91854784a10b231a83cfd2f0c9a44cd243",
 		},
 	}, forwards)
 }
