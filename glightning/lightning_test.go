@@ -207,7 +207,22 @@ func TestListForwards(t *testing.T) {
          "status": "settled",
          "received_time": 1565810857.345,
          "resolved_time": 1565810858.454
-      }
+      },
+	{
+	  "payment_hash": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+	  "in_channel": "103x2x1",
+	  "out_channel": "110x1x0",
+	  "in_msatoshi": 100001001,
+	  "in_msat": "100001001msat",
+	  "out_msatoshi": 100000000,
+	  "out_msat": "100000000msat",
+	  "fee": 1001,
+	  "fee_msat": "1001msat",
+	  "status": "local_failed",
+	  "failcode": 16392,
+	  "failreason": "WIRE_PERMANENT_CHANNEL_FAILURE",
+	  "received_time": 1560696343.052
+	}
    ]
 }`)
 	lightning, requestQ, replyQ := startupServer(t)
@@ -230,6 +245,21 @@ func TestListForwards(t *testing.T) {
 			ReceivedTime:    1565810857.345,
 			ResolvedTime:    1565810858.454,
 			PaymentHash:     "e04bccfb6d8cf6b910ee5d4ce23d9b91854784a10b231a83cfd2f0c9a44cd243",
+		},
+		glightning.Forwarding{
+			InChannel:       "103x2x1",
+			OutChannel:      "110x1x0",
+			MilliSatoshiIn:  100001001,
+			InMsat:          "100001001msat",
+			MilliSatoshiOut: 100000000,
+			OutMsat:         "100000000msat",
+			Fee:             1001,
+			FeeMsat:         "1001msat",
+			Status:          "local_failed",
+			PaymentHash:     "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+			FailCode: 16392,
+			FailReason: "WIRE_PERMANENT_CHANNEL_FAILURE",
+			ReceivedTime: 1560696343.052,
 		},
 	}, forwards)
 }
