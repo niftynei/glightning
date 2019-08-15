@@ -387,7 +387,6 @@ func TestPay(t *testing.T) {
 		CreatedAt:        1546484611,
 		Status:           "complete",
 		PaymentPreimage:  "b368340fc5fb5839beaaf59885efa6636557715746be26601cddf876a2bc489b",
-		Description:      "for goods and service",
 	}
 	route := []glightning.RouteHop{
 		glightning.RouteHop{
