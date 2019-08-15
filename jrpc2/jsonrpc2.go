@@ -421,22 +421,30 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			}
 		}
 		return nil
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		switch v.Type().Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
+		reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16,
+		reflect.Uint32, reflect.Uint64:
 		// float32 won't happen because of the json parser we're using
-		case reflect.Float64:
-			// Since our json parser (encoding/json) automatically defaults any
-			// 'number' field to a float64, here we mangle mash it back into
-			// an int field, since that's what we ostensibly wanted.
-			//
-			// there's probably a nicer way to do this but
-			// the json/encoding lib checks for 'fitablilty' while
-			// decoding so we don't have to worry about
-			// an overflow here :D
+		if v.Type().Kind() != reflect.Float64 {
+			return NewError(nil, InvalidParams, fmt.Sprintf("Expecting float64 input for %s.%s, but got %s", targetValue.Type().Name(), fVal.Type().Name(), v.Type()))
+		}
+		// Since our json parser (encoding/json) automatically defaults any
+		// 'number' field to a float64, here we mangle mash it back into
+		// an int field, since that's what we ostensibly wanted.
+		//
+		// there's probably a nicer way to do this but
+		// the json/encoding lib checks for 'fitablilty' while
+		// decoding so we don't have to worry about
+		// an overflow here :D
+		switch fVal.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
+			reflect.Int64:
 			fVal.SetInt(int64(value.(float64)))
 			return nil
-		default:
-			return NewError(nil, InvalidParams, fmt.Sprintf("Expecting float64 input for %s.%s, but got %s", targetValue.Type().Name(), fVal.Type().Name(), v.Type()))
+		case reflect.Uint, reflect.Uint8, reflect.Uint16,
+			reflect.Uint32, reflect.Uint64:
+			fVal.SetUint(uint64(value.(float64)))
+			return nil
 		}
 	case reflect.Ptr:
 		if v.Kind() == reflect.Invalid {

@@ -258,7 +258,7 @@ func (s *Server) Unmarshal(data []byte, r *Request) *CodedError {
 	}
 	err := json.Unmarshal(data, &raw)
 	if err != nil {
-		return NewError(nil, ParseError, "Parse error")
+		return NewError(nil, ParseError, "Parse error:"+err.Error())
 	}
 	if raw.Version != specVersion {
 		return NewError(raw.Id, InvalidRequest, fmt.Sprintf(`Invalid version, expected "%s" got "%s"`, specVersion, raw.Version))
