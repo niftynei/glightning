@@ -811,7 +811,6 @@ type SendPayFields struct {
 	CreatedAt        uint64 `json:"created_at"`
 	Status           string `json:"status"`
 	PaymentPreimage  string `json:"payment_preimage"`
-	Description      string `json:"description"`
 }
 
 type SendPayResult struct {
