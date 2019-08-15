@@ -22,6 +22,7 @@ const (
 	_InvoicePaid    Subscription = "invoice_payment"
 	_ChannelOpened  Subscription = "channel_opened"
 	_Warning        Subscription = "warning"
+	_Forward        Subscription = "forward_event"
 	_PeerConnected  Hook         = "peer_connected"
 	_DbWrite        Hook         = "db_write"
 	_InvoicePayment Hook         = "invoice_payment"
@@ -374,6 +375,26 @@ func (e *ChannelOpenedEvent) New() interface{} {
 
 func (e *ChannelOpenedEvent) Call() (jrpc2.Result, error) {
 	e.cb(&e.ChannelOpened)
+	return nil, nil
+}
+
+type ForwardEvent struct {
+	Forward *Forwarding `json:"forward_event"`
+	cb      func(*Forwarding)
+}
+
+func (e *ForwardEvent) Name() string {
+	return string(_Forward)
+}
+
+func (e *ForwardEvent) New() interface{} {
+	return &ForwardEvent{
+		cb: e.cb,
+	}
+}
+
+func (e *ForwardEvent) Call() (jrpc2.Result, error) {
+	e.cb(e.Forward)
 	return nil, nil
 }
 
@@ -876,6 +897,12 @@ func (p *Plugin) SubscribeChannelOpened(cb func(c *ChannelOpened)) {
 
 func (p *Plugin) SubscribeWarnings(cb func(c *Warning)) {
 	p.subscribe(&WarnEvent{
+		cb: cb,
+	})
+}
+
+func (p *Plugin) SubscribeForwardings(cb func(c *Forwarding)) {
+	p.subscribe(&ForwardEvent{
 		cb: cb,
 	})
 }

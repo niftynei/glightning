@@ -257,9 +257,9 @@ func TestListForwards(t *testing.T) {
 			FeeMsat:         "1001msat",
 			Status:          "local_failed",
 			PaymentHash:     "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-			FailCode: 16392,
-			FailReason: "WIRE_PERMANENT_CHANNEL_FAILURE",
-			ReceivedTime: 1560696343.052,
+			FailCode:        16392,
+			FailReason:      "WIRE_PERMANENT_CHANNEL_FAILURE",
+			ReceivedTime:    1560696343.052,
 		},
 	}, forwards)
 }
