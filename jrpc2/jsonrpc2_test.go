@@ -13,8 +13,9 @@ import (
 // with special emphasis on how the parameters get marshalled
 // and unmarshalled to/from 'Method' objects
 type HelloMethod struct {
-	First  int64 `json:"first"`
-	Second int64 `json:"second"`
+	First  int64  `json:"first"`
+	Second int64  `json:"second"`
+	Third  uint32 `json:"third"`
 }
 
 type HelloResult struct {
@@ -89,8 +90,8 @@ func (e EmptyMethod) Call() (jrpc2.Result, error) {
 }
 
 func TestParamParsing(t *testing.T) {
-	requestJsonObjParams := `{"jsonrpc":"2.0","method":"hello","params":{"first":2,"second":3},"id":123493}`
-	requestJsonArrParams := `{"id":null,"params":[2,3],"jsonrpc":"2.0","method":"hello"}`
+	requestJsonObjParams := `{"jsonrpc":"2.0","method":"hello","params":{"first":2,"second":3,"third":1010},"id":123493}`
+	requestJsonArrParams := `{"id":null,"params":[2,3,1010],"jsonrpc":"2.0","method":"hello"}`
 	requestJsonNoParams := `{"id":123,"jsonrpc":"2.0","method":"empty"}`
 
 	s := jrpc2.NewServer()
@@ -103,6 +104,7 @@ func TestParamParsing(t *testing.T) {
 	hello := req.Method.(*HelloMethod)
 	assert.Equal(t, int64(2), hello.First, "First should be set")
 	assert.Equal(t, int64(3), hello.Second, "Second should be set")
+	assert.Equal(t, uint32(1010), hello.Third, "Third should be set")
 
 	// since we're 'hardcoded' to using obj params...
 	js, codedErr := json.Marshal(&req)
@@ -114,6 +116,7 @@ func TestParamParsing(t *testing.T) {
 	hello = req.Method.(*HelloMethod)
 	assert.Equal(t, int64(2), hello.First, "First should be set")
 	assert.Equal(t, int64(3), hello.Second, "Second should be set")
+	assert.Equal(t, uint32(1010), hello.Third, "Third should be set")
 
 	s.Register(&EmptyMethod{})
 	err = s.Unmarshal([]byte(requestJsonNoParams), &req)
@@ -121,7 +124,7 @@ func TestParamParsing(t *testing.T) {
 }
 
 func TestJsonUnmarshal(t *testing.T) {
-	requestJson := `{"id":123493,"method":"hello","params":{"first":202,"second":3},"jsonrpc":"2.0"}`
+	requestJson := `{"id":123493,"method":"hello","params":{"first":202,"second":3,"third":10},"jsonrpc":"2.0"}`
 	s := jrpc2.NewServer()
 	s.Register(&HelloMethod{})
 
@@ -137,7 +140,8 @@ func TestJsonUnmarshal(t *testing.T) {
 func TestSimpleNamedParamParsing(t *testing.T) {
 	first := int64(2)
 	second := int64(3)
-	hm := HelloMethod{first, second}
+	third := uint32(22)
+	hm := HelloMethod{first, second, third}
 	params := jrpc2.GetNamedParams(&hm)
 
 	hm2 := &HelloMethod{}
@@ -157,7 +161,7 @@ func (o Outer) Name() string {
 func TestStructNamedParamParsing(t *testing.T) {
 	first := int64(2)
 	second := int64(3)
-	out := &Outer{HelloMethod{first, second}}
+	out := &Outer{HelloMethod{first, second, uint32(10)}}
 	params := jrpc2.GetNamedParams(out)
 
 	outTwo := &Outer{}
@@ -193,7 +197,7 @@ func TestPtrsNamedParamParsing(t *testing.T) {
 	first := int64(2)
 	second := int64(3)
 	str := "outero"
-	out := &OuterP{&HelloMethod{first, second}, str, &Inside{"hi", "bye"}}
+	out := &OuterP{&HelloMethod{first, second, uint32(10)}, str, &Inside{"hi", "bye"}}
 	params := jrpc2.GetNamedParams(out)
 
 	assert.Equal(t, reflect.TypeOf(params["method"]), reflect.TypeOf(&HelloMethod{}))
@@ -221,7 +225,7 @@ func TestNilPtrInterior(t *testing.T) {
 	first := int64(2)
 	second := int64(3)
 	str := "outero"
-	out := &OuterP{&HelloMethod{first, second}, str, &Inside{"hi", "bye"}}
+	out := &OuterP{&HelloMethod{first, second, uint32(10)}, str, &Inside{"hi", "bye"}}
 
 	// set pointer to nil heheh
 	out.Method = nil
