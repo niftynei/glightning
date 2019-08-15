@@ -11,6 +11,7 @@ import (
 	"os"
 	"sync"
 	"testing"
+	"time"
 )
 
 type HiMethod struct {
@@ -430,6 +431,7 @@ func TestHook_InvoicePaymentFail(t *testing.T) {
 
 func TestSubscription_Warning(t *testing.T) {
 	var wg sync.WaitGroup
+	defer await(t, &wg)
 
 	wg.Add(1)
 	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
@@ -450,13 +452,11 @@ func TestSubscription_Warning(t *testing.T) {
 	msg := `{"jsonrpc":"2.0","method":"warning","params":{"warning":{"level":"warn","time":"1565639989.291189188","source":"lightningd(23822):","log":"Unable to estimate ECONOMICAL/100 fee"}}}`
 
 	runTest(t, plugin, msg+"\n\n", "")
-
-	// Wait for callback to finish!
-	wg.Wait()
 }
 
 func TestSubscription_ChannelOpened(t *testing.T) {
 	var wg sync.WaitGroup
+	defer await(t, &wg)
 
 	wg.Add(1)
 	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
@@ -477,13 +477,11 @@ func TestSubscription_ChannelOpened(t *testing.T) {
 	msg := `{"jsonrpc":"2.0","method":"channel_opened","params":{"channel_opened":{"id":"026bbfba23a5a0034181ec46bfe99eb03f135f765eeaf89cc7c84f4daeb7289462","amount":"100000000msat","funding_txid":"db31fc18891b5d75207051f2dbea94d01ed14939d2a61cc4cd5f88e7bd42aa71","funding_locked":true}}}`
 
 	runTest(t, plugin, msg+"\n\n", "")
-
-	// Wait for callback to finish!
-	wg.Wait()
 }
 
 func TestSubscription_Connected(t *testing.T) {
 	var wg sync.WaitGroup
+	defer await(t, &wg)
 
 	wg.Add(1)
 	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
@@ -507,13 +505,11 @@ func TestSubscription_Connected(t *testing.T) {
 	msg := `{"jsonrpc":"2.0","method":"connect","params":{"id":"02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6","address":{"type":"ipv4","address":"127.0.0.1","port":9090}}}`
 
 	runTest(t, plugin, msg+"\n\n", "")
-
-	// Wait for callback to finish!
-	wg.Wait()
 }
 
 func TestSubscription_Disconnected(t *testing.T) {
 	var wg sync.WaitGroup
+	defer await(t, &wg)
 
 	wg.Add(1)
 	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
@@ -531,9 +527,25 @@ func TestSubscription_Disconnected(t *testing.T) {
 	msg := `{"jsonrpc":"2.0","method":"disconnect","params":{"id":"02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6"}}`
 
 	runTest(t, plugin, msg+"\n\n", "")
+}
 
-	// Wait for callback to finish!
-	wg.Wait()
+func await(t *testing.T, wg *sync.WaitGroup) {
+	awaitWithTimeout(t, wg, 1*time.Second)
+}
+
+func awaitWithTimeout(t *testing.T, wg *sync.WaitGroup, timeout time.Duration) {
+	c := make(chan struct{})
+	go func() {
+		wg.Wait()
+		c <- struct{}{}
+	}()
+
+	select {
+	case <-c:
+		// continue
+	case <-time.After(timeout):
+		t.FailNow()
+	}
 }
 
 func runTest(t *testing.T, plugin *glightning.Plugin, inputMsg, expectedMsg string) {
