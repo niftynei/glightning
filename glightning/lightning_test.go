@@ -504,7 +504,6 @@ func TestWaitSendPayError(t *testing.T) {
 		ErringNode:      "038863cf8ab91046230f561cd5b386cbff8309fa02e3f0c3ed161a3aeb64a643b9",
 		ErringChannel:   "1451409x38x0",
 		ErringDirection: 1,
-		ChannelUpdate:   "0102fc0d7e4831887e04c5abce42f4860869ab984a037c49fd43f16aef81cc42de4075092f0c24e6c8febd42faafb41ffe48f974d1cdb5dc4dc3cebe4eec41881f6043497fd7f826957108f4a30fd9cec3aeba79972084e90ead01ea33090000000016259100002600005c4ab84e0100009000000000000003e8000003e80000000100000003e7fffc18",
 	}
 	assert.Equal(t, *errData, payErr.Data)
 

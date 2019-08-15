@@ -888,7 +888,6 @@ type PaymentErrorData struct {
 	ErringNode      string `json:"erring_node"`
 	ErringChannel   string `json:"erring_channel"`
 	ErringDirection int    `json:"erring_direction"`
-	ChannelUpdate   string `json:"channel_update"`
 }
 
 // Polls or waits for the status of an outgoing payment that was
