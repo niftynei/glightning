@@ -526,6 +526,42 @@ func (l *Lightning) WaitInvoice(label string) (*CompletedInvoice, error) {
 	return &result, err
 }
 
+type DeleteExpiredInvoiceReq struct {
+	MaxExpiryTime uint64 `json:"maxexpirytime,omitempty"`
+}
+
+func (r *DeleteExpiredInvoiceReq) Name() string {
+	return "delexpiredinvoice"
+}
+
+func (l *Lightning) DeleteExpiredInvoicesSince(unixTime uint64) error {
+	var result interface{}
+	return l.client.Request(&DeleteExpiredInvoiceReq{unixTime}, &result)
+}
+
+type AutoCleanInvoiceRequest struct {
+	CycleSeconds     uint32 `json:"cycle_seconds"`
+	ExpiredBySeconds uint32 `json:"expired_by,omitempty"`
+}
+
+type AutoCleanResult struct{}
+
+func (r *AutoCleanInvoiceRequest) Name() string {
+	return "autocleaninvoice"
+}
+
+func (l *Lightning) DisableInvoiceAutoclean() error {
+	return l.SetInvoiceAutoclean(0, 0)
+}
+
+// Perform cleanup every {cycle_seconds} (default 3600), or disable autoclean if 0.
+// Clean up expired invoices that have expired for {expired_by} seconds (default 86400).
+func (l *Lightning) SetInvoiceAutoclean(intervalSeconds, expiredBySeconds uint32) error {
+	var result string
+	err := l.client.Request(&AutoCleanInvoiceRequest{intervalSeconds, expiredBySeconds}, &result)
+	return err
+}
+
 type DecodePayRequest struct {
 	Bolt11      string `json:"bolt11"`
 	Description string `json:"description,omitempty"`
@@ -1870,8 +1906,8 @@ type ChannelInfo struct {
 }
 
 type SetChannelFeeRequest struct {
-	Id                string  `json:"id"`
-	BaseMilliSatoshis string  `json:"base,omitempty"`
+	Id                string `json:"id"`
+	BaseMilliSatoshis string `json:"base,omitempty"`
 	PartPerMillion    uint32 `json:"ppm,omitempty"`
 }
 
