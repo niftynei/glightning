@@ -2,6 +2,7 @@ package glightning_test
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/niftynei/glightning/glightning"
 	"github.com/stretchr/testify/assert"
@@ -1854,6 +1855,143 @@ func TestPlugins(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, expected, plugins)
+}
+
+func TestPayStatus(t *testing.T) {
+	request := "{\"jsonrpc\":\"2.0\",\"method\":\"paystatus\",\"params\":{},\"id\":1}"
+	reply := wrapResult(1, `{"pay": [{
+         "bolt11": "lnbcrt100n1pw4ffgupp56t8jk0rygfxsa9xqte4v45yd8cp9cnqndgqmcn80g72tefznw7msdq9w3mk7xqyjw5qcqp2rzjqtnpu5dxswdakxy7re97t44tp2yng8pedf7g9lcum37q5q66tgs9kqq95gqqqqsqqqqqqqqpqqqqqzsqqcjd49ssmhfj28tx2n83at9tajcdev2n7l0xjahm2c3r834v7h9wc4kkll4ns4ghqhp8489aa2c27fnd8h0hujmjwtppy6y69lvj3gxyspyf72x9",
+         "msatoshi": 10000,
+         "amount_msat": "10000msat",
+         "destination": "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
+         "attempts": [
+            {
+               "strategy": "Initial attempt",
+               "start_time": "2019-08-15T00:36:45.665Z",
+               "age_in_seconds": 33,
+               "end_time": "2019-08-15T00:36:47.390Z",
+               "duration_in_seconds": 1,
+               "route": [
+                  {
+                     "id": "02e61e51a6839bdb189e1e4be5d6ab0a89341c396a7c82ff1cdc7c0a035a5a205b",
+                     "channel": "1442x1x0",
+                     "direction": 0,
+                     "msatoshi": 10001,
+                     "amount_msat": "10001msat",
+                     "delay": 16
+                  },
+                  {
+                     "id": "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
+                     "channel": "1442x2x0",
+                     "direction": 1,
+                     "msatoshi": 10000,
+                     "amount_msat": "10000msat",
+                     "delay": 10
+                  }
+               ],
+               "failure": {
+                  "code": 204,
+                  "message": "Call to waitsendpay: failed: WIRE_TEMPORARY_CHANNEL_FAILURE (reply from remote)",
+                  "data": {
+                     "erring_index": 1,
+                     "failcode": 4103,
+                     "failcodename": "WIRE_TEMPORARY_CHANNEL_FAILURE",
+                     "erring_node": "02e61e51a6839bdb189e1e4be5d6ab0a89341c396a7c82ff1cdc7c0a035a5a205b",
+                     "erring_channel": "1442x2x0",
+                     "erring_direction": 1
+                  }
+               }
+            },
+            { "strategy": "Excluded channel 1442x2x0/1",
+               "start_time": "2019-08-15T00:36:47.390Z",
+               "age_in_seconds": 31,
+               "end_time": "2019-08-15T00:36:47.391Z",
+               "duration_in_seconds": 0,
+               "excluded_channels": [
+                  "1442x2x0/1"
+               ],
+               "failure": {
+                  "code": 205,
+                  "message": "Call to getroute: Could not find a route"
+               }
+            }
+         ]
+      }]}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, request, reply, replyQ, requestQ)
+	statuses, err := lightning.ListPayStatuses()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, 1, len(statuses))
+	assert.Equal(t, glightning.PayStatus{
+		Bolt11:       "lnbcrt100n1pw4ffgupp56t8jk0rygfxsa9xqte4v45yd8cp9cnqndgqmcn80g72tefznw7msdq9w3mk7xqyjw5qcqp2rzjqtnpu5dxswdakxy7re97t44tp2yng8pedf7g9lcum37q5q66tgs9kqq95gqqqqsqqqqqqqqpqqqqqzsqqcjd49ssmhfj28tx2n83at9tajcdev2n7l0xjahm2c3r834v7h9wc4kkll4ns4ghqhp8489aa2c27fnd8h0hujmjwtppy6y69lvj3gxyspyf72x9",
+		MilliSatoshi: 10000,
+		AmountMsat:   "10000msat",
+		Destination:  "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
+		Attempts: []glightning.PayAttempt{
+			glightning.PayAttempt{
+				Strategy:          "Initial attempt",
+				AgeInSeconds:      33,
+				DurationInSeconds: 1,
+				StartTime:         "2019-08-15T00:36:45.665Z",
+				EndTime:           "2019-08-15T00:36:47.390Z",
+				Route: []glightning.RouteHop{
+					glightning.RouteHop{
+						Id:             "02e61e51a6839bdb189e1e4be5d6ab0a89341c396a7c82ff1cdc7c0a035a5a205b",
+						ShortChannelId: "1442x1x0",
+						MilliSatoshi:   10001,
+						Direction:      0,
+						AmountMsat:     "10001msat",
+						Delay:          16,
+					}, glightning.RouteHop{
+						Id:             "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
+						ShortChannelId: "1442x2x0",
+						MilliSatoshi:   10000,
+						AmountMsat:     "10000msat",
+						Direction:      1,
+						Delay:          10,
+					},
+				},
+				Failure: glightning.PayAttemptFailure{
+					Code:    204,
+					Message: "Call to waitsendpay: failed: WIRE_TEMPORARY_CHANNEL_FAILURE (reply from remote)",
+					Data: glightning.PaymentErrorData{
+						ErringIndex:     1,
+						FailCode:        4103,
+						ErringNode:      "02e61e51a6839bdb189e1e4be5d6ab0a89341c396a7c82ff1cdc7c0a035a5a205b",
+						ErringChannel:   "1442x2x0",
+						ErringDirection: 1,
+						FailCodeName:    "WIRE_TEMPORARY_CHANNEL_FAILURE",
+					},
+				},
+			},
+			glightning.PayAttempt{
+				Strategy:          "Excluded channel 1442x2x0/1",
+				AgeInSeconds:      31,
+				DurationInSeconds: 0,
+				StartTime:         "2019-08-15T00:36:47.390Z",
+				EndTime:           "2019-08-15T00:36:47.391Z",
+				ExcludedChannels: []string{
+					"1442x2x0/1",
+				},
+				Failure: glightning.PayAttemptFailure{
+					Code:    205,
+					Message: "Call to getroute: Could not find a route",
+				},
+			},
+		},
+	}, statuses[0])
+}
+
+func TestGetPayStatus(t *testing.T) {
+	request := "{\"jsonrpc\":\"2.0\",\"method\":\"paystatus\",\"params\":{\"bolt11\":\"fakebolt11\"},\"id\":1}"
+	reply := wrapResult(1, `{"pay": []}`)
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, request, reply, replyQ, requestQ)
+	_, err := lightning.GetPayStatus("fakebolt11")
+	assert.Equal(t, errors.New("No status for bolt11 found."), err)
 }
 
 func TestLimitedFeeRates(t *testing.T) {

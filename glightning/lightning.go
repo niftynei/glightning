@@ -242,6 +242,7 @@ type RouteHop struct {
 	MilliSatoshi   uint64 `json:"msatoshi"`
 	AmountMsat     string `json:"amount_msat,omitempty"`
 	Delay          uint   `json:"delay"`
+	Direction      uint8  `json:"direction,omitempty"`
 }
 
 func (rr *RouteRequest) Name() string {
@@ -585,6 +586,67 @@ func (l *Lightning) DecodePay(bolt11, desc string) (*DecodedBolt11, error) {
 	return &result, err
 }
 
+type PayStatus struct {
+	Bolt11       string       `json:"bolt11"`
+	MilliSatoshi uint64       `json:"msatoshi"`
+	AmountMsat   string       `json:"amount_msat"`
+	Destination  string       `json:"destination"`
+	Attempts     []PayAttempt `json:"attempts"`
+}
+
+type PayAttempt struct {
+	Strategy          string            `json:"strategy"`
+	AgeInSeconds      uint64            `json:"age_in_seconds"`
+	DurationInSeconds uint64            `json:"duration_in_seconds"`
+	StartTime         string            `json:"start_time"`
+	EndTime           string            `json:"end_time,omitempty"`
+	ExcludedChannels  []string          `json:"excluded_channels,omitempty"`
+	Route             []RouteHop        `json:"route,omitempty"`
+	Failure           PayAttemptFailure `json:"failure,omitempty"`
+}
+
+type PayAttemptFailure struct {
+	Code    uint32           `json:"code"`
+	Message string           `json:"message"`
+	Data    PaymentErrorData `json:"data,omitempty"`
+}
+
+type PayStatusRequest struct {
+	Bolt11 string `json:"bolt11,omitempty"`
+}
+
+func (r *PayStatusRequest) Name() string {
+	return "paystatus"
+}
+
+// List detailed information about all payment attempts
+func (l *Lightning) ListPayStatuses() ([]PayStatus, error) {
+	return l.paystatus("")
+}
+
+// Detailed information about a payment attempt to a given bolt11
+func (l *Lightning) GetPayStatus(bolt11 string) (*PayStatus, error) {
+	result, err := l.paystatus(bolt11)
+	if err != nil {
+		return nil, err
+	}
+	if len(result) == 0 {
+		return nil, errors.New("No status for bolt11 found.")
+	}
+	return &result[0], nil
+}
+
+func (l *Lightning) paystatus(bolt11 string) ([]PayStatus, error) {
+	var result struct {
+		Pays []PayStatus `json:"pay"`
+	}
+	err := l.client.Request(&PayStatusRequest{bolt11}, &result)
+	if err != nil {
+		return nil, err
+	}
+	return result.Pays, nil
+}
+
 type HelpRequest struct {
 	Command string `json:"command,omitempty"`
 }
@@ -888,6 +950,7 @@ type PaymentErrorData struct {
 	ErringNode      string `json:"erring_node"`
 	ErringChannel   string `json:"erring_channel"`
 	ErringDirection int    `json:"erring_direction"`
+	FailCodeName    string `json:"failcodename"`
 }
 
 // Polls or waits for the status of an outgoing payment that was
