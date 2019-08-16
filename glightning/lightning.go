@@ -1857,6 +1857,36 @@ func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 	}, nil
 }
 
+type ChannelFeeResult struct {
+	Base           uint64        `json:"base"`
+	PartPerMillion uint64        `json:"ppm"`
+	Channels       []ChannelInfo `json:"channels"`
+}
+
+type ChannelInfo struct {
+	PeerId         string `json:"peer_id"`
+	ChannelId      string `json:"channel_id"`
+	ShortChannelId string `json:"short_channel_id"`
+}
+
+type SetChannelFeeRequest struct {
+	Id                string  `json:"id"`
+	BaseMilliSatoshis string  `json:"base,omitempty"`
+	PartPerMillion    uint32 `json:"ppm,omitempty"`
+}
+
+func (r *SetChannelFeeRequest) Name() string {
+	return "setchannelfee"
+}
+
+// Set the channel fee for a given channel. 'id' can be a peer id, a channel id,
+// a short channel id, or all, for all channels.
+func (l *Lightning) SetChannelFee(id string, baseMsat string, ppm uint32) (*ChannelFeeResult, error) {
+	var result ChannelFeeResult
+	err := l.client.Request(&SetChannelFeeRequest{id, baseMsat, ppm}, &result)
+	return &result, err
+}
+
 type PluginInfo struct {
 	Name   string `json:"name"`
 	Active bool   `json:"active"`

@@ -1994,6 +1994,30 @@ func TestGetPayStatus(t *testing.T) {
 	assert.Equal(t, errors.New("No status for bolt11 found."), err)
 }
 
+func TestSetChannelFee(t *testing.T) {
+	request := "{\"jsonrpc\":\"2.0\",\"method\":\"setchannelfee\",\"params\":{\"base\":\"1000\",\"id\":\"all\",\"ppm\":400},\"id\":1}"
+	reply := wrapResult(1, `{"base":1000,"ppm":400,"channels":[{"peer_id":"02502091854ba31bddef5be51584c4014c3edd7d65936b6841fa9a9f6366313a54","channel_id":"04a59bdc9f8708ff5457726725c10d161d8b4ad1330b6d92d1d5196994a2478e","short_channel_id":"1442x1x0"}]}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, request, reply, replyQ, requestQ)
+	result, err := lightning.SetChannelFee("all", "1000", uint32(400))
+	if err != nil {
+		t.Fatal(err)
+	}
+	exp := &glightning.ChannelFeeResult{
+		Base:           uint64(1000),
+		PartPerMillion: uint64(400),
+		Channels: []glightning.ChannelInfo{
+			glightning.ChannelInfo{
+				PeerId:         "02502091854ba31bddef5be51584c4014c3edd7d65936b6841fa9a9f6366313a54",
+				ChannelId:      "04a59bdc9f8708ff5457726725c10d161d8b4ad1330b6d92d1d5196994a2478e",
+				ShortChannelId: "1442x1x0",
+			},
+		},
+	}
+	assert.Equal(t, exp, result)
+}
+
 func TestLimitedFeeRates(t *testing.T) {
 	request := "{\"jsonrpc\":\"2.0\",\"method\":\"feerates\",\"params\":{\"style\":\"perkw\"},\"id\":1}"
 	reply := wrapResult(1, `{ "perkw": { "min_acceptable": 253, "max_acceptable": 4294967295 }, "warning": "Some fee estimates unavailable: bitcoind startup?" } `)
