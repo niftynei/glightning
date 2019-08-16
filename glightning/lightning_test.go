@@ -1994,6 +1994,39 @@ func TestGetPayStatus(t *testing.T) {
 	assert.Equal(t, errors.New("No status for bolt11 found."), err)
 }
 
+func TestDelExpiredInvoice(t *testing.T) {
+	request := "{\"jsonrpc\":\"2.0\",\"method\":\"delexpiredinvoice\",\"params\":{\"maxexpirytime\":40000000},\"id\":1}"
+	reply := wrapResult(1, `{}`)
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, request, reply, replyQ, requestQ)
+	err := lightning.DeleteExpiredInvoicesSince(uint64(40000000))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestAutoclean(t *testing.T) {
+	request := "{\"jsonrpc\":\"2.0\",\"method\":\"autocleaninvoice\",\"params\":{\"cycle_seconds\":200,\"expired_by\":100},\"id\":1}"
+	reply := wrapResult(1, `"Autocleaning 100-second old invoices every 200 seconds"`)
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, request, reply, replyQ, requestQ)
+	err := lightning.SetInvoiceAutoclean(uint32(200), uint32(100))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDisableAutoclean(t *testing.T) {
+	request := "{\"jsonrpc\":\"2.0\",\"method\":\"autocleaninvoice\",\"params\":{\"cycle_seconds\":0},\"id\":1}"
+	reply := wrapResult(1, `"Autoclean timer disabled"`)
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, request, reply, replyQ, requestQ)
+	err := lightning.DisableInvoiceAutoclean()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestSetChannelFee(t *testing.T) {
 	request := "{\"jsonrpc\":\"2.0\",\"method\":\"setchannelfee\",\"params\":{\"base\":\"1000\",\"id\":\"all\",\"ppm\":400},\"id\":1}"
 	reply := wrapResult(1, `{"base":1000,"ppm":400,"channels":[{"peer_id":"02502091854ba31bddef5be51584c4014c3edd7d65936b6841fa9a9f6366313a54","channel_id":"04a59bdc9f8708ff5457726725c10d161d8b4ad1330b6d92d1d5196994a2478e","short_channel_id":"1442x1x0"}]}`)
