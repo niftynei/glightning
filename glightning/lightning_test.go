@@ -352,6 +352,7 @@ func TestPay(t *testing.T) {
   "created_at": 1546484611,
   "status": "complete",
   "payment_preimage": "b368340fc5fb5839beaaf59885efa6636557715746be26601cddf876a2bc489b",
+  "bolt11": "lnbcrt3u1pwz67h2pp5h694gdd2suutuv2cpscucarmcgmarjpla9rd5vuwu8rtlzkgtgfqdpzvehhygr8dahkgueqv9hxggrnv4e8v6trv5cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcvwxa6a3uu2ue80wflztg9ed27vtwu9k6ymtl03yxswnej5qzdw99ndmhwueuckg2ua2g8hfqf0l3mxvn9azs2u6qx0ag3hxye9x6e9qqv29cq5",
   "description": "for goods and service",
   "getroute_tries": 1,
   "sendpay_tries": 1,
@@ -418,6 +419,7 @@ func TestPay(t *testing.T) {
 		CreatedAt:        1546484611,
 		Status:           "complete",
 		PaymentPreimage:  "b368340fc5fb5839beaaf59885efa6636557715746be26601cddf876a2bc489b",
+		Bolt11:           "lnbcrt3u1pwz67h2pp5h694gdd2suutuv2cpscucarmcgmarjpla9rd5vuwu8rtlzkgtgfqdpzvehhygr8dahkgueqv9hxggrnv4e8v6trv5cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcvwxa6a3uu2ue80wflztg9ed27vtwu9k6ymtl03yxswnej5qzdw99ndmhwueuckg2ua2g8hfqf0l3mxvn9azs2u6qx0ag3hxye9x6e9qqv29cq5",
 	}
 	route := []glightning.RouteHop{
 		glightning.RouteHop{
@@ -479,7 +481,8 @@ func TestWaitSendPay(t *testing.T) {
   "amount_sent_msat": "10001msat",
   "created_at": 1546483736,
   "status": "complete",
-  "payment_preimage": "eb7608df66f66d34c688b90346b8fcd904170b10278d797b608cc1168317458d"
+  "payment_preimage": "eb7608df66f66d34c688b90346b8fcd904170b10278d797b608cc1168317458d",
+  "bolt11": "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg"
 }`)
 	paymentHash := "37ef7c6ff62d5a2fbce1940ab2f4de2785045b922f93944b73f7bc5123ed698f"
 	lightning, requestQ, replyQ := startupServer(t)
@@ -501,6 +504,7 @@ func TestWaitSendPay(t *testing.T) {
 		CreatedAt:        1546483736,
 		Status:           "complete",
 		PaymentPreimage:  "eb7608df66f66d34c688b90346b8fcd904170b10278d797b608cc1168317458d",
+		Bolt11:           "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
 	}
 	assert.Equal(t, paymentFields, payment)
 
@@ -552,7 +556,8 @@ func TestSendPay(t *testing.T) {
   "msatoshi_sent": 10001,
   "amount_sent_msat": "10001msat",
   "created_at": 1546480001,
-  "status": "pending"
+  "status": "pending",
+  "bolt11": "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg"
 }`)
 
 	lightning, requestQ, replyQ := startupServer(t)
@@ -587,6 +592,7 @@ func TestSendPay(t *testing.T) {
 		AmountSentMsat:   "10001msat",
 		CreatedAt:        1546480001,
 		Status:           "pending",
+		Bolt11:           "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
 	}
 	result := &glightning.SendPayResult{
 		"Monitor status with listsendpays or waitsendpay",
