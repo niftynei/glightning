@@ -583,6 +583,7 @@ type Config struct {
 	LightningDir string `json:"lightning-dir"`
 	RpcFile      string `json:"rpc-file"`
 	Startup      bool   `json:"startup,omitempty"`
+	Network      string `json:"network"`
 }
 
 type InitMethod struct {
