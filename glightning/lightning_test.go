@@ -1215,7 +1215,7 @@ func TestStartFundChannel(t *testing.T) {
 	sats := uint64(100000)
 	feeRate := glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
 	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel_start","params":{"announce":true,"feerate":"urgent","id":"%s","satoshi":%d},"id":%d}`, id, sats, 1)
-	resp := wrapResult(1, `{"funding_address" : "bcrt1qc4p5fwkgznrrlml5z4hy0xwauys8nlsxsca2zn2ew2wez27hlyequp6sff"}
+	resp := wrapResult(1, `{"funding_address" : "bcrt1qc4p5fwkgznrrlml5z4hy0xwauys8nlsxsca2zn2ew2wez27hlyequp6sff","scriptpubkey":"00206f8318ef548f36abf6b34a9e64b6d10fd1943698a9f9eab3a11a4642a4f19918"}
 `)
 
 	lightning, requestQ, replyQ := startupServer(t)
@@ -1225,7 +1225,12 @@ func TestStartFundChannel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, "bcrt1qc4p5fwkgznrrlml5z4hy0xwauys8nlsxsca2zn2ew2wez27hlyequp6sff", result)
+	expected := &glightning.StartResponse{
+		Address:      "bcrt1qc4p5fwkgznrrlml5z4hy0xwauys8nlsxsca2zn2ew2wez27hlyequp6sff",
+		ScriptPubkey: "00206f8318ef548f36abf6b34a9e64b6d10fd1943698a9f9eab3a11a4642a4f19918",
+	}
+
+	assert.Equal(t, expected, result)
 }
 
 func TestCompleteFundChannel(t *testing.T) {
