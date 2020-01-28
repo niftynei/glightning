@@ -1249,6 +1249,7 @@ type FundChannelStart struct {
 	Amount   uint64 `json:"satoshi"`
 	Announce bool   `json:"announce"`
 	FeeRate  string `json:"feerate,omitempty"`
+	CloseTo  string `json:"close_to"`
 }
 type StartResponse struct {
 	Address      string `json:"funding_address"`
@@ -1260,14 +1261,16 @@ func (r *FundChannelStart) Name() string {
 }
 
 // Returns a string that's a bech32 address. this address is the funding output address.
-func (l *Lightning) StartFundChannel(id string, amount uint64, announce bool, feerate *FeeRate) (*StartResponse, error) {
+func (l *Lightning) StartFundChannel(id string, amount uint64, announce bool, feerate *FeeRate, closeTo string) (*StartResponse, error) {
 	var result StartResponse
 
 	req := &FundChannelStart{
 		Id:       id,
 		Amount:   amount,
 		Announce: announce,
+		CloseTo:  closeTo,
 	}
+
 	if feerate != nil {
 		req.FeeRate = feerate.String()
 	}
