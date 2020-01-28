@@ -39,10 +39,9 @@ type PeerConnectedEvent struct {
 }
 
 type PeerEvent struct {
-	PeerId         string `json:"id"`
-	Addr           string `json:"addr"`
-	GlobalFeatures string `json:"globalfeatures"`
-	LocalFeatures  string `json:"localfeatures"`
+	PeerId   string `json:"id"`
+	Addr     string `json:"addr"`
+	Features string `json:"features"`
 }
 
 type _PeerConnectedResult string

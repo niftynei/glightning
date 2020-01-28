@@ -83,13 +83,12 @@ func (r *ListPeersRequest) Name() string {
 }
 
 type Peer struct {
-	Id             string        `json:"id"`
-	Connected      bool          `json:"connected"`
-	NetAddresses   []string      `json:"netaddr"`
-	GlobalFeatures string        `json:"globalfeatures"`
-	LocalFeatures  string        `json:"localfeatures"`
-	Channels       []PeerChannel `json:"channels"`
-	Logs           []Log         `json:"log,omitempty"`
+	Id           string        `json:"id"`
+	Connected    bool          `json:"connected"`
+	NetAddresses []string      `json:"netaddr"`
+	Features     string        `json:"features"`
+	Channels     []PeerChannel `json:"channels"`
+	Logs         []Log         `json:"log,omitempty"`
 }
 
 type PeerChannel struct {
@@ -190,12 +189,12 @@ func (ln *ListNodeRequest) Name() string {
 }
 
 type Node struct {
-	Id             string    `json:"nodeid"`
-	Alias          string    `json:"alias"`
-	Color          string    `json:"color"`
-	LastTimestamp  uint      `json:"last_timestamp"`
-	GlobalFeatures string    `json:"globalfeatures"`
-	Addresses      []Address `json:"addresses"`
+	Id            string    `json:"nodeid"`
+	Alias         string    `json:"alias"`
+	Color         string    `json:"color"`
+	LastTimestamp uint      `json:"last_timestamp"`
+	Features      string    `json:"features"`
+	Addresses     []Address `json:"addresses"`
 }
 
 type Address struct {

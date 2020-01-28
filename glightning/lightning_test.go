@@ -23,10 +23,7 @@ func TestListPeers(t *testing.T) {
       "netaddr": [
         "0.0.0.0:6677"
       ],
-      "global_features": "11",
-      "local_features": "8a",
-      "globalfeatures": "11",
-      "localfeatures": "8a",
+      "features": "8a",
       "channels": [
         {
           "state": "CHANNELD_NORMAL",
@@ -128,11 +125,10 @@ func TestListPeers(t *testing.T) {
 	}
 	expected := []glightning.Peer{
 		glightning.Peer{
-			Id:             "02e3cd7849f177a46f137ae3bfc1a08fc6a90bf4026c74f83c1ecc8430c282fe96",
-			Connected:      true,
-			NetAddresses:   []string{"0.0.0.0:6677"},
-			GlobalFeatures: "11",
-			LocalFeatures:  "8a",
+			Id:           "02e3cd7849f177a46f137ae3bfc1a08fc6a90bf4026c74f83c1ecc8430c282fe96",
+			Connected:    true,
+			NetAddresses: []string{"0.0.0.0:6677"},
+			Features:     "8a",
 			Channels: []glightning.PeerChannel{
 				glightning.PeerChannel{
 					State:                            "CHANNELD_NORMAL",
@@ -1427,8 +1423,7 @@ func TestListNodes(t *testing.T) {
       "alias": "LightningBerry [LND]",        
       "color": "68f442",
       "last_timestamp": 1542574678,
-      "globalfeatures": "",
-      "global_features": "",
+      "features": "88",
       "addresses": [
         {
           "type": "ipv4",                    
@@ -1446,11 +1441,11 @@ func TestListNodes(t *testing.T) {
 	}
 	assert.Equal(t, []glightning.Node{
 		glightning.Node{
-			Id:             "02befaace6e8970aaca34eafe85f30f988e374628ec279d94e7eca8b574b738eb4",
-			Alias:          "LightningBerry [LND]",
-			Color:          "68f442",
-			LastTimestamp:  uint(1542574678),
-			GlobalFeatures: "",
+			Id:            "02befaace6e8970aaca34eafe85f30f988e374628ec279d94e7eca8b574b738eb4",
+			Alias:         "LightningBerry [LND]",
+			Color:         "68f442",
+			LastTimestamp: uint(1542574678),
+			Features:      "88",
 			Addresses: []glightning.Address{
 				glightning.Address{
 					Type: "ipv4",

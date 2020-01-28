@@ -240,17 +240,16 @@ func TestHook_PeerConnectedOk(t *testing.T) {
 	plugin.RegisterHooks(&glightning.Hooks{
 		PeerConnected: func(event *glightning.PeerConnectedEvent) (*glightning.PeerConnectedResponse, error) {
 			expected := glightning.PeerEvent{
-				PeerId:         "02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6",
-				Addr:           "127.0.0.1:58366",
-				GlobalFeatures: "",
-				LocalFeatures:  "aa",
+				PeerId:   "02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6",
+				Addr:     "127.0.0.1:58366",
+				Features: "aa",
 			}
 			assert.Equal(t, expected, event.Peer)
 			return event.Continue(), nil
 		},
 	})
 
-	msg := `{"jsonrpc":"2.0","id":"aloha","method":"peer_connected","params":{"peer":{"id":"02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6","addr":"127.0.0.1:58366","globalfeatures":"","localfeatures":"aa"}}}`
+	msg := `{"jsonrpc":"2.0","id":"aloha","method":"peer_connected","params":{"peer":{"id":"02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6","addr":"127.0.0.1:58366","features":"aa"}}}`
 	resp := `{"jsonrpc":"2.0","result":{"result":"continue"},"id":"aloha"}`
 	runTest(t, plugin, msg+"\n\n", resp)
 }
@@ -263,17 +262,16 @@ func TestHook_PeerConnectedDisconnect(t *testing.T) {
 	plugin.RegisterHooks(&glightning.Hooks{
 		PeerConnected: func(event *glightning.PeerConnectedEvent) (*glightning.PeerConnectedResponse, error) {
 			expected := glightning.PeerEvent{
-				PeerId:         "02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6",
-				Addr:           "127.0.0.1:58366",
-				GlobalFeatures: "",
-				LocalFeatures:  "aa",
+				PeerId:   "02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6",
+				Addr:     "127.0.0.1:58366",
+				Features: "aa",
 			}
 			assert.Equal(t, expected, event.Peer)
 			return event.Disconnect("there is a problem"), nil
 		},
 	})
 
-	msg := `{"jsonrpc":"2.0","id":"aloha","method":"peer_connected","params":{"peer":{"id":"02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6","addr":"127.0.0.1:58366","globalfeatures":"","localfeatures":"aa"}}}`
+	msg := `{"jsonrpc":"2.0","id":"aloha","method":"peer_connected","params":{"peer":{"id":"02c0114aac5ea2bce7759eb48d5aa75129700c1eb7fe6cc8743968a202f26505d6","addr":"127.0.0.1:58366","features":"aa"}}}`
 	resp := `{"jsonrpc":"2.0","result":{"result":"disconnect","error_message":"there is a problem"},"id":"aloha"}`
 	runTest(t, plugin, msg+"\n\n", resp)
 }
