@@ -13,6 +13,88 @@ import (
 	"testing"
 )
 
+func TestListTransactions(t *testing.T) {
+	req := `{"jsonrpc":"2.0","method":"listtransactions","params":{},"id":1}`
+	resp := wrapResult(1, `{"transactions": [{
+         "hash": "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
+         "rawtx": "02000000017eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c880000000000ffffffff02400d0300000000002200203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed26d3f20500000000160014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a00000000",
+         "blockheight": 10,
+         "txindex": 2,
+         "locktime": 10,
+         "version": 2,
+         "type": [
+            "channel_mutual_close"
+         ],
+         "inputs": [
+            {
+               "txid": "7eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c88",
+               "index": 1,
+               "type": "deposit",
+               "sequence": 4294967295
+            }
+         ],
+         "outputs": [
+            {
+               "index": 2,
+               "satoshis": "200000000msat",
+               "scriptPubKey": "00203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed"
+            },
+            {
+               "index": 1,
+               "satoshis": "99799846000msat",
+               "type": "deposit",
+               "scriptPubKey": "0014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a"
+            }
+         ]
+      }
+   ]
+}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	txs, err := lightning.ListTransactions()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := []glightning.Transaction{
+		glightning.Transaction{
+			Hash:"05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
+			RawTx:"02000000017eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c880000000000ffffffff02400d0300000000002200203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed26d3f20500000000160014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a00000000",
+			Blockheight:10,
+			TxIndex:2,
+			LockTime:10,
+			Type: []string{
+				"channel_mutual_close",
+			},
+			Version:2,
+			Inputs: []glightning.TxInput{
+				glightning.TxInput{
+					TxId: "7eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c88",
+					Index: 1,
+					Sequence:4294967295,
+					Type: "deposit",
+				},
+			},
+			Outputs: []glightning.TxOutput{
+				glightning.TxOutput{
+					Index:2,
+					Satoshis:"200000000msat",
+					ScriptPubkey:"00203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed",
+				},
+				glightning.TxOutput{
+					Index:1,
+					Satoshis:"99799846000msat",
+					ScriptPubkey:"0014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a",
+					Type:"deposit",
+				},
+			},
+		},
+	}
+
+	assert.Equal(t, expected, txs)
+}
+
 func TestListPeers(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"listpeers","params":{},"id":1}`
 	resp := wrapResult(1, `{                                                                                                                                                         

@@ -437,7 +437,7 @@ type SendPayFailureData struct {
 	PaymentHash            string `json:"payment_hash"`
 	Destination            string `json:"destination"`
 	MilliSatoshi           uint64 `json:"msatoshi"`
-	AmountMilliSatoshi      string `json:"amount_msat"`
+	AmountMilliSatoshi     string `json:"amount_msat"`
 	AmountSent             uint64 `json:"msatoshi_sent"`
 	AmountSentMilliSatoshi string `json:"amount_sent_msat"`
 	Status                 string `json:"status"`

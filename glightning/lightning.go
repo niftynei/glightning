@@ -1172,6 +1172,47 @@ func (l *Lightning) listSendPays(req *ListSendPaysRequest) ([]SendPayFields, err
 	return result.Payments, err
 }
 
+type TransactionsRequest struct {
+}
+
+func (r *TransactionsRequest) Name() string {
+	return "listtransactions"
+}
+
+type Transaction struct {
+	Hash        string     `json:"hash"`
+	RawTx       string     `json:"rawtx"`
+	Blockheight uint       `json:"blockheight"`
+	TxIndex     uint       `json:"txindex"`
+	LockTime    uint64     `json:"locktime"`
+	Version     uint       `json:"version"`
+	Inputs      []TxInput  `json:"inputs"`
+	Outputs     []TxOutput `json:"outputs"`
+	Type        []string   `json:"type,omitempty"`
+}
+
+type TxInput struct {
+	TxId     string `json:"txid"`
+	Index    uint   `json:"index"`
+	Sequence uint64 `json:"sequence"`
+	Type     string `json:"type,omitempty"`
+}
+
+type TxOutput struct {
+	Index        uint   `json:"index"`
+	Satoshis     string `json:"satoshis"`
+	ScriptPubkey string `json:"scriptPubKey"`
+	Type         string `json:"type,omitempty"`
+}
+
+func (l *Lightning) ListTransactions() ([]Transaction, error) {
+	var result struct {
+		Transactions []Transaction `json:"transactions"`
+	}
+	err := l.client.Request(&TransactionsRequest{}, &result)
+	return result.Transactions, err
+}
+
 type ConnectRequest struct {
 	PeerId string `json:"id"`
 	Host   string `json:"host"`
