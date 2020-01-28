@@ -1313,6 +1313,7 @@ func (l *Lightning) CancelFundChannel(peerId string) (bool, error) {
 type CloseRequest struct {
 	PeerId  string `json:"id"`
 	Timeout uint   `json:"timeout,omitempty"`
+	Destination string `json:"destination,omitempty"`
 }
 
 func (r *CloseRequest) Name() string {
@@ -1327,7 +1328,11 @@ type CloseResult struct {
 }
 
 func (l *Lightning) CloseNormal(id string) (*CloseResult, error) {
-	return l.Close(id, 0)
+	return l.Close(id, 0, "")
+}
+
+func (l *Lightning) CloseTo(id, destination string) (*CloseResult, error) {
+	return l.Close(id, 0, destination)
 }
 
 // Close the channel with peer {id}, timing out with {timeout} seconds, at whence a
@@ -1338,9 +1343,9 @@ func (l *Lightning) CloseNormal(id string) (*CloseResult, error) {
 // Can pass either peer id or channel id as {id} field.
 //
 // Note that a successful result *may* be null.
-func (l *Lightning) Close(id string, timeout uint) (*CloseResult, error) {
+func (l *Lightning) Close(id string, timeout uint, destination string) (*CloseResult, error) {
 	var result CloseResult
-	err := l.client.Request(&CloseRequest{id, timeout}, &result)
+	err := l.client.Request(&CloseRequest{id, timeout, destination}, &result)
 	return &result, err
 }
 

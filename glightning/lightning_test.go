@@ -1022,6 +1022,28 @@ func TestClose(t *testing.T) {
 	}, result)
 }
 
+func TestCloseTo(t *testing.T) {
+	id := "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"
+	req := `{"jsonrpc":"2.0","method":"close","params":{"destination":"2N4YPX21Zvg2SHoKnYBfGKQMEPYn9s8nLnK","id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41"},"id":1}`
+	resp := wrapResult(1, `{
+  "tx": "02000000015c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c0000000000ffffffff0195feff000000000016001449a59c8b2c806e554858127df08ed4aadf361b4600000000",
+  "txid": "642d8a28c9ef5fb0699c7c88237293ab79aa9bebbc7bdf897d3bb1c617fd622a",
+  "type": "mutual"
+}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	result, err := lightning.CloseTo(id, "2N4YPX21Zvg2SHoKnYBfGKQMEPYn9s8nLnK")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, &glightning.CloseResult{
+		Tx:   "02000000015c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c0000000000ffffffff0195feff000000000016001449a59c8b2c806e554858127df08ed4aadf361b4600000000",
+		TxId: "642d8a28c9ef5fb0699c7c88237293ab79aa9bebbc7bdf897d3bb1c617fd622a",
+		Type: "mutual",
+	}, result)
+}
+
 func TestListFunds(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"listfunds","params":{},"id":1}`
 	resp := wrapResult(1, `{
