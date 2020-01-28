@@ -23,6 +23,8 @@ const (
 	_ChannelOpened  Subscription = "channel_opened"
 	_Warning        Subscription = "warning"
 	_Forward        Subscription = "forward_event"
+	_SendPaySuccess Subscription = "sendpay_success"
+	_SendPayFailure Subscription = "sendpay_failure"
 	_PeerConnected  Hook         = "peer_connected"
 	_DbWrite        Hook         = "db_write"
 	_InvoicePayment Hook         = "invoice_payment"
@@ -394,6 +396,83 @@ func (e *ForwardEvent) New() interface{} {
 
 func (e *ForwardEvent) Call() (jrpc2.Result, error) {
 	e.cb(e.Forward)
+	return nil, nil
+}
+
+type SendPaySuccess struct {
+	Id                     uint   `json:"id"`
+	PaymentHash            string `json:"payment_hash"`
+	Destination            string `json:"destination"`
+	MilliSatoshi           uint64 `json:"msatoshi"`
+	AmountMilliSatoshi     string `json:"amount_msat"`
+	AmountSent             uint64 `json:"msatoshi_sent"`
+	AmountSentMilliSatoshi string `json:"amount_sent_msat"`
+	CreatedAt              uint64 `json:"created_at"`
+	Status                 string `json:"status"`
+	PaymentPreimage        string `json:"payment_preimage"`
+}
+
+type SendPaySuccessEvent struct {
+	SendPaySuccess *SendPaySuccess `json:"sendpay_success"`
+	cb             func(*SendPaySuccess)
+}
+
+func (e *SendPaySuccessEvent) Name() string {
+	return string(_SendPaySuccess)
+}
+
+func (e *SendPaySuccessEvent) New() interface{} {
+	return &SendPaySuccessEvent{
+		cb: e.cb,
+	}
+}
+
+func (e *SendPaySuccessEvent) Call() (jrpc2.Result, error) {
+	e.cb(e.SendPaySuccess)
+	return nil, nil
+}
+
+type SendPayFailureData struct {
+	Id                     int    `json:"id"`
+	PaymentHash            string `json:"payment_hash"`
+	Destination            string `json:"destination"`
+	MilliSatoshi           uint64 `json:"msatoshi"`
+	AmountMilliSatoshi      string `json:"amount_msat"`
+	AmountSent             uint64 `json:"msatoshi_sent"`
+	AmountSentMilliSatoshi string `json:"amount_sent_msat"`
+	Status                 string `json:"status"`
+	CreatedAt              uint64 `json:"created_at"`
+	ErringIndex            uint64 `json:"erring_index"`
+	FailCode               int    `json:"failcode"`
+	ErringNode             string `json:"erring_node"`
+	ErringChannel          string `json:"erring_channel"`
+	ErringDirection        int    `json:"erring_direction"`
+	FailCodeName           string `json:"failcodename"`
+}
+
+type SendPayFailure struct {
+	Code    int                `json:"code"`
+	Message string             `json:"message"`
+	Data    SendPayFailureData `json:"data"`
+}
+
+type SendPayFailureEvent struct {
+	SendPayFailure *SendPayFailure `json:"sendpay_failure"`
+	cb             func(*SendPayFailure)
+}
+
+func (e *SendPayFailureEvent) Name() string {
+	return string(_SendPayFailure)
+}
+
+func (e *SendPayFailureEvent) New() interface{} {
+	return &SendPayFailureEvent{
+		cb: e.cb,
+	}
+}
+
+func (e *SendPayFailureEvent) Call() (jrpc2.Result, error) {
+	e.cb(e.SendPayFailure)
 	return nil, nil
 }
 
@@ -897,6 +976,18 @@ func (p *Plugin) SubscribeChannelOpened(cb func(c *ChannelOpened)) {
 
 func (p *Plugin) SubscribeWarnings(cb func(c *Warning)) {
 	p.subscribe(&WarnEvent{
+		cb: cb,
+	})
+}
+
+func (p *Plugin) SubscribeSendPaySuccess(cb func(c *SendPaySuccess)) {
+	p.subscribe(&SendPaySuccessEvent{
+		cb: cb,
+	})
+}
+
+func (p *Plugin) SubscribeSendPayFailure(cb func(c *SendPayFailure)) {
+	p.subscribe(&SendPayFailureEvent{
 		cb: cb,
 	})
 }

@@ -427,6 +427,95 @@ func TestHook_InvoicePaymentFail(t *testing.T) {
 	runTest(t, plugin, msg+"\n\n", resp)
 }
 
+func TestSubscription_SendPaySuccess(t *testing.T) {
+	var wg sync.WaitGroup
+	defer await(t, &wg)
+
+	wg.Add(1)
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.SubscribeSendPaySuccess(func(event *glightning.SendPaySuccess) {
+		defer wg.Done()
+		expected := &glightning.SendPaySuccess{
+			Id:                     1,
+			PaymentHash:            "5c85bf402b87d4860f4a728e2e58a2418bda92cd7aea0ce494f11670cfbfb206",
+			Destination:            "035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d",
+			MilliSatoshi:           100000000,
+			AmountMilliSatoshi:     "100000000msat",
+			AmountSent:             100001001,
+			AmountSentMilliSatoshi: "100001001msat",
+			CreatedAt:              1561390572,
+			Status:                 "complete",
+			PaymentPreimage:        "9540d98095fd7f37687ebb7759e733934234d4f934e34433d4998a37de3733ee",
+		}
+		assert.Equal(t, expected, event)
+	})
+
+	msg := `{"jsonrpc":"2.0","method":"sendpay_success","params":{"sendpay_success":{"id":1,"payment_hash":"5c85bf402b87d4860f4a728e2e58a2418bda92cd7aea0ce494f11670cfbfb206","destination":"035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d","msatoshi":100000000,"amount_msat":"100000000msat","msatoshi_sent":100001001,"amount_sent_msat":"100001001msat","created_at":1561390572,"status":"complete","payment_preimage":"9540d98095fd7f37687ebb7759e733934234d4f934e34433d4998a37de3733ee"}}}`
+
+	runTest(t, plugin, msg+"\n\n", "")
+}
+
+func TestSubscription_SendPayFailure(t *testing.T) {
+	var wg sync.WaitGroup
+	defer await(t, &wg)
+
+	wg.Add(1)
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.SubscribeSendPayFailure(func(event *glightning.SendPayFailure) {
+		defer wg.Done()
+		expected := &glightning.SendPayFailure{
+			Code:    204,
+			Message: "failed: WIRE_UNKNOWN_NEXT_PEER (reply from remote)",
+			Data: glightning.SendPayFailureData{
+				Id:                     2,
+				PaymentHash:            "9036e3bdbd2515f1e653cb9f22f8e4c49b73aa2c36e937c926f43e33b8db8851",
+				Destination:            "035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d",
+				MilliSatoshi:           100000000,
+				AmountMilliSatoshi:     "100000000msat",
+				AmountSent:             100001001,
+				AmountSentMilliSatoshi: "100001001msat",
+				CreatedAt:              1561395134,
+				Status:                 "failed",
+				ErringIndex:            1,
+				FailCode:               16394,
+				FailCodeName:           "WIRE_UNKNOWN_NEXT_PEER",
+				ErringNode:             "022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59",
+				ErringChannel:          "103x2x1",
+				ErringDirection:        0,
+			},
+		}
+		assert.Equal(t, expected, event)
+	})
+
+	msg := `{"jsonrpc":"2.0","method":"sendpay_failure","params":{"sendpay_failure": {
+    "code": 204,
+    "message": "failed: WIRE_UNKNOWN_NEXT_PEER (reply from remote)",
+    "data": {
+      "id": 2,
+      "payment_hash": "9036e3bdbd2515f1e653cb9f22f8e4c49b73aa2c36e937c926f43e33b8db8851",
+      "destination": "035d2b1192dfba134e10e540875d366ebc8bc353d5aa766b80c090b39c3a5d885d",
+      "msatoshi": 100000000,
+      "amount_msat": "100000000msat",
+      "msatoshi_sent": 100001001,
+      "amount_sent_msat": "100001001msat",
+      "created_at": 1561395134,
+      "status": "failed",
+      "erring_index": 1,
+      "failcode": 16394,
+      "failcodename": "WIRE_UNKNOWN_NEXT_PEER",
+      "erring_node": "022d223620a359a47ff7f7ac447c85c46c923da53389221a0054c11c1e3ca31d59",
+      "erring_channel": "103x2x1",
+      "erring_direction": 0
+    }}}}`
+	runTest(t, plugin, msg+"\n\n", "")
+}
+
 func TestSubscription_Warning(t *testing.T) {
 	var wg sync.WaitGroup
 	defer await(t, &wg)
