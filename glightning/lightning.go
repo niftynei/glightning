@@ -1198,7 +1198,7 @@ func (l *Lightning) Connect(peerId, host string, port uint) (string, error) {
 
 type FundChannelRequest struct {
 	Id       string `json:"id"`
-	Amount   string `json:"satoshi"`
+	Amount   string `json:"amount"`
 	FeeRate  string `json:"feerate,omitempty"`
 	Announce bool   `json:"announce"`
 	MinConf  uint16 `json:"minconf,omitempty"`
@@ -1246,7 +1246,7 @@ func (l *Lightning) FundChannelExt(id string, amount *SatoshiAmount, feerate *Fe
 
 type FundChannelStart struct {
 	Id       string `json:"id"`
-	Amount   uint64 `json:"satoshi"`
+	Amount   uint64 `json:"amount"`
 	Announce bool   `json:"announce"`
 	FeeRate  string `json:"feerate,omitempty"`
 	CloseTo  string `json:"close_to"`
