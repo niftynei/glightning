@@ -1311,8 +1311,8 @@ func (l *Lightning) CancelFundChannel(peerId string) (bool, error) {
 }
 
 type CloseRequest struct {
-	PeerId  string `json:"id"`
-	Timeout uint   `json:"timeout,omitempty"`
+	PeerId      string `json:"id"`
+	Timeout     uint   `json:"timeout,omitempty"`
 	Destination string `json:"destination,omitempty"`
 }
 
@@ -1727,6 +1727,7 @@ type FundOutput struct {
 	AmountMilliSatoshi string `json:"amount_msat"`
 	Address            string `json:"address"`
 	Status             string `json:"status"`
+	Blockheight        int    `json:"blockheight,omitempty"`
 }
 
 type FundingChannel struct {
@@ -1738,6 +1739,8 @@ type FundingChannel struct {
 	ChannelTotalSatoshi   uint64 `json:"channel_total_sat"`
 	FundingTxId           string `json:"funding_txid"`
 	FundingOutput         int    `json:"funding_output"`
+	Connected             bool   `json:"connected"`
+	State                 string `json:"state"`
 }
 
 // Funds in wallet.

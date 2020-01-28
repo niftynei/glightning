@@ -1054,20 +1054,30 @@ func TestListFunds(t *testing.T) {
       "value": 1250000000,
       "amount_msat": "1250000000000msat",
       "address": "bcrt1qm9f2tleu0r9zcj8a3c454crfnzra69nwvp5frw",
-      "status": "confirmed"
-    }
+      "status": "confirmed",
+      "blockheight": 1085
+    },
+      {
+         "txid": "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
+         "output": 1,
+         "value": 99799846,
+         "amount_msat": "99799846000msat",
+         "address": "bcrt1qkzeapc8ch9fzy39hhfku4m945k3j32c6hgqkzl",
+         "status": "unconfirmed"
+      }
   ],
   "channels": [
-    {
-      "peer_id": "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-      "short_channel_id": "103x1x0",
-      "our_amount_msat": "15799410000msat",
-      "amount_msat": "16777215000msat",
-      "channel_sat": 16777215,
-      "channel_total_sat": 16777215,
-      "funding_txid": "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
-      "funding_output": 0
-    }
+      {
+         "peer_id": "020e31bda574c36fa78ba2664ccf47b3f632f157a7b3e139de9ed396455c0f14de",
+         "connected": true,
+         "state": "CHANNELD_AWAITING_LOCKIN",
+         "channel_sat": 200000,
+         "our_amount_msat": "200000000msat",
+         "channel_total_sat": 200000,
+         "amount_msat": "200000000msat",
+         "funding_txid": "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
+         "funding_output": 0
+      }
   ]
 } `)
 	lightning, requestQ, replyQ := startupServer(t)
@@ -1085,18 +1095,28 @@ func TestListFunds(t *testing.T) {
 				AmountMilliSatoshi: "1250000000000msat",
 				Address:            "bcrt1qm9f2tleu0r9zcj8a3c454crfnzra69nwvp5frw",
 				Status:             "confirmed",
+				Blockheight:        1085,
+			},
+			&glightning.FundOutput{
+				TxId:               "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
+				Output:             1,
+				Value:              uint64(99799846),
+				AmountMilliSatoshi: "99799846000msat",
+				Address:            "bcrt1qkzeapc8ch9fzy39hhfku4m945k3j32c6hgqkzl",
+				Status:             "unconfirmed",
 			},
 		},
 		Channels: []*glightning.FundingChannel{
 			&glightning.FundingChannel{
-				Id:                    "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
-				ShortChannelId:        "103x1x0",
-				ChannelSatoshi:        16777215,
-				AmountMilliSatoshi:    "16777215000msat",
-				OurAmountMilliSatoshi: "15799410000msat",
-				ChannelTotalSatoshi:   16777215,
-				FundingTxId:           "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
+				Id:                    "020e31bda574c36fa78ba2664ccf47b3f632f157a7b3e139de9ed396455c0f14de",
+				ChannelSatoshi:        200000,
+				AmountMilliSatoshi:    "200000000msat",
+				OurAmountMilliSatoshi: "200000000msat",
+				ChannelTotalSatoshi:   200000,
+				FundingTxId:           "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
 				FundingOutput:         0,
+				Connected:             true,
+				State:                 "CHANNELD_AWAITING_LOCKIN",
 			},
 		},
 	}, funds)
