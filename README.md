@@ -167,24 +167,10 @@ Example usage:
 $ GOLIGHT_DEBUG_IO=1 GOLIGHT_DEBUG_LOGFILE=plugin.log lightupfg --plugin=/path/to/plugin/exec
 ```
 
-
-## Work in Progress
-Please note that `glightning` is currently a work in progress. 
-
-Futher, the API, provided as is and is subject to revision without warning.
-
-The author hereby acknowledges the boilerplate-y nature of the method definitions, as currently provided.
-
-### Lightning RPC
-
-The following RPC non-dev methods need to be added
-
-- delexpiredinvoice  
-- autocleaninvoice  
+### Dev Commands
 
 Note that most of the 'dev' commands aren't well tested, and that many of them require you to set various flags at compile or configuration time (of lightningd) in order to use them. You'll need to at least have configured your c-lightning build into developer mode, ie:
 
 ```
-cwd/lightning$ ./configure --enable-developer
+cwd/lightning$ ./configure --enable-developer && make
 ```
-
