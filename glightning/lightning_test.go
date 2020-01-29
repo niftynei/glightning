@@ -1017,10 +1017,10 @@ func TestWithdrawAll(t *testing.T) {
 
 func TestTxPrepare(t *testing.T) {
 	destination := "bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg"
-	amount := glightning.NewAmount(100000)
+	amount := 100000
 	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, 243)
 	minConf := uint16(1)
-	req := `{"jsonrpc":"2.0","method":"txprepare","params":{"destination":"bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg","feerate":"243perkw","minconf":1,"satoshi":"100000"},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"txprepare","params":{"feerate":"243perkw","minconf":1,"outputs":[{"bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg":"100000sat"}]},"id":1}`
 	resp := wrapResult(1, `{
    "unsigned_tx" : "0200000001060528291e1039a5a2e071ab88ffca8cb9655481f62108dff2e87a1aa139b6450000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a01000000160014e1cfb78798b16dd8f0b05b540f853d07ac5c555200000000",
    "txid" : "cec03e956f3761624f176d62428d9e2cd51cb923258e00e17a34fc49b0da6dde"
@@ -1028,7 +1028,13 @@ func TestTxPrepare(t *testing.T) {
 
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	result, err := lightning.PrepareTx(destination, amount, feerate, &minConf)
+	outs := []*glightning.Outputs{
+		&glightning.Outputs{
+			Address: destination,
+			Satoshi: uint64(amount),
+		},
+	}
+	result, err := lightning.PrepareTx(outs, feerate, &minConf)
 	if err != nil {
 		t.Fatal(err)
 	}

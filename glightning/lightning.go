@@ -1,6 +1,7 @@
 package glightning
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/niftynei/glightning/jrpc2"
@@ -1736,11 +1737,32 @@ func (l *Lightning) NewAddress(addrType AddressType) (*NewAddrResult, error) {
 	return &result, err
 }
 
+type Outputs struct {
+	Address string
+	Satoshi uint64
+}
+
+func (o *Outputs) Marshal() []byte {
+	return []byte(fmt.Sprintf(`{"%s":"%vsat"}`, o.Address, o.Satoshi))
+}
+
+// Because we're using a weird JSON marshaler for parameter packing
+// we encode the outputs before passing them along as a request (instead
+// of writing a custom json Marshaler)
+func stringifyOutputs(outputs []*Outputs) []json.RawMessage {
+	results := make([]json.RawMessage, len(outputs))
+
+	for i := 0; i < len(outputs); i++ {
+		results[i] = json.RawMessage(outputs[i].Marshal())
+	}
+
+	return results
+}
+
 type TxPrepare struct {
-	Destination string `json:"destination"`
-	Satoshi     string `json:"satoshi"`
-	FeeRate     string `json:"feerate,omitempty"`
-	MinConf     uint16 `json:"minconf,omitempty"`
+	Outputs []json.RawMessage `json:"outputs"`
+	FeeRate string            `json:"feerate,omitempty"`
+	MinConf uint16            `json:"minconf,omitempty"`
 }
 
 type TxResult struct {
@@ -1752,17 +1774,14 @@ func (r *TxPrepare) Name() string {
 	return "txprepare"
 }
 
-func (l *Lightning) PrepareTx(destination string, amount *SatoshiAmount, feerate *FeeRate, minConf *uint16) (*TxResult, error) {
-	if amount == nil || (amount.Amount == 0 && !amount.SendAll) {
-		return nil, fmt.Errorf("Must set satoshi amount to send")
-	}
-	if destination == "" {
-		return nil, fmt.Errorf("Must supply a destination for transaction")
+func (l *Lightning) PrepareTx(outputs []*Outputs, feerate *FeeRate, minConf *uint16) (*TxResult, error) {
+
+	if len(outputs) < 0 {
+		return nil, fmt.Errorf("Must supply at least one output")
 	}
 
 	request := &TxPrepare{
-		Destination: destination,
-		Satoshi:     amount.String(),
+		Outputs: stringifyOutputs(outputs),
 	}
 
 	if feerate != nil {
