@@ -157,6 +157,8 @@ You can override this by providing a logfile to write to via the environment var
 
 `GOLIGHT_DEBUG_LOGFILE`: If set, will log to the file named in this variable. Otherwise, sends logs back to c-lightning to be added to its internal log buffer.
 
+`GO_LIGHT_DEBUG_IO_IN`: Logs any incoming IO messages. Useful if you want to log incoming messages without specifying a debug log file.
+
 `GOLIGHT_DEBUG_IO`: Logs all json messages sent and received from c-lightning. Must be used in conjunction with `GOLIGHT_DEBUG_LOGFILE` to avoid creating a log loop.
 
 Example usage: 

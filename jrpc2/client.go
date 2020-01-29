@@ -12,6 +12,13 @@ import (
 	"time"
 )
 
+func logDebug() bool {
+	_, debug_in := os.LookupEnv("GOLIGHT_DEBUG_IO_IN")
+	_, debug_io := os.LookupEnv("GOLIGHT_DEBUG_IO")
+
+	return debug_in || debug_io
+}
+
 // a client needs to be able to ...
 // - 'call' a method which is really...
 // - fire off a request
@@ -199,14 +206,14 @@ func handleReply(rawResp *RawResponse, resp interface{}) error {
 	// when the response comes back, it will either have an error,
 	// that we should parse into an 'error' (depending on the code?)
 	if rawResp.Error != nil {
-		if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO_IN"); ok {
+		if logDebug() {
 			log.Printf("%d:%s", rawResp.Error.Code, rawResp.Error.Message)
 			log.Println(string(rawResp.Error.Data))
 		}
 		return rawResp.Error
 	}
 
-	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO_IN"); ok {
+	if logDebug() {
 		log.Println(string(rawResp.Raw))
 	}
 
