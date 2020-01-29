@@ -611,9 +611,9 @@ func NewManifestRpcMethod(p *Plugin) *RpcMethod {
 type Manifest struct {
 	Options       []*Option    `json:"options"`
 	RpcMethods    []*RpcMethod `json:"rpcmethods"`
+	Dynamic       bool         `json:"dynamic"`
 	Subscriptions []string     `json:"subscriptions,omitempty"`
 	Hooks         []Hook       `json:"hooks,omitempty"`
-	Dynamic       bool         `json:"dynamic,omitempty"`
 }
 
 func (gm GetManifestMethod) Name() string {
