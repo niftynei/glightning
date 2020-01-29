@@ -1568,10 +1568,11 @@ func (l *Lightning) DevMemLeak() ([]*MemLeak, error) {
 }
 
 type WithdrawRequest struct {
-	Destination string `json:"destination"`
-	Satoshi     string `json:"satoshi"`
-	FeeRate     string `json:"feerate,omitempty"`
-	MinConf     uint16 `json:"minconf,omitempty"`
+	Destination string   `json:"destination"`
+	Satoshi     string   `json:"satoshi"`
+	FeeRate     string   `json:"feerate,omitempty"`
+	MinConf     uint16   `json:"minconf,omitempty"`
+	Utxos       []string `json:"utxos,omitempty"`
 }
 
 type SatoshiAmount struct {
@@ -1675,6 +1676,10 @@ type WithdrawResult struct {
 // Omitting the suffix is equivalent to 'perkb'
 // If not set, {feerate} defaults to 'normal'.
 func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate *FeeRate, minConf *uint16) (*WithdrawResult, error) {
+	return l.WithdrawWithUtxos(destination, amount, feerate, minConf, nil)
+}
+
+func (l *Lightning) WithdrawWithUtxos(destination string, amount *SatoshiAmount, feerate *FeeRate, minConf *uint16, utxos []*Utxo) (*WithdrawResult, error) {
 	if amount == nil || (amount.Amount == 0 && !amount.SendAll) {
 		return nil, fmt.Errorf("Must set satoshi amount to send")
 	}
@@ -1691,6 +1696,10 @@ func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate 
 	}
 	if minConf != nil {
 		request.MinConf = *minConf
+	}
+
+	if utxos != nil {
+		request.Utxos = stringifyUtxos(utxos)
 	}
 
 	var result WithdrawResult
@@ -1759,10 +1768,30 @@ func stringifyOutputs(outputs []*Outputs) []json.RawMessage {
 	return results
 }
 
+type Utxo struct {
+	TxId  string
+	Index uint
+}
+
+func (u *Utxo) String() string {
+	return fmt.Sprintf("%s:%v", u.TxId, u.Index)
+}
+
+func stringifyUtxos(utxos []*Utxo) []string {
+	results := make([]string, len(utxos))
+
+	for i := 0; i < len(utxos); i++ {
+		results[i] = utxos[i].String()
+	}
+
+	return results
+}
+
 type TxPrepare struct {
 	Outputs []json.RawMessage `json:"outputs"`
 	FeeRate string            `json:"feerate,omitempty"`
 	MinConf uint16            `json:"minconf,omitempty"`
+	Utxos   []string          `json:"utxos,omitempty"`
 }
 
 type TxResult struct {
@@ -1775,7 +1804,10 @@ func (r *TxPrepare) Name() string {
 }
 
 func (l *Lightning) PrepareTx(outputs []*Outputs, feerate *FeeRate, minConf *uint16) (*TxResult, error) {
+	return l.PrepareTxWithUtxos(outputs, feerate, minConf, nil)
+}
 
+func (l *Lightning) PrepareTxWithUtxos(outputs []*Outputs, feerate *FeeRate, minConf *uint16, utxos []*Utxo) (*TxResult, error) {
 	if len(outputs) < 0 {
 		return nil, fmt.Errorf("Must supply at least one output")
 	}
@@ -1790,6 +1822,10 @@ func (l *Lightning) PrepareTx(outputs []*Outputs, feerate *FeeRate, minConf *uin
 
 	if minConf != nil {
 		request.MinConf = *minConf
+	}
+
+	if utxos != nil {
+		request.Utxos = stringifyUtxos(utxos)
 	}
 
 	var result TxResult

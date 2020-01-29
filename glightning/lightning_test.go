@@ -995,6 +995,32 @@ func TestWithdraw(t *testing.T) {
 	}, result)
 }
 
+func TestWithdrawUtxos(t *testing.T) {
+	addr := "bcrt1qx5yjs8y4vm929ykzpmm8r7yxwakyvjwmyc5mkm"
+	utxos := []*glightning.Utxo{
+		&glightning.Utxo{
+			TxId:  "642d8a28c9ef5fb0699c7c88237293ab79aa9bebbc7bdf897d3bb1c617fd622a",
+			Index: 0,
+		},
+	}
+	req := `{"jsonrpc":"2.0","method":"withdraw","params":{"destination":"bcrt1qx5yjs8y4vm929ykzpmm8r7yxwakyvjwmyc5mkm","feerate":"125perkb","satoshi":"500000","utxos":["642d8a28c9ef5fb0699c7c88237293ab79aa9bebbc7bdf897d3bb1c617fd622a:0"]},"id":1}`
+	resp := wrapResult(1, `{
+  "tx": "020000000001012a62fd17c6b13b7d89df7bbceb9baa79ab937223887c9c69b05fefc9288a2d640000000000ffffffff0250c30000000000001600143509281c9566caa292c20ef671f886776c4649db9d3aff00000000001600142e7dfaf485fba60010bfb37c99fc93b8bb42ad0202483045022100b99e4231fcf98dc2f94d88094b63dc12fc0ba7c125dc78df1f7a50bfca726b8a02204639577a20f39830d63dfefcfc85f134f0d8128c55a2833775bb906957a0fa86012103d5aea229d81a06e576dfcf71db13670422b22dd1093cddc01269a5596fb0c7d100000000",
+  "txid": "f80423d5daed70d31585e597d8e1c0d191a5f2d8050a11dee730f7727c5abd9c"
+}`)
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	feerate := glightning.NewFeeRate(glightning.SatPerKiloByte, 125)
+	result, err := lightning.WithdrawWithUtxos(addr, glightning.NewAmount(500000), feerate, nil, utxos)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, &glightning.WithdrawResult{
+		Tx:   "020000000001012a62fd17c6b13b7d89df7bbceb9baa79ab937223887c9c69b05fefc9288a2d640000000000ffffffff0250c30000000000001600143509281c9566caa292c20ef671f886776c4649db9d3aff00000000001600142e7dfaf485fba60010bfb37c99fc93b8bb42ad0202483045022100b99e4231fcf98dc2f94d88094b63dc12fc0ba7c125dc78df1f7a50bfca726b8a02204639577a20f39830d63dfefcfc85f134f0d8128c55a2833775bb906957a0fa86012103d5aea229d81a06e576dfcf71db13670422b22dd1093cddc01269a5596fb0c7d100000000",
+		TxId: "f80423d5daed70d31585e597d8e1c0d191a5f2d8050a11dee730f7727c5abd9c",
+	}, result)
+}
+
 func TestWithdrawAll(t *testing.T) {
 	addr := "2MzpEvkwrYfuUFiPQdWHDBSFCw8zipNkYBz"
 	req := `{"jsonrpc":"2.0","method":"withdraw","params":{"destination":"2MzpEvkwrYfuUFiPQdWHDBSFCw8zipNkYBz","feerate":"125perkb","satoshi":"all"},"id":1}`
@@ -1035,6 +1061,42 @@ func TestTxPrepare(t *testing.T) {
 		},
 	}
 	result, err := lightning.PrepareTx(outs, feerate, &minConf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, &glightning.TxResult{
+		Tx:   "0200000001060528291e1039a5a2e071ab88ffca8cb9655481f62108dff2e87a1aa139b6450000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a01000000160014e1cfb78798b16dd8f0b05b540f853d07ac5c555200000000",
+		TxId: "cec03e956f3761624f176d62428d9e2cd51cb923258e00e17a34fc49b0da6dde",
+	}, result)
+}
+
+func TestTxPrepareUtxos(t *testing.T) {
+	destination := "bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg"
+	amount := 100000
+	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, 243)
+	minConf := uint16(1)
+	utxos := []*glightning.Utxo{
+		&glightning.Utxo{
+			TxId:  "45b639a11a7ae8f2df0821f6815465b98ccaff88ab71e0a2a539101e29280506",
+			Index: 0,
+		},
+	}
+	req := `{"jsonrpc":"2.0","method":"txprepare","params":{"feerate":"243perkw","minconf":1,"outputs":[{"bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg":"100000sat"}],"utxos":["45b639a11a7ae8f2df0821f6815465b98ccaff88ab71e0a2a539101e29280506:0"]},"id":1}`
+	resp := wrapResult(1, `{
+   "unsigned_tx" : "0200000001060528291e1039a5a2e071ab88ffca8cb9655481f62108dff2e87a1aa139b6450000000000ffffffff02a086010000000000160014c9096d43f408ea526020262ccdad7c8516b92a81d86a042a01000000160014e1cfb78798b16dd8f0b05b540f853d07ac5c555200000000",
+   "txid" : "cec03e956f3761624f176d62428d9e2cd51cb923258e00e17a34fc49b0da6dde"
+}`)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	outs := []*glightning.Outputs{
+		&glightning.Outputs{
+			Address: destination,
+			Satoshi: uint64(amount),
+		},
+	}
+	result, err := lightning.PrepareTxWithUtxos(outs, feerate, &minConf, utxos)
 	if err != nil {
 		t.Fatal(err)
 	}
