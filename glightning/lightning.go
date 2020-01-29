@@ -885,6 +885,59 @@ func (l *Lightning) GetInfo() (*NodeInfo, error) {
 	return &result, err
 }
 
+type SignedMessage struct {
+	Signature string `json:"signature"`
+	RecId     string `json:"recid"`
+	ZBase     string `json:"zbase"`
+}
+
+type SignMessageRequest struct {
+	Message string `json:"message"`
+}
+
+func (r *SignMessageRequest) Name() string {
+	return "signmessage"
+}
+
+func (l *Lightning) SignMessage(message string) (*SignedMessage, error) {
+	var result SignedMessage
+	err := l.client.Request(&SignMessageRequest{message}, &result)
+	return &result, err
+}
+
+type CheckedMessage struct {
+	Pubkey   string `json:"pubkey"`
+	Verified bool   `json:"verified"`
+}
+
+type CheckMessageRequest struct {
+	Message string `json:"message"`
+	ZBase   string `json:"zbase"`
+	Pubkey  string `json:"pubkey,omitempty"`
+}
+
+func (r *CheckMessageRequest) Name() string {
+	return "checkmessage"
+}
+
+// No pubkey provided, so we return the pubkey
+func (l *Lightning) CheckMessage(message, zbase string) (bool, string, error) {
+	var result CheckedMessage
+	request := &CheckMessageRequest{
+		Message: message,
+		ZBase:   zbase,
+	}
+	err := l.client.Request(request, &result)
+	return result.Verified, result.Pubkey, err
+}
+
+// Pubkey provided, so we return whether or not is verified
+func (l *Lightning) CheckMessageVerify(message, zbase, pubkey string) (bool, error) {
+	var result CheckedMessage
+	err := l.client.Request(&CheckMessageRequest{message, zbase, pubkey}, &result)
+	return result.Verified, err
+}
+
 type SendPayRequest struct {
 	Route         []RouteHop `json:"route"`
 	PaymentHash   string     `json:"payment_hash"`

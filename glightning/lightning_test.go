@@ -59,34 +59,34 @@ func TestListTransactions(t *testing.T) {
 
 	expected := []glightning.Transaction{
 		glightning.Transaction{
-			Hash:"05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
-			RawTx:"02000000017eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c880000000000ffffffff02400d0300000000002200203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed26d3f20500000000160014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a00000000",
-			Blockheight:10,
-			TxIndex:2,
-			LockTime:10,
+			Hash:        "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
+			RawTx:       "02000000017eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c880000000000ffffffff02400d0300000000002200203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed26d3f20500000000160014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a00000000",
+			Blockheight: 10,
+			TxIndex:     2,
+			LockTime:    10,
 			Type: []string{
 				"channel_mutual_close",
 			},
-			Version:2,
+			Version: 2,
 			Inputs: []glightning.TxInput{
 				glightning.TxInput{
-					TxId: "7eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c88",
-					Index: 1,
-					Sequence:4294967295,
-					Type: "deposit",
+					TxId:     "7eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c88",
+					Index:    1,
+					Sequence: 4294967295,
+					Type:     "deposit",
 				},
 			},
 			Outputs: []glightning.TxOutput{
 				glightning.TxOutput{
-					Index:2,
-					Satoshis:"200000000msat",
-					ScriptPubkey:"00203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed",
+					Index:        2,
+					Satoshis:     "200000000msat",
+					ScriptPubkey: "00203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed",
 				},
 				glightning.TxOutput{
-					Index:1,
-					Satoshis:"99799846000msat",
-					ScriptPubkey:"0014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a",
-					Type:"deposit",
+					Index:        1,
+					Satoshis:     "99799846000msat",
+					ScriptPubkey: "0014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a",
+					Type:         "deposit",
 				},
 			},
 		},
@@ -1629,6 +1629,63 @@ func TestGetLog(t *testing.T) {
 			},
 		},
 	}, logresp)
+}
+
+func TestSignMessage(t *testing.T) {
+	lightning, requestQ, replyQ := startupServer(t)
+	msg := "every planet we reach is dead"
+	resp := wrapResult(1, `{
+   "signature": "41c7defa9066ab9b6c496498c18cd19c681b787e51c37369014cf0b069a329ff227252bfd28494d134a2423a1c296b86cdd0ba0f174b7c4775c59daa7ac974b0",
+   "recid": "00",
+   "zbase": "d7yhxzz41bukzg5cjf1jtocc4gqgog5ax3ehgh5jyfgxbcdjwcw96eu1kk97fbrw4r4krot4dowszbsp4n7y6f4mxtdzmtc7ij7c17fo"
+}
+`)
+	req := `{"jsonrpc":"2.0","method":"signmessage","params":{"message":"every planet we reach is dead"},"id":1}`
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	result, err := lightning.SignMessage(msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, &glightning.SignedMessage{
+		Signature: "41c7defa9066ab9b6c496498c18cd19c681b787e51c37369014cf0b069a329ff227252bfd28494d134a2423a1c296b86cdd0ba0f174b7c4775c59daa7ac974b0",
+		RecId:     "00",
+		ZBase:     "d7yhxzz41bukzg5cjf1jtocc4gqgog5ax3ehgh5jyfgxbcdjwcw96eu1kk97fbrw4r4krot4dowszbsp4n7y6f4mxtdzmtc7ij7c17fo",
+	}, result)
+}
+
+func TestCheckMessage(t *testing.T) {
+	lightning, requestQ, replyQ := startupServer(t)
+	msg := "every planet we reach is dead"
+	resp := wrapResult(1, `{
+   "pubkey": "02741c92108ce4e2505b8d1a32803b2960bfc3f4241c0b16b4e9442de1afaaa233",
+   "verified": false
+}`)
+	req := `{"jsonrpc":"2.0","method":"checkmessage","params":{"message":"every planet we reach is dead","zbase":"d7yhxzz41bukzg5cjf1jtocc4gqgog5ax3ehgh5jyfgxbcdjwcw96eu1kk97fbrw4r4krot4dowszbsp4n7y6f4mxtdzmtc7ij7c17fo"},"id":1}`
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	verified, pubkey, err := lightning.CheckMessage(msg, "d7yhxzz41bukzg5cjf1jtocc4gqgog5ax3ehgh5jyfgxbcdjwcw96eu1kk97fbrw4r4krot4dowszbsp4n7y6f4mxtdzmtc7ij7c17fo")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.False(t, verified)
+	assert.Equal(t, "02741c92108ce4e2505b8d1a32803b2960bfc3f4241c0b16b4e9442de1afaaa233", pubkey)
+}
+
+func TestCheckMessageVerify(t *testing.T) {
+	lightning, requestQ, replyQ := startupServer(t)
+	msg := "every planet we reach is dead"
+	pubkey := "02741c92108ce4e2505b8d1a32803b2960bfc3f4241c0b16b4e9442de1afaaa233"
+	zbase := "d7yhxzz41bukzg5cjf1jtocc4gqgog5ax3ehgh5jyfgxbcdjwcw96eu1kk97fbrw4r4krot4dowszbsp4n7y6f4mxtdzmtc7ij7c17fo"
+	resp := wrapResult(1, `{
+   "pubkey": "02741c92108ce4e2505b8d1a32803b2960bfc3f4241c0b16b4e9442de1afaaa233",
+   "verified": true
+}`)
+	req := `{"jsonrpc":"2.0","method":"checkmessage","params":{"message":"every planet we reach is dead","pubkey":"02741c92108ce4e2505b8d1a32803b2960bfc3f4241c0b16b4e9442de1afaaa233","zbase":"d7yhxzz41bukzg5cjf1jtocc4gqgog5ax3ehgh5jyfgxbcdjwcw96eu1kk97fbrw4r4krot4dowszbsp4n7y6f4mxtdzmtc7ij7c17fo"},"id":1}`
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	verified, err := lightning.CheckMessageVerify(msg, zbase, pubkey)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.True(t, verified)
 }
 
 func TestHelp(t *testing.T) {
