@@ -149,6 +149,7 @@ func LnNode(testDir, dataDir string, btcPort int, name string) (*Node, error) {
 
 	time.Sleep(200 * time.Millisecond)
 
+	lightningdDir = filepath.Join(lightningdDir, "regtest")
 	node := &Node{nil, lightningdDir}
 	err = node.waitForLog("Server started with public key", 5)
 	if err != nil {
