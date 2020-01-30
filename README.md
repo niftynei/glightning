@@ -167,6 +167,14 @@ Example usage:
 $ GOLIGHT_DEBUG_IO=1 GOLIGHT_DEBUG_LOGFILE=plugin.log lightupfg --plugin=/path/to/plugin/exec
 ```
 
+
+#### Using Strict Mode
+
+glightning is versioned such that it is meant to be used with the corresponding c-lightning version. Updates to the c-lightning RPC API are reflected in each new glightning version.
+
+The default configuration of glightning is such that it works `allow-deprecated-apis=true`, which is the default setting on c-lightning; however if you wish to run it 'strict mode', such that glightning will fail if an RPC response includes unexpected parameters, you should set the environment variable`GOLIGHT_STRICT_MODE=1` and the c-lightning startup flag `allow-deprecated-apis=false`.
+
+
 ### Dev Commands
 
 Note that most of the 'dev' commands aren't well tested, and that many of them require you to set various flags at compile or configuration time (of lightningd) in order to use them. You'll need to at least have configured your c-lightning build into developer mode, ie:

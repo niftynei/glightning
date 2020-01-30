@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"os"
 )
 
 const specVersion = "2.0"
@@ -368,7 +369,7 @@ func innerParseNamed(targetValue reflect.Value, params map[string]interface{}) e
 				break
 			}
 		}
-		if !found {
+		if !found && len(os.Getenv("GOLIGHT_STRICT_MODE")) > 0 {
 			return NewError(nil, InvalidParams, fmt.Sprintf("No exported field found %s.%s", targetValue.Type().Name(), key))
 		}
 	}
