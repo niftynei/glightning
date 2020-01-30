@@ -136,7 +136,8 @@ func LnNode(testDir, dataDir string, btcPort int, name string) (*Node, error) {
 		fmt.Sprintf("--bitcoin-rpcport=%d", btcPort),
 		"--log-file=log",
 		"--bitcoin-rpcuser=btcuser",
-		"--bitcoin-rpcpassword=btcpass")
+		"--bitcoin-rpcpassword=btcpass",
+		"--allow-deprecated-apis=false")
 
 	lightningd.SysProcAttr = &syscall.SysProcAttr{
 		Pdeathsig: syscall.SIGKILL,
