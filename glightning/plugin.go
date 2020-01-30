@@ -577,8 +577,8 @@ func (r *RpcMethod) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		Name     string `json:"name"`
 		Desc     string `json:"description"`
+		Usage    string `json:"usage"`
 		LongDesc string `json:"long_description,omitempty"`
-		Usage    string `json:"usage,omitempty"`
 		Category string `json:"category,omitempty"`
 	}{
 		Name:     r.Method.Name(),
