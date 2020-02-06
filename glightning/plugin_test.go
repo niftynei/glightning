@@ -164,7 +164,7 @@ func TestGetManifest(t *testing.T) {
 	plugin.SetDynamic(true)
 
 	msg := "{\"jsonrpc\":\"2.0\",\"method\":\"getmanifest\",\"id\":\"aloha\"}\n\n"
-	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[{\"name\":\"greeting\",\"type\":\"string\",\"default\":\"Mary\",\"description\":\"How you'd like to be called\"}],\"rpcmethods\":[{\"name\":\"hi\",\"description\":\"Send a greeting.\"}],\"dynamic\":true,\"subscriptions\":[\"connect\"]},\"id\":\"aloha\"}"
+	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[{\"name\":\"greeting\",\"type\":\"string\",\"default\":\"Mary\",\"description\":\"How you'd like to be called\"}],\"rpcmethods\":[{\"name\":\"hi\",\"description\":\"Send a greeting.\",\"usage\":\"\"}],\"dynamic\":true,\"subscriptions\":[\"connect\"]},\"id\":\"aloha\"}"
 	runTest(t, plugin, msg, resp)
 }
 
