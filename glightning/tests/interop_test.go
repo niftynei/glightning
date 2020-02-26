@@ -19,22 +19,29 @@ import (
 	"time"
 )
 
-func Init() (string, string, int) {
+func Init() (string, string, int, *glightning.Bitcoin) {
 	// let's put it in a temporary directory
 	testDir, err := ioutil.TempDir("", "gltests-")
 	if err != nil {
 		log.Fatal(err)
 	}
-	dataDir, _, btcPort := SpinUpBitcoind(testDir)
-	return testDir, dataDir, btcPort
+	dataDir, _, btcPort, btc := SpinUpBitcoind(testDir)
+	return testDir, dataDir, btcPort, btc
 }
 
 func CleanUp(testDir string) {
 	os.Remove(testDir)
 }
 
-// Returns bitcoind PID
-func SpinUpBitcoind(dir string) (string, int, int) {
+type BNode struct {
+	rpc *glightning.Bitcoin
+	dir string
+	port uint
+	pid uint
+}
+
+// Returns a bitcoin node w/ RPC client
+func SpinUpBitcoind(dir string) (string, int, int, *glightning.Bitcoin) {
 	// make some dirs!
 	bitcoindDir := filepath.Join(dir, "bitcoind")
 	err := os.Mkdir(bitcoindDir, os.ModeDir|0755)
@@ -63,7 +70,10 @@ func SpinUpBitcoind(dir string) (string, int, int) {
 	}
 	log.Printf(" bitcoind started (%d)!\n", bitcoind.Process.Pid)
 
-	return bitcoindDir, bitcoind.Process.Pid, btcPort
+	b := glightning.NewBitcoin()
+	// Waits til bitcoind is up
+	b.StartUp("", bitcoindDir, uint(btcPort))
+	return bitcoindDir, bitcoind.Process.Pid, btcPort, b
 }
 
 func (node *Node) waitForLog(phrase string, timeoutSec int) error {
@@ -170,10 +180,28 @@ func short(t *testing.T) {
 	}
 }
 
+func TestBitcoinProxy(t *testing.T) {
+	short(t)
+
+	testDir, _, _, btc := Init()
+	defer CleanUp(testDir)
+	addr, err := btc.GetNewAddress(glightning.BtcBech32)
+	if err != nil {
+		log.Fatal(err)
+	}
+	assert.NotNil(t, addr)
+
+	txids, err := btc.GenerateToAddress(addr, 50)
+	if err != nil {
+		log.Fatal(err)
+	}
+	assert.NotNil(t, txids)
+}
+
 func TestConnectRpc(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid := Init()
+	testDir, dataDir, btcPid, _ := Init()
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
 	if err != nil {
@@ -195,7 +223,7 @@ func TestConnectRpc(t *testing.T) {
 func TestConfigsRpc(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid := Init()
+	testDir, dataDir, btcPid, _ := Init()
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
 	if err != nil {
@@ -219,7 +247,7 @@ func TestConfigsRpc(t *testing.T) {
 func TestHelpRpc(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid := Init()
+	testDir, dataDir, btcPid, _ := Init()
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
 	if err != nil {
@@ -245,7 +273,7 @@ func TestHelpRpc(t *testing.T) {
 func TestPlugins(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid := Init()
+	testDir, dataDir, btcPid, _ := Init()
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
 	if err != nil {
@@ -302,7 +330,7 @@ func TestPlugins(t *testing.T) {
 func TestHooks(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid := Init()
+	testDir, dataDir, btcPid, _  := Init()
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
 	if err != nil {

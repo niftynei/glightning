@@ -11,7 +11,6 @@ import (
 
 // This file's the one that holds all the objects for the
 // c-lightning RPC commands
-
 type Lightning struct {
 	client *jrpc2.Client
 	isUp   bool
