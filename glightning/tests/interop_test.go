@@ -410,7 +410,7 @@ func TestPlugins(t *testing.T) {
 	var val string
 	var ok bool
 	if val, ok = os.LookupEnv("PLUGIN_EXAMPLE"); !ok {
-		t.Fatal("No plugin example path passed in")
+		t.Skip("No plugin example path (PLUGIN_EXAMPLE) passed in")
 	}
 
 	exPlugin := filepath.Join(val, "plugin_example")
@@ -461,7 +461,7 @@ func TestHooks(t *testing.T) {
 	var val string
 	var ok bool
 	if val, ok = os.LookupEnv("PLUGIN_EXAMPLE"); !ok {
-		t.Fatal("No plugin example path passed in")
+		t.Skip("No plugin example path (PLUGIN_EXAMPLE) passed in")
 	}
 
 	exPlugin := filepath.Join(val, "plugin_example")
