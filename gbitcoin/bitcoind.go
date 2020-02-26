@@ -1,4 +1,4 @@
-package glightning
+package gbitcoin
 
 import (
 	"bytes"
@@ -17,9 +17,11 @@ import (
 const defaultClientTimeout int = 900
 const defaultRpcHost string = "http://localhost"
 
-const defaultUser string = "btcuser"
-const defaultPass string = "btcpass"
+const debug bool = false
 
+func isDebug() bool {
+	return debug
+}
 
 type Bitcoin struct {
 	isUp bool
@@ -28,9 +30,11 @@ type Bitcoin struct {
 	host string
 	bitcoinDir string
 	requestCounter int64
+	username string
+	password string
 }
 
-func NewBitcoin() *Bitcoin {
+func NewBitcoin(username, password string) *Bitcoin {
 	bt := &Bitcoin{}
 
 	tr := &http.Transport{
@@ -38,6 +42,8 @@ func NewBitcoin() *Bitcoin {
 		IdleConnTimeout: time.Duration(defaultClientTimeout) * time.Second,
 	}
 	bt.httpClient = &http.Client{ Transport: tr }
+	bt.username = username
+	bt.password = password
 	return bt
 }
 
@@ -64,9 +70,12 @@ func (b *Bitcoin) StartUp(host, bitcoinDir string, port uint) {
 	b.bitcoinDir = bitcoinDir
 
 	for {
-		up, _ := b.Ping()
+		up, err := b.Ping()
 		if up {
 			break;
+		}
+		if isDebug() {
+			log.Print(err)
 		}
 	}
 }
@@ -88,7 +97,7 @@ func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 
 	req.Header.Set("Host", b.host)
 	req.Header.Set("Connection", "close")
-	req.SetBasicAuth(defaultUser, defaultPass)
+	req.SetBasicAuth(b.username, b.password)
 	req.Header.Set("Content-Type", "application/json")
 
 	rezp, err := b.httpClient.Do(req)
@@ -121,21 +130,18 @@ func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 		return rawResp.Error
 	}
 
-	// TODO: erase this
-	log.Println(string(rawResp.Raw))
-
 	return json.Unmarshal(rawResp.Raw, resp)
 }
 
-type BtcPingRequest struct {}
+type PingRequest struct {}
 
-func (r *BtcPingRequest) Name() string {
+func (r *PingRequest) Name() string {
 	return "ping"
 }
 
 func (b *Bitcoin) Ping() (bool, error) {
 	var result string
-	err := b.request(&BtcPingRequest{}, &result)
+	err := b.request(&PingRequest{}, &result)
 	return err == nil, err
 }
 
@@ -144,15 +150,15 @@ type GetNewAddressRequest struct {
 	AddressType string `json:"address_type,omitempty"`
 }
 
-type BtcAddrType int
+type AddrType int
 
 const (
-	BtcBech32 BtcAddrType = iota
-	BtcP2shSegwit
-	BtcLegacy
+	Bech32 AddrType = iota
+	P2shSegwit
+	Legacy
 )
 
-func (a BtcAddrType) String() string {
+func (a AddrType) String() string {
 	return []string{"bech32","p2sh-segwit","legacy"}[a]
 }
 
@@ -160,7 +166,7 @@ func (r *GetNewAddressRequest) Name() string {
 	return "getnewaddress"
 }
 
-func (b *Bitcoin) GetNewAddress(addrType BtcAddrType) (string, error) {
+func (b *Bitcoin) GetNewAddress(addrType AddrType) (string, error) {
 	var result string
 	err := b.request(&GetNewAddressRequest{
 		AddressType: addrType.String(),
