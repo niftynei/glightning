@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/niftynei/glightning/glightning"
+	"github.com/niftynei/glightning/gbitcoin"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
@@ -19,7 +20,7 @@ import (
 	"time"
 )
 
-func Init() (string, string, int, *glightning.Bitcoin) {
+func Init() (string, string, int, *gbitcoin.Bitcoin) {
 	// let's put it in a temporary directory
 	testDir, err := ioutil.TempDir("", "gltests-")
 	if err != nil {
@@ -34,14 +35,14 @@ func CleanUp(testDir string) {
 }
 
 type BNode struct {
-	rpc *glightning.Bitcoin
-	dir string
+	rpc  *gbitcoin.Bitcoin
+	dir  string
 	port uint
-	pid uint
+	pid  uint
 }
 
 // Returns a bitcoin node w/ RPC client
-func SpinUpBitcoind(dir string) (string, int, int, *glightning.Bitcoin) {
+func SpinUpBitcoind(dir string) (string, int, int, *gbitcoin.Bitcoin) {
 	// make some dirs!
 	bitcoindDir := filepath.Join(dir, "bitcoind")
 	err := os.Mkdir(bitcoindDir, os.ModeDir|0755)
@@ -54,12 +55,15 @@ func SpinUpBitcoind(dir string) (string, int, int, *glightning.Bitcoin) {
 		log.Fatal(err)
 	}
 	btcPort := getPort()
+	btcUser := "btcuser"
+	btcPass := "btcpass"
 	bitcoind := exec.Command(bitcoinPath, "-regtest",
 		fmt.Sprintf("-datadir=%s", bitcoindDir),
 		"-server", "-logtimestamps", "-nolisten",
 		fmt.Sprintf("-rpcport=%d", btcPort),
 		"-addresstype=bech32", "-logtimestamps", "-txindex",
-		"-rpcpassword=btcpass", "-rpcuser=btcuser")
+		fmt.Sprintf("-rpcpassword=%s", btcPass),
+		fmt.Sprintf("-rpcuser=%s", btcUser))
 
 	bitcoind.SysProcAttr = &syscall.SysProcAttr{
 		Pdeathsig: syscall.SIGKILL,
@@ -70,10 +74,20 @@ func SpinUpBitcoind(dir string) (string, int, int, *glightning.Bitcoin) {
 	}
 	log.Printf(" bitcoind started (%d)!\n", bitcoind.Process.Pid)
 
-	b := glightning.NewBitcoin()
+	btc := gbitcoin.NewBitcoin(btcUser, btcPass)
+	btc.SetTimeout(uint(2))
 	// Waits til bitcoind is up
-	b.StartUp("", bitcoindDir, uint(btcPort))
-	return bitcoindDir, bitcoind.Process.Pid, btcPort, b
+	btc.StartUp("", bitcoindDir, uint(btcPort))
+	// Go ahead and run 50 blocks
+	addr, err := btc.GetNewAddress(gbitcoin.Bech32)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = btc.GenerateToAddress(addr, 101)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return bitcoindDir, bitcoind.Process.Pid, btcPort, btc
 }
 
 func (node *Node) waitForLog(phrase string, timeoutSec int) error {
@@ -185,17 +199,12 @@ func TestBitcoinProxy(t *testing.T) {
 
 	testDir, _, _, btc := Init()
 	defer CleanUp(testDir)
-	addr, err := btc.GetNewAddress(glightning.BtcBech32)
+	addr, err := btc.GetNewAddress(gbitcoin.Bech32)
 	if err != nil {
 		log.Fatal(err)
 	}
 	assert.NotNil(t, addr)
 
-	txids, err := btc.GenerateToAddress(addr, 50)
-	if err != nil {
-		log.Fatal(err)
-	}
-	assert.NotNil(t, txids)
 }
 
 func TestConnectRpc(t *testing.T) {
@@ -269,6 +278,117 @@ func TestHelpRpc(t *testing.T) {
 	assert.Equal(t, "help [command]", cmd.NameAndUsage)
 }
 
+func connect(l1, l2 *Node) {
+	l2Info, _ := l2.rpc.GetInfo()
+	_, err := l1.rpc.Connect(l2Info.Id, l2Info.Binding[0].Addr, uint(l2Info.Binding[0].Port))
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func fundNode(amount string, n *Node, b *gbitcoin.Bitcoin) {
+	addr, err := n.rpc.NewAddr()
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = b.SendToAddress(addr, amount)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	mineBlocks(1, b)
+}
+
+// n is number of blocks to mine
+func mineBlocks(n uint, b *gbitcoin.Bitcoin) {
+	addr, err := b.GetNewAddress(gbitcoin.Bech32)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = b.GenerateToAddress(addr, n)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func waitToSync(n *Node) {
+	for {
+		info, _ := n.rpc.GetInfo()
+		if info.IsLightningdSync() {
+			break
+		}
+	}
+}
+
+func TestCreateOnion(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, _ := Init()
+	defer CleanUp(testDir)
+	l1, err := LnNode(testDir, dataDir, btcPid, "one")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	hops := []glightning.Hop{
+		glightning.Hop{
+			Pubkey:  "02eec7245d6b7d2ccb30380bfbe2a3648cd7a942653f5aa340edcea1f283686619",
+			Payload: "000000000000000000000000000000000000000000000000000000000000000000",
+		},
+		glightning.Hop{
+			Pubkey:  "0324653eac434488002cc06bbfb7f10fe18991e35f9fe4302dbea6d2353dc0ab1c",
+			Payload: "140101010101010101000000000000000100000001",
+		},
+		glightning.Hop{
+			Pubkey:  "027f31ebc5462c1fdce1b737ecff52d37d75dea43ce11c74d25aa297165faa2007",
+			Payload: "fd0100000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff",
+		},
+		glightning.Hop{
+			Pubkey:  "032c0b7cf95324a07d05398b240174dc0c2be444d96b159aa6c7f7b1e668680991",
+			Payload: "140303030303030303000000000000000300000003",
+		},
+		glightning.Hop{
+			Pubkey:  "02edabbd16b41c8371b92ef2f04c1185b4f03b6dcd52ba9b78d9d7c89c8f221145",
+			Payload: "000404040404040404000000000000000400000004000000000000000000000000",
+		},
+	}
+
+	privateHash := "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+	resp, err := l1.rpc.CreateOnion(hops, privateHash, "")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	assert.Equal(t, len(resp.SharedSecrets), len(hops))
+	assert.Equal(t, len(resp.Onion), 2*1366)
+
+	privateHash = "4242424242424242424242424242424242424242424242424242424242424242"
+	sessionKey := "4141414141414141414141414141414141414141414141414141414141414141"
+	resp, err = l1.rpc.CreateOnion(hops, privateHash, sessionKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	onlen := len(resp.Onion)
+	assert.Equal(t, resp.Onion[onlen-22:onlen], "9400f45a48e6dc8ddbaeb3")
+
+	firstHop := glightning.FirstHop{
+		ShortChannelId: "100x1x1",
+		Direction: 1,
+		AmountMsat: "1000sat",
+		Delay: 8,
+	}
+
+	// Ideally we'd do a 'real' send onion but we don't 
+	// need to know if c-lightning works, only that the API
+	// functions correctly...
+	_, err = l1.rpc.SendOnionWithDetails(resp.Onion, firstHop, privateHash, "label", resp.SharedSecrets, nil)
+
+	// ... which means we expect an error back!
+	assert.NotNil(t, err)
+	assert.Equal(t, err.Error(), "204:No connection to first peer found")
+}
+
 // ok, now let's check the dynamic plugin loader
 func TestPlugins(t *testing.T) {
 	short(t)
@@ -330,7 +450,7 @@ func TestPlugins(t *testing.T) {
 func TestHooks(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid, _  := Init()
+	testDir, dataDir, btcPid, _ := Init()
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
 	if err != nil {

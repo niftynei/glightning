@@ -296,6 +296,89 @@ func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cl
 	return result.Hops, err
 }
 
+type SendOnionRequest struct {
+	Onion string `json:"onion"`
+	FirstHop FirstHop `json:"first_hop"`
+	PaymentHash string `json:"payment_hash"`
+	Label string `json:"label,omitempty"`
+	SharedSecrets []string `json:"shared_secrets,omitempty"`
+	// For MPP payments!
+	PartId uint64 `json:"partid,omitempty"`
+}
+
+type FirstHop struct {
+	ShortChannelId string `json:"channel"`
+	Direction      uint8  `json:"direction"`
+	AmountMsat     string `json:"amount_msat"`
+	Delay          uint   `json:"delay"`
+}
+
+func (r *SendOnionRequest) Name() string {
+	return "sendonion"
+}
+
+func (l *Lightning) SendOnion(onion string, hop FirstHop, paymentHash string) (*SendPayFields, error) {
+	return l.SendOnionWithDetails(onion, hop, paymentHash, "", nil, nil)
+}
+
+func (l *Lightning) SendOnionWithDetails(onion string, hop FirstHop, paymentHash string, label string, secrets []string, partId *uint64) (*SendPayFields, error) {
+	var response SendPayFields
+
+	req := SendOnionRequest{
+		Onion: onion,
+		FirstHop: hop,
+		PaymentHash: paymentHash,
+	}
+
+	if len(label) > 0 {
+		req.Label = label
+	}
+	if secrets != nil {
+		req.SharedSecrets = secrets
+	}
+	if partId != nil {
+		req.PartId = *partId
+	}
+
+	err := l.client.Request(&req, &response)
+	return &response, err
+}
+
+
+type CreateOnionRequest struct {
+	Hops []Hop `json:"hops"`
+	// Data onion should commit to, must match `payment_hash`
+	AssociatedData string `json:"assocdata"`
+	// Optional, can be used to generate shared secrets
+	SessionKey string `json:"session_key,omitempty"`
+}
+
+func (r *CreateOnionRequest) Name() string {
+	return "createonion"
+}
+
+type Hop struct {
+	Pubkey string `json:"pubkey"`
+	Payload string `json:"payload"`
+}
+
+type CreateOnionResponse struct {
+	Onion string `json:"onion"`
+	SharedSecrets []string `json:"shared_secrets"`
+}
+
+func (l *Lightning) CreateOnion(hops []Hop, paymentHash, sessionKey string) (*CreateOnionResponse, error) {
+	var response CreateOnionResponse
+	req := CreateOnionRequest{
+		Hops: hops,
+		AssociatedData: paymentHash,
+		SessionKey: sessionKey,
+	}
+
+	err := l.client.Request(&req, &response)
+	return &response, err
+}
+
 type ListChannelRequest struct {
 	ShortChannelId string `json:"short_channel_id,omitempty"`
 	Source         string `json:"source,omitempty"`
@@ -868,6 +951,17 @@ type NodeInfo struct {
 	Network                    string            `json:"network"`
 	FeesCollectedMilliSatoshis uint64            `json:"msatoshi_fees_collected"`
 	FeesCollected              string            `json:"fees_collected_msat"`
+	LightningDir               string            `json:"lightning-dir"`
+	WarningBitcoinSync         string            `json:"warning_bitcoind_sync,omitempty"`
+	WarningLightningSync       string            `json:"warning_lightningd_sync,omitempty"`
+}
+
+func (n *NodeInfo) IsBitcoindSync() bool {
+	return n.WarningBitcoinSync == ""
+}
+
+func (n *NodeInfo) IsLightningdSync() bool {
+	return n.WarningLightningSync == ""
 }
 
 type AddressInternal struct {
@@ -962,6 +1056,7 @@ type SendPayFields struct {
 	Status           string `json:"status"`
 	PaymentPreimage  string `json:"payment_preimage"`
 	Bolt11           string `json:"bolt11"`
+	PartId		 uint64 `json:"partid"`
 }
 
 type SendPayResult struct {
