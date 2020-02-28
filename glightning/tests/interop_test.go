@@ -494,8 +494,8 @@ func TestPlugins(t *testing.T) {
 	// Get the path to our current test binary
 	var val string
 	var ok bool
-	if val, ok = os.LookupEnv("PLUGIN_EXAMPLE"); !ok {
-		t.Skip("No plugin example path (PLUGIN_EXAMPLE) passed in")
+	if val, ok = os.LookupEnv("PLUGINS_PATH"); !ok {
+		t.Skip("No plugin example path (PLUGINS_PATH) passed in")
 	}
 
 	exPlugin := filepath.Join(val, "plugin_example")
@@ -729,8 +729,8 @@ func TestHooks(t *testing.T) {
 	// Get the path to our current test binary
 	var val string
 	var ok bool
-	if val, ok = os.LookupEnv("PLUGIN_EXAMPLE"); !ok {
-		t.Skip("No plugin example path (PLUGIN_EXAMPLE) passed in")
+	if val, ok = os.LookupEnv("PLUGINS_PATH"); !ok {
+		t.Skip("No plugin example path (PLUGINS_PATH) passed in")
 	}
 
 	exPlugin := filepath.Join(val, "plugin_example")
