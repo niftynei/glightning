@@ -1488,14 +1488,14 @@ func (l *Lightning) StartFundChannel(id string, amount uint64, announce bool, fe
 type FundChannelComplete struct {
 	PeerId string `json:"id"`
 	TxId   string `json:"txid"`
-	TxOut  uint16 `json:"txout"`
+	TxOut  uint32 `json:"txout"`
 }
 
 func (r *FundChannelComplete) Name() string {
 	return "fundchannel_complete"
 }
 
-func (l *Lightning) CompleteFundChannel(peerId, txId string, txout uint16) (channelId string, err error) {
+func (l *Lightning) CompleteFundChannel(peerId, txId string, txout uint32) (channelId string, err error) {
 	var result struct {
 		ChannelId          string `json:"channel_id"`
 		CommitmentsSecured bool   `json:"commitments_secured"`
