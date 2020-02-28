@@ -133,12 +133,22 @@ func OnWarning(warn *glightning.Warning) {
 	log.Printf("Got a warning!! %s", warn.Log)
 }
 
+func OnSendPaySuccess(sps *glightning.SendPaySuccess) {
+	log.Printf("send pay success!")
+}
+
+func OnSendPayFailure(spf *glightning.SendPayFailure) {
+	log.Printf("send pay failure!")
+}
+
 func registerSubscriptions(p *glightning.Plugin) {
 	p.SubscribeConnect(OnConnect)
 	p.SubscribeDisconnect(OnDisconnect)
 	p.SubscribeInvoicePaid(OnInvoicePaid)
 	p.SubscribeChannelOpened(OnChannelOpened)
 	p.SubscribeWarnings(OnWarning)
+	p.SubscribeSendPaySuccess(OnSendPaySuccess)
+	p.SubscribeSendPayFailure(OnSendPayFailure)
 }
 
 /* Hook Examples */

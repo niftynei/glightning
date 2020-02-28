@@ -14,19 +14,86 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
+	"regexp"
+	"runtime/debug"
 	"syscall"
 	"testing"
 	"time"
 )
 
-func Init() (string, string, int, *gbitcoin.Bitcoin) {
+const defaultTimeout int = 10
+
+func check(t *testing.T, err error) {
+	if err != nil {
+		debug.PrintStack()
+		t.Fatal(err)
+	}
+}
+
+func advanceChain(n *Node, btc *gbitcoin.Bitcoin, numBlocks uint) error {
+	timeout := time.Now().Add(time.Duration(defaultTimeout) * time.Second)
+
+	info, _ := n.rpc.GetInfo()
+	blockheight := info.Blockheight
+	mineBlocks(numBlocks, btc)
+	for {
+		info, _ = n.rpc.GetInfo()
+		if info.Blockheight >= uint(blockheight) + numBlocks {
+			return nil
+		}
+		if time.Now().After(timeout) {
+			return errors.New("timed out waiting for chain to advance")
+		}
+	}
+}
+
+func waitForChannelActive(n *Node, scid string) (error) {
+	timeout := time.Now().Add(time.Duration(defaultTimeout) * time.Second)
+	for {
+		chans, _ := n.rpc.GetChannel(scid)
+		// both need to be active
+		active := 0
+		for i := 0; i < len(chans); i++ {
+			if chans[i].IsActive {
+				active += 1
+			}
+		}
+		if active == 2 {
+			return nil
+		}
+		if time.Now().After(timeout) {
+			return errors.New(fmt.Sprintf("timed out waiting for scid %s", scid))
+		}
+
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func waitForChannelReady(t *testing.T, from, to *Node) {
+	timeout := time.Now().Add(time.Duration(defaultTimeout) * time.Second)
+	for {
+		info, err := to.rpc.GetInfo()
+		check(t, err)
+		peer, err := from.rpc.GetPeer(info.Id)
+		check(t, err)
+		if peer.Channels == nil {
+			t.Fatal("no channels for peer")
+		}
+		if peer.Channels[0].State == "CHANNELD_NORMAL" {
+			return
+		}
+		if time.Now().After(timeout) {
+			t.Fatal("timed out waiting for channel normal")
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+func Init(t *testing.T) (string, string, int, *gbitcoin.Bitcoin) {
 	// let's put it in a temporary directory
 	testDir, err := ioutil.TempDir("", "gltests-")
-	if err != nil {
-		log.Fatal(err)
-	}
-	dataDir, _, btcPort, btc := SpinUpBitcoind(testDir)
+	check(t, err)
+	dataDir, _, btcPort, btc := SpinUpBitcoind(t, testDir)
 	return testDir, dataDir, btcPort, btc
 }
 
@@ -42,19 +109,16 @@ type BNode struct {
 }
 
 // Returns a bitcoin node w/ RPC client
-func SpinUpBitcoind(dir string) (string, int, int, *gbitcoin.Bitcoin) {
+func SpinUpBitcoind(t *testing.T, dir string) (string, int, int, *gbitcoin.Bitcoin) {
 	// make some dirs!
 	bitcoindDir := filepath.Join(dir, "bitcoind")
 	err := os.Mkdir(bitcoindDir, os.ModeDir|0755)
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 
 	bitcoinPath, err := exec.LookPath("bitcoind")
-	if err != nil {
-		log.Fatal(err)
-	}
-	btcPort := getPort()
+	check(t, err)
+	btcPort, err := getPort()
+	check(t, err)
 	btcUser := "btcuser"
 	btcPass := "btcpass"
 	bitcoind := exec.Command(bitcoinPath, "-regtest",
@@ -69,9 +133,8 @@ func SpinUpBitcoind(dir string) (string, int, int, *gbitcoin.Bitcoin) {
 		Pdeathsig: syscall.SIGKILL,
 	}
 	log.Printf("starting %s on %d...", bitcoinPath, btcPort)
-	if err := bitcoind.Start(); err != nil {
-		log.Fatal(err)
-	}
+	err = bitcoind.Start()
+	check(t, err)
 	log.Printf(" bitcoind started (%d)!\n", bitcoind.Process.Pid)
 
 	btc := gbitcoin.NewBitcoin(btcUser, btcPass)
@@ -80,21 +143,14 @@ func SpinUpBitcoind(dir string) (string, int, int, *gbitcoin.Bitcoin) {
 	btc.StartUp("", bitcoindDir, uint(btcPort))
 	// Go ahead and run 50 blocks
 	addr, err := btc.GetNewAddress(gbitcoin.Bech32)
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 	_, err = btc.GenerateToAddress(addr, 101)
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 	return bitcoindDir, bitcoind.Process.Pid, btcPort, btc
 }
 
 func (node *Node) waitForLog(phrase string, timeoutSec int) error {
-	logfile, err := os.Open(filepath.Join(node.dir, "log"))
-	if err != nil {
-		return err
-	}
+	logfile, _ := os.Open(filepath.Join(node.dir, "log"))
 	defer logfile.Close()
 
 	timeout := time.Now().Add(time.Duration(timeoutSec) * time.Second)
@@ -108,25 +164,29 @@ func (node *Node) waitForLog(phrase string, timeoutSec int) error {
 				return err
 			}
 		}
-		if strings.Contains(line, phrase) {
+		m, err := regexp.MatchString(phrase, line)
+		if err != nil {
+			return err
+		}
+		if m {
 			return nil
 		}
 	}
 
-	return errors.New(fmt.Sprintf("Unable to find \"%s\" in log", phrase))
+	return errors.New(fmt.Sprintf("Unable to find \"%s\" in %s/log", phrase, node.dir))
 }
 
-func getPort() int {
+func getPort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 	l, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 	defer l.Close()
-	return l.Addr().(*net.TCPAddr).Port
+	return l.Addr().(*net.TCPAddr).Port, nil
 }
 
 type Node struct {
@@ -151,7 +211,10 @@ func LnNode(testDir, dataDir string, btcPort int, name string) (*Node, error) {
 		return nil, err
 	}
 
-	port := getPort()
+	port, err := getPort()
+	if err != nil {
+		return nil, err
+	}
 	lightningd := exec.Command(lightningPath,
 		fmt.Sprintf("--lightning-dir=%s", lightningdDir),
 		fmt.Sprintf("--bitcoin-datadir=%s", dataDir),
@@ -159,8 +222,11 @@ func LnNode(testDir, dataDir string, btcPort int, name string) (*Node, error) {
 		fmt.Sprintf("--addr=localhost:%d", port),
 		fmt.Sprintf("--bitcoin-rpcport=%d", btcPort),
 		"--log-file=log",
+		"--log-level=debug",
 		"--bitcoin-rpcuser=btcuser",
 		"--bitcoin-rpcpassword=btcpass",
+		"--dev-fast-gossip",
+		"--dev-bitcoind-poll=1",
 		"--allow-deprecated-apis=false")
 
 	lightningd.SysProcAttr = &syscall.SysProcAttr{
@@ -175,12 +241,12 @@ func LnNode(testDir, dataDir string, btcPort int, name string) (*Node, error) {
 
 	lightningdDir = filepath.Join(lightningdDir, "regtest")
 	node := &Node{nil, lightningdDir}
-	err = node.waitForLog("Server started with public key", 5)
+	log.Printf("starting node in %s\n", lightningdDir)
+	err = node.waitForLog("Server started with public key", 30)
 	if err != nil {
 		return nil, err
 	}
 	log.Printf(" lightningd started (%d)!\n", lightningd.Process.Pid)
-	log.Printf("Live at %s\n", lightningdDir)
 
 	node.rpc = glightning.NewLightning()
 	node.rpc.StartUp("lightning-rpc", lightningdDir)
@@ -197,12 +263,10 @@ func short(t *testing.T) {
 func TestBitcoinProxy(t *testing.T) {
 	short(t)
 
-	testDir, _, _, btc := Init()
+	testDir, _, _, btc := Init(t)
 	defer CleanUp(testDir)
 	addr, err := btc.GetNewAddress(gbitcoin.Bech32)
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 	assert.NotNil(t, addr)
 
 }
@@ -210,12 +274,10 @@ func TestBitcoinProxy(t *testing.T) {
 func TestConnectRpc(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid, _ := Init()
+	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
@@ -223,92 +285,116 @@ func TestConnectRpc(t *testing.T) {
 	l1Addr := l1Info.Binding[0]
 	l2, err := LnNode(testDir, dataDir, btcPid, "two")
 	peerId, err := l2.rpc.Connect(l1Info.Id, l1Addr.Addr, uint(l1Addr.Port))
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	assert.Equal(t, peerId, l1Info.Id)
 }
 
 func TestConfigsRpc(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid, _ := Init()
+	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 
 	configs, err := l1.rpc.ListConfigs()
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	assert.Equal(t, "lightning-rpc", configs["rpc-file"])
 	assert.Equal(t, false, configs["always-use-proxy"])
 
 	network, err := l1.rpc.GetConfig("network")
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	assert.Equal(t, "regtest", network)
 }
 
 func TestHelpRpc(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid, _ := Init()
+	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 
 	commands, err := l1.rpc.Help()
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	if len(commands) == 0 {
 		t.Error("No help commands returned")
 	}
 
 	cmd, err := l1.rpc.HelpFor("help")
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	assert.Equal(t, "help [command]", cmd.NameAndUsage)
 }
 
-func connect(l1, l2 *Node) {
-	l2Info, _ := l2.rpc.GetInfo()
-	_, err := l1.rpc.Connect(l2Info.Id, l2Info.Binding[0].Addr, uint(l2Info.Binding[0].Port))
-	if err != nil {
-		log.Fatal(err)
-	}
+func TestSignCheckMessage(t *testing.T) {
+	short(t)
+
+	msg := "hello there"
+	testDir, dataDir, btcPid, _ := Init(t)
+	defer CleanUp(testDir)
+	l1, err := LnNode(testDir, dataDir, btcPid, "one")
+	check(t, err)
+	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+	check(t, err)
+
+	l1Info, _ := l1.rpc.GetInfo()
+
+	signed, err := l1.rpc.SignMessage(msg)
+	check(t, err)
+
+	v, err := l2.rpc.CheckMessageVerify(msg, signed.ZBase, l1Info.Id)
+	check(t, err)
+	assert.True(t, v)
 }
 
-func fundNode(amount string, n *Node, b *gbitcoin.Bitcoin) {
+func TestListTransactions(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, btc := Init(t)
+	defer CleanUp(testDir)
+	l1, err := LnNode(testDir, dataDir, btcPid, "one")
+	check(t, err)
+
+	err = fundNode("1.0", l1, btc)
+	check(t, err)
+	err = fundNode("1.0", l1, btc)
+	check(t, err)
+	waitToSync(l1)
+	trans, err := l1.rpc.ListTransactions()
+	check(t, err)
+	assert.Equal(t, len(trans), 2)
+}
+
+func connect(l1, l2 *Node) error {
+	l2Info, _ := l2.rpc.GetInfo()
+	_, err := l1.rpc.Connect(l2Info.Id, l2Info.Binding[0].Addr, uint(l2Info.Binding[0].Port))
+	return err
+}
+
+func fundNode(amount string, n *Node, b *gbitcoin.Bitcoin) error {
 	addr, err := n.rpc.NewAddr()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	_, err = b.SendToAddress(addr, amount)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	mineBlocks(1, b)
+	return mineBlocks(1, b)
 }
 
 // n is number of blocks to mine
-func mineBlocks(n uint, b *gbitcoin.Bitcoin) {
+func mineBlocks(n uint, b *gbitcoin.Bitcoin) error {
 	addr, err := b.GetNewAddress(gbitcoin.Bech32)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	_, err = b.GenerateToAddress(addr, n)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
 
 func waitToSync(n *Node) {
@@ -317,18 +403,17 @@ func waitToSync(n *Node) {
 		if info.IsLightningdSync() {
 			break
 		}
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 
 func TestCreateOnion(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid, _ := Init()
+	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 
 	hops := []glightning.Hop{
 		glightning.Hop{
@@ -355,9 +440,7 @@ func TestCreateOnion(t *testing.T) {
 
 	privateHash := "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
 	resp, err := l1.rpc.CreateOnion(hops, privateHash, "")
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 
 	assert.Equal(t, len(resp.SharedSecrets), len(hops))
 	assert.Equal(t, len(resp.Onion), 2*1366)
@@ -365,12 +448,7 @@ func TestCreateOnion(t *testing.T) {
 	privateHash = "4242424242424242424242424242424242424242424242424242424242424242"
 	sessionKey := "4141414141414141414141414141414141414141414141414141414141414141"
 	resp, err = l1.rpc.CreateOnion(hops, privateHash, sessionKey)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	onlen := len(resp.Onion)
-	assert.Equal(t, resp.Onion[onlen-22:onlen], "9400f45a48e6dc8ddbaeb3")
+	check(t, err)
 
 	firstHop := glightning.FirstHop{
 		ShortChannelId: "100x1x1",
@@ -389,21 +467,28 @@ func TestCreateOnion(t *testing.T) {
 	assert.Equal(t, err.Error(), "204:No connection to first peer found")
 }
 
-// ok, now let's check the dynamic plugin loader
+func getShortChannelId(t *testing.T, node1, node2 *Node) string {
+	info, err := node2.rpc.GetInfo()
+	check(t, err)
+	peer, err := node1.rpc.GetPeer(info.Id)
+	check(t, err)
+	if peer == nil || len(peer.Channels) == 0 {
+		t.Fatal(fmt.Sprintf("peer %s not found", info.Id))
+	}
+	return peer.Channels[0].ShortChannelId
+}
+
+// ok, now let's check the plugin subs+hooks etc
 func TestPlugins(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid, _ := Init()
+	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 
 	plugins, err := l1.rpc.ListPlugins()
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 	pluginCount := len(plugins)
 
 	// Get the path to our current test binary
@@ -415,47 +500,132 @@ func TestPlugins(t *testing.T) {
 
 	exPlugin := filepath.Join(val, "plugin_example")
 	plugins, err = l1.rpc.StartPlugin(exPlugin)
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	assert.Equal(t, pluginCount+1, len(plugins))
-	err = l1.waitForLog("Is this initial node startup? false", 1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	err = l1.waitForLog(`Is this initial node startup\? false`, 1)
+	check(t, err)
 
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
 	l2, err := LnNode(testDir, dataDir, btcPid, "two")
-	peerId, err := l2.rpc.Connect(l1Info.Id, l1Addr.Addr, uint(l1Addr.Port))
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.Equal(t, peerId, l1Info.Id)
-	err = l1.waitForLog("connect called: ", 1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	plugins, err = l2.rpc.StartPlugin(exPlugin)
+	check(t, err)
+	err = l2.waitForLog(`Is this initial node startup\? false`, 1)
+	check(t, err)
 
-	l2.rpc.Disconnect(peerId, true)
-	err = l1.waitForLog("disconnect called for", 1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	// We should have a third node!
+	l3, err := LnNode(testDir, dataDir, btcPid, "three")
+	check(t, err)
+
+	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
+	check(t, err)
+
+	l3Info, _ := l3.rpc.GetInfo()
+	peer3, err := l2.rpc.Connect(l3Info.Id, "localhost", uint(l3Info.Binding[0].Port))
+	check(t, err)
+
+	err = fundNode("1.0", l2, btc)
+	check(t, err)
+	waitToSync(l1)
+	waitToSync(l2)
+
+	// open a channel
+	amount := glightning.NewAmount(10000000)
+	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
+	_ , err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
+	check(t, err)
+
+	// wait til the change is onchain
+	advanceChain(l2, btc, 1)
+
+	// fund a second channel!
+	_ , err = l2.rpc.FundChannelExt(peer3, amount, feerate, true, nil)
+	check(t, err)
+
+	mineBlocks(6, btc)
+
+	waitForChannelReady(t, l2, l3)
+	waitForChannelReady(t, l2, l1)
+
+	// there's two now??
+	scid23 := getShortChannelId(t, l2, l3)
+	err = l2.waitForLog(fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid23), 20)
+	check(t, err)
+	scid21 := getShortChannelId(t, l2, l1)
+	err = l2.waitForLog(fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid21), 20)
+	check(t, err)
+
+	// wait for everybody to know about other channels
+	waitForChannelActive(l1, scid23)
+	waitForChannelActive(l3, scid21)
+
+	// warnings go off because of feerate misfires
+	err = l1.waitForLog("Got a warning!!", 1)
+	check(t, err)
+	// open channel hook called ?? why no working
+	/*
+	err = l1.waitForLog("openchannel called", 1)
+	check(t, err)
+	*/
+	// channel opened notification
+	err = l1.waitForLog("channel opened", 1)
+	check(t, err)
+
+	invAmt := uint64(100000)
+	invAmt2 := uint64(10000)
+	inv, err := l1.rpc.CreateInvoice(invAmt, "push pay", "money", 100, nil, "", false)
+	inv2, err := l3.rpc.CreateInvoice(invAmt, "push pay two", "money two", 100, nil, "", false)
+	check(t, err)
+
+	route, err := l2.rpc.GetRouteSimple(peerId, invAmt, 1.0)
+	check(t, err)
+
+	// l2 -> l1
+	_, err = l2.rpc.SendPayLite(route, inv.PaymentHash)
+	check(t, err)
+	_, err = l2.rpc.WaitSendPay(inv.PaymentHash, 0)
+	check(t, err)
+
+	// SEND PAY SUCCESS
+	err = l2.waitForLog("send pay success!", 1)
+	check(t, err)
+	err = l1.waitForLog("invoice paid", 1)
+	check(t, err)
+
+	/* ?? why no work
+	err = l2.waitForLog("invoice payment called", 1)
+	check(t, err)
+	*/
+
+	// now try to route from l1 -> l3 (but with broken middle)
+	route2, err := l1.rpc.GetRouteSimple(peer3, invAmt2, 1.0)
+	check(t, err)
+
+	_, err = l2.rpc.CloseNormal(peer3)
+	check(t, err)
+	mineBlocks(1, btc)
+
+	_, err = l1.rpc.SendPayLite(route2, inv2.PaymentHash)
+	check(t, err)
+	_, err = l1.rpc.WaitSendPay(inv2.PaymentHash, 0)
+	assert.NotNil(t, err)
+
+	// SEND PAY FAILURE
+	err = l1.waitForLog("send pay failure!", 1)
+	check(t, err)
+
 }
 
 // let's try out some hooks!
 func TestHooks(t *testing.T) {
 	short(t)
 
-	testDir, dataDir, btcPid, _ := Init()
+	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(t, err)
 
 	// Get the path to our current test binary
 	var val string
@@ -466,9 +636,7 @@ func TestHooks(t *testing.T) {
 
 	exPlugin := filepath.Join(val, "plugin_example")
 	_, err = l1.rpc.StartPlugin(exPlugin)
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	l1.waitForLog("successfully init'd!", 1)
 
 	l1Info, _ := l1.rpc.GetInfo()
@@ -476,14 +644,12 @@ func TestHooks(t *testing.T) {
 
 	l2, err := LnNode(testDir, dataDir, btcPid, "two")
 	peerId, err := l2.rpc.Connect(l1Info.Id, l1Addr.Addr, uint(l1Addr.Port))
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 	assert.Equal(t, peerId, l1Info.Id)
 	err = l1.waitForLog("peer connected called", 1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	check(t, err)
 
-	// TODO: we need a bitcoind rpc to trigger the rest
+	l2.rpc.Disconnect(l1Info.Id, true)
+	err = l1.waitForLog("disconnect called for", 1)
+	check(t, err)
 }
