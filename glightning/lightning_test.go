@@ -205,14 +205,14 @@ func TestListPeers(t *testing.T) {
 			LocalTrimmed: true,
 		},
 	}
-	expected := []glightning.Peer{
-		glightning.Peer{
+	expected := []*glightning.Peer{
+		&glightning.Peer{
 			Id:           "02e3cd7849f177a46f137ae3bfc1a08fc6a90bf4026c74f83c1ecc8430c282fe96",
 			Connected:    true,
 			NetAddresses: []string{"0.0.0.0:6677"},
 			Features:     "8a",
-			Channels: []glightning.PeerChannel{
-				glightning.PeerChannel{
+			Channels: []*glightning.PeerChannel{
+				&glightning.PeerChannel{
 					State:                            "CHANNELD_NORMAL",
 					ScratchTxId:                      "cd13ba846709958bfd073155283c3493f08f7db1bb4ef199c014559e5505d18d",
 					Owner:                            "lightning_channeld",
@@ -1525,8 +1525,8 @@ func TestListChannels(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []glightning.Channel{
-		glightning.Channel{
+	assert.Equal(t, []*glightning.Channel{
+		&glightning.Channel{
 			Source:                   "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
 			Destination:              "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
 			ShortChannelId:           "556297x2967x0",
@@ -1543,7 +1543,7 @@ func TestListChannels(t *testing.T) {
 			HtlcMinimumMilliSatoshis: "0msat",
 			HtlcMaximumMilliSatoshis: "4294967295msat",
 		},
-		glightning.Channel{
+		&glightning.Channel{
 			Source:                   "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
 			Destination:              "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
 			ShortChannelId:           "556297x2967x0",

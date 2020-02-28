@@ -87,8 +87,8 @@ type Peer struct {
 	Connected    bool          `json:"connected"`
 	NetAddresses []string      `json:"netaddr"`
 	Features     string        `json:"features"`
-	Channels     []PeerChannel `json:"channels"`
-	Logs         []Log         `json:"log,omitempty"`
+	Channels     []*PeerChannel `json:"channels"`
+	Logs         []*Log         `json:"log,omitempty"`
 }
 
 type PeerChannel struct {
@@ -153,10 +153,33 @@ type Htlc struct {
 	LocalTrimmed bool   `json:"local_trimmed"`
 }
 
+// Show current peer {peerId}.
+func (l *Lightning) GetPeer(peerId string) (*Peer, error) {
+	return l.GetPeerWithLogs(peerId, None)
+}
+
+func (l *Lightning) GetPeerWithLogs(peerId string, level LogLevel) (*Peer, error) {
+	peers, err := l.getPeers(peerId, level)
+	if len(peers) == 0 {
+		return nil, errors.New(fmt.Sprintf("Peer %s not found", peerId))
+	}
+	return peers[0], err
+}
+
+// Show current peers, if {level} is set, include logs.
+func (l *Lightning) ListPeersWithLogs(level LogLevel) ([]*Peer, error) {
+	return l.getPeers("", level)
+}
+
+// Show current peers
+func (l *Lightning) ListPeers() ([]*Peer, error) {
+	return l.getPeers("", None)
+}
+
 // Show current peer {peerId}. If {level} is set, include logs.
-func (l *Lightning) GetPeer(peerId string, level LogLevel) ([]Peer, error) {
+func (l *Lightning) getPeers(peerId string, level LogLevel) ([]*Peer, error) {
 	var result struct {
-		Peers []Peer `json:"peers"`
+		Peers []*Peer `json:"peers"`
 	}
 
 	request := &ListPeersRequest{
@@ -168,16 +191,6 @@ func (l *Lightning) GetPeer(peerId string, level LogLevel) ([]Peer, error) {
 
 	err := l.client.Request(request, &result)
 	return result.Peers, err
-}
-
-// Show current peers, if {level} is set, include logs.
-func (l *Lightning) ListPeersWithLogs(level LogLevel) ([]Peer, error) {
-	return l.GetPeer("", level)
-}
-
-// Show current peers
-func (l *Lightning) ListPeers() ([]Peer, error) {
-	return l.GetPeer("", None)
 }
 
 type ListNodeRequest struct {
@@ -407,23 +420,26 @@ type Channel struct {
 }
 
 // Get channel by {shortChanId}
-func (l *Lightning) GetChannel(shortChanId string) ([]Channel, error) {
+func (l *Lightning) GetChannel(shortChanId string) ([]*Channel, error) {
 	var result struct {
-		Channels []Channel `json:"channels"`
+		Channels []*Channel `json:"channels"`
 	}
 	err := l.client.Request(&ListChannelRequest{shortChanId, ""}, &result)
+	if len(result.Channels) == 0 {
+		return nil, errors.New(fmt.Sprintf("No channel found for short channel id %s", shortChanId))
+	}
 	return result.Channels, err
 }
 
-func (l *Lightning) ListChannelsBySource(nodeId string) ([]Channel, error) {
+func (l *Lightning) ListChannelsBySource(nodeId string) ([]*Channel, error) {
 	var result struct {
-		Channels []Channel `json:"channels"`
+		Channels []*Channel `json:"channels"`
 	}
 	err := l.client.Request(&ListChannelRequest{"", nodeId}, &result)
 	return result.Channels, err
 }
 
-func (l *Lightning) ListChannels() ([]Channel, error) {
+func (l *Lightning) ListChannels() ([]*Channel, error) {
 	return l.GetChannel("")
 }
 
