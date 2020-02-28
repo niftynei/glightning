@@ -618,6 +618,59 @@ func TestPlugins(t *testing.T) {
 
 }
 
+func TestCloseTo(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, btc := Init(t)
+	defer CleanUp(testDir)
+	l1, err := LnNode(testDir, dataDir, btcPid, "one")
+	check(t, err)
+
+	l1Info, _ := l1.rpc.GetInfo()
+	assert.Equal(t, 1, len(l1Info.Binding))
+
+	l1Addr := l1Info.Binding[0]
+	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+
+	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
+	check(t, err)
+
+	err = fundNode("1.0", l2, btc)
+	check(t, err)
+	waitToSync(l1)
+	waitToSync(l2)
+
+	closeTo, err := btc.GetNewAddress(gbitcoin.Bech32)
+	check(t, err)
+	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
+	amount := uint64(100000)
+	starter, err := l2.rpc.StartFundChannel(peerId, amount, true, feerate, closeTo)
+	check(t, err)
+
+	// build a transaction
+	outs := []*gbitcoin.TxOut{
+		&gbitcoin.TxOut{
+			Address: starter.Address,
+			Satoshi: amount,
+		},
+	}
+	rawtx, err := btc.CreateRawTx(nil, outs, nil, nil)
+	check(t, err)
+	fundedtx, err := btc.FundRawTx(rawtx)
+	check(t, err)
+	tx, err := btc.DecodeRawTx(fundedtx.TxString)
+	check(t, err)
+	txout, err := tx.FindOutputIndex(starter.Address)
+	check(t, err)
+	_, err = l2.rpc.CompleteFundChannel(peerId, tx.TxId, txout)
+	check(t, err)
+
+	peer, err := l2.rpc.GetPeer(peerId)
+	check(t, err)
+
+	assert.Equal(t, closeTo, peer.Channels[0].CloseToAddress)
+}
+
 func TestInvoiceFieldsOnPaid(t *testing.T) {
 	short(t)
 
