@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/niftynei/glightning/jrpc2"
 	"log"
+	"math"
 	"net/http"
 	"strconv"
 	"sync/atomic"
@@ -215,6 +216,215 @@ func (b *Bitcoin) SendToAddress(address, amount string) (string, error) {
 		Amount:  amount,
 	}, &result)
 	return result, err
+}
+
+type TxIn struct {
+	TxId     string `json:"txid"`
+	Vout     uint   `json:"vout"`
+	Sequence uint   `json:"sequence,omitempty"`
+}
+
+type TxOut struct {
+	Address string
+	Satoshi uint64
+}
+
+func (o *TxOut) Marshal() []byte {
+	// we need to convert the satoshi into bitcoin
+	// FIXME: check uint64 to float64 conversion
+	amt := float64(o.Satoshi) / math.Pow(10, 8)
+	log.Printf(`{"%s":"%f"`, o.Address, amt)
+	return []byte(fmt.Sprintf(`{"%s":"%f"}`, o.Address, amt))
+}
+
+// Because we're using a weird JSON marshaler for parameter packing
+// we encode the outputs before passing them along as a request (instead
+// of writing a custom json Marshaler)
+func stringifyOutputs(outs []*TxOut) []json.RawMessage {
+	results := make([]json.RawMessage, len(outs))
+
+	for i := 0; i < len(outs); i++ {
+		results[i] = json.RawMessage(outs[i].Marshal())
+	}
+
+	return results
+}
+
+type CreateRawTransactionReq struct {
+	Ins         []*TxIn           `json:"inputs"`
+	Outs        []json.RawMessage `json:"outputs"`
+	Locktime    *uint32           `json:"locktime,omitempty"`
+	Replaceable *bool             `json:"replaceable,omitempty"`
+}
+
+func (r *CreateRawTransactionReq) Name() string {
+	return "createrawtransaction"
+}
+
+func (b *Bitcoin) CreateRawTx(ins []*TxIn, outs []*TxOut, locktime *uint32, replaceable *bool) (string, error) {
+	if len(outs) == 0 {
+		return "", errors.New("Must provide at least one output")
+	}
+
+	// bitcoind requires at least an empty array
+	if ins == nil {
+		ins = make([]*TxIn, 0)
+	}
+	request := &CreateRawTransactionReq{
+		Ins:         ins,
+		Outs:        stringifyOutputs(outs),
+		Locktime:    locktime,
+		Replaceable: replaceable,
+	}
+
+	var resp string
+	err := b.request(request, &resp)
+	return resp, err
+}
+
+type FundRawOptions struct {
+	ChangeAddress   string `json:"changeAddress,omitempty"`
+	ChangePosition  *uint  `json:"changePosition,omitempty"`
+	ChangeType      string `json:"change_type,omitempty"`
+	IncludeWatching *bool  `json:"includeWatching,omitempty"`
+	LockUnspents    *bool  `json:"lockUnspents,omitempty"`
+	FeeRate         string `json:"feeRate,omitempty"`
+	// The fee will be equally deducted from the amount of each specified output.
+	// Those recipients will receive less bitcoins than you enter in their
+	//   corresponding amount field.
+	// If no outputs are specified here, the sender pays the fee.
+	// array values: The zero-based output index to deduct fee from,
+	//   before a change output is added.
+	SubtractFeeFromOutputs []uint `json:"subtractFeeFromOutputs,omitempty"`
+	Replaceable            *bool  `json:"replaceable,omitempty"`
+	ConfirmationTarget     uint   `json:"conf_target,omitempty"`
+	EstimateMode           string `json:"estimate_mode,omitempty"`
+}
+
+type FundRawTransactionReq struct {
+	TxString  string          `json:"hexstring"`
+	Options   *FundRawOptions `json:"options,omitempty"`
+	IsWitness *bool           `json:"iswitness,omitempty"`
+}
+
+func (r *FundRawTransactionReq) Name() string {
+	return "fundrawtransaction"
+}
+
+type FundRawResult struct {
+	TxString string  `json:"hex"`
+	Fee      float64 `json:"fee"`
+	// Position of the added change output, or -1
+	ChangePosition int `json:"chanepos"`
+}
+
+func (f *FundRawResult) HasChange() bool {
+	return f.ChangePosition != -1
+}
+
+// Defaults to a segwit transaction
+func (b *Bitcoin) FundRawTx(txstring string) (*FundRawResult, error) {
+	return b.FundRawWithOptions(txstring, nil, nil)
+}
+
+func (b *Bitcoin) FundRawWithOptions(txstring string, options *FundRawOptions, iswitness *bool) (*FundRawResult, error) {
+	var resp FundRawResult
+	err := b.request(&FundRawTransactionReq{
+		TxString:  txstring,
+		Options:   options,
+		IsWitness: iswitness,
+	}, &resp)
+	return &resp, err
+}
+
+type SendRawTransactionReq struct {
+	TxString      string `json:"hexstring"`
+	AllowHighFees *bool  `json:"allowhighfees,omitempty'`
+}
+
+func (r *SendRawTransactionReq) Name() string {
+	return "sendrawtransaction"
+}
+
+func (b *Bitcoin) SendRawTx(txstring string) (string, error) {
+	var result string
+	err := b.request(&SendRawTransactionReq{
+		TxString: txstring,
+	}, &result)
+	return result, err
+}
+
+type DecodeRawTransactionReq struct {
+	TxString  string `json:"hexstring"`
+	IsWitness *bool  `json:"iswitness,omitempty"`
+}
+
+func (r *DecodeRawTransactionReq) Name() string {
+	return "decoderawtransaction"
+}
+
+type Tx struct {
+	TxId        string      `json:"txid"`
+	Hash        string      `json:"hash"`
+	Size        uint        `json:"size"`
+	VirtualSize uint        `json:"vsize"`
+	Weight      uint        `json:"weight"`
+	Version     uint        `json:"version"`
+	Locktime    uint32      `json:"locktime"`
+	Inputs      []*TxInput  `json:"vin"`
+	Outputs     []*TxOutput `json:"vout"`
+}
+
+type TxInput struct {
+	TxId            string   `json:"txid"`
+	Vout            uint     `json:"vout"`
+	ScriptSignature *Script  `json:"scriptSig"`
+	TxInWitness     []string `json:"txinwitness,omitempty"`
+	Sequence        uint     `json:"sequence"`
+}
+
+type Script struct {
+	Asm string `json:"asm"`
+	Hex string `json:"hex"`
+}
+
+type TxOutput struct {
+	// The value in BTC
+	Value        float64    `json:"value"`
+	Index        uint       `json:"n"`
+	ScriptPubKey *OutScript `json:"scriptPubKey"`
+}
+
+type OutScript struct {
+	Script
+	RequiredSigs uint     `json:"reqSigs"`
+	Type         string   `json:"type"`
+	Addresses    []string `json:"addresses"`
+}
+
+func (tx *Tx) FindOutputIndex(address string) (uint32, error) {
+	for i := 0; i < len(tx.Outputs); i++ {
+		out := tx.Outputs[i]
+		if out.ScriptPubKey == nil {
+			continue
+		}
+		for j := 0; j < len(out.ScriptPubKey.Addresses); j++ {
+			if out.ScriptPubKey.Addresses[j] == address {
+				return uint32(i), nil
+			}
+		}
+	}
+
+	return 0, errors.New(fmt.Sprintf("%s not found", address))
+}
+
+func (b *Bitcoin) DecodeRawTx(txstring string) (*Tx, error) {
+	var resp Tx
+	err := b.request(&DecodeRawTransactionReq{
+		TxString: txstring,
+	}, &resp)
+
+	return &resp, err
 }
 
 // for now, use a counter as the id for requests
