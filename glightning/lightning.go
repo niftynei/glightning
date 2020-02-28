@@ -83,10 +83,10 @@ func (r *ListPeersRequest) Name() string {
 }
 
 type Peer struct {
-	Id           string        `json:"id"`
-	Connected    bool          `json:"connected"`
-	NetAddresses []string      `json:"netaddr"`
-	Features     string        `json:"features"`
+	Id           string         `json:"id"`
+	Connected    bool           `json:"connected"`
+	NetAddresses []string       `json:"netaddr"`
+	Features     string         `json:"features"`
 	Channels     []*PeerChannel `json:"channels"`
 	Logs         []*Log         `json:"log,omitempty"`
 }
@@ -310,10 +310,10 @@ func (l *Lightning) GetRoute(peerId string, msats uint64, riskfactor float32, cl
 }
 
 type SendOnionRequest struct {
-	Onion string `json:"onion"`
-	FirstHop FirstHop `json:"first_hop"`
-	PaymentHash string `json:"payment_hash"`
-	Label string `json:"label,omitempty"`
+	Onion         string   `json:"onion"`
+	FirstHop      FirstHop `json:"first_hop"`
+	PaymentHash   string   `json:"payment_hash"`
+	Label         string   `json:"label,omitempty"`
 	SharedSecrets []string `json:"shared_secrets,omitempty"`
 	// For MPP payments!
 	PartId uint64 `json:"partid,omitempty"`
@@ -338,8 +338,8 @@ func (l *Lightning) SendOnionWithDetails(onion string, hop FirstHop, paymentHash
 	var response SendPayFields
 
 	req := SendOnionRequest{
-		Onion: onion,
-		FirstHop: hop,
+		Onion:       onion,
+		FirstHop:    hop,
 		PaymentHash: paymentHash,
 	}
 
@@ -357,7 +357,6 @@ func (l *Lightning) SendOnionWithDetails(onion string, hop FirstHop, paymentHash
 	return &response, err
 }
 
-
 type CreateOnionRequest struct {
 	Hops []Hop `json:"hops"`
 	// Data onion should commit to, must match `payment_hash`
@@ -371,21 +370,21 @@ func (r *CreateOnionRequest) Name() string {
 }
 
 type Hop struct {
-	Pubkey string `json:"pubkey"`
+	Pubkey  string `json:"pubkey"`
 	Payload string `json:"payload"`
 }
 
 type CreateOnionResponse struct {
-	Onion string `json:"onion"`
+	Onion         string   `json:"onion"`
 	SharedSecrets []string `json:"shared_secrets"`
 }
 
 func (l *Lightning) CreateOnion(hops []Hop, paymentHash, sessionKey string) (*CreateOnionResponse, error) {
 	var response CreateOnionResponse
 	req := CreateOnionRequest{
-		Hops: hops,
+		Hops:           hops,
 		AssociatedData: paymentHash,
-		SessionKey: sessionKey,
+		SessionKey:     sessionKey,
 	}
 
 	err := l.client.Request(&req, &response)
@@ -963,7 +962,7 @@ type NodeInfo struct {
 	Addresses                  []Address         `json:"address"`
 	Binding                    []AddressInternal `json:"binding"`
 	Version                    string            `json:"version"`
-	Blockheight                uint               `json:"blockheight"`
+	Blockheight                uint              `json:"blockheight"`
 	Network                    string            `json:"network"`
 	FeesCollectedMilliSatoshis uint64            `json:"msatoshi_fees_collected"`
 	FeesCollected              string            `json:"fees_collected_msat"`
@@ -1072,7 +1071,7 @@ type SendPayFields struct {
 	Status           string `json:"status"`
 	PaymentPreimage  string `json:"payment_preimage"`
 	Bolt11           string `json:"bolt11"`
-	PartId		 uint64 `json:"partid"`
+	PartId           uint64 `json:"partid"`
 }
 
 type SendPayResult struct {

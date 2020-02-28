@@ -24,24 +24,24 @@ func isDebug() bool {
 }
 
 type Bitcoin struct {
-	isUp bool
-	httpClient *http.Client
-	port uint
-	host string
-	bitcoinDir string
+	isUp           bool
+	httpClient     *http.Client
+	port           uint
+	host           string
+	bitcoinDir     string
 	requestCounter int64
-	username string
-	password string
+	username       string
+	password       string
 }
 
 func NewBitcoin(username, password string) *Bitcoin {
 	bt := &Bitcoin{}
 
 	tr := &http.Transport{
-		MaxIdleConns: 20,
+		MaxIdleConns:    20,
 		IdleConnTimeout: time.Duration(defaultClientTimeout) * time.Second,
 	}
-	bt.httpClient = &http.Client{ Transport: tr }
+	bt.httpClient = &http.Client{Transport: tr}
 	bt.username = username
 	bt.password = password
 	return bt
@@ -53,10 +53,10 @@ func (b *Bitcoin) Endpoint() string {
 
 func (b *Bitcoin) SetTimeout(secs uint) {
 	tr := &http.Transport{
-		MaxIdleConns: 20,
+		MaxIdleConns:    20,
 		IdleConnTimeout: time.Duration(secs) * time.Second,
 	}
-	b.httpClient = &http.Client{ Transport: tr }
+	b.httpClient = &http.Client{Transport: tr}
 }
 
 func (b *Bitcoin) StartUp(host, bitcoinDir string, port uint) {
@@ -72,7 +72,7 @@ func (b *Bitcoin) StartUp(host, bitcoinDir string, port uint) {
 	for {
 		up, err := b.Ping()
 		if up {
-			break;
+			break
 		}
 		if isDebug() {
 			log.Print(err)
@@ -84,7 +84,7 @@ func (b *Bitcoin) StartUp(host, bitcoinDir string, port uint) {
 func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 
 	id := b.NextId()
-	mr := &jrpc2.Request{ id, m }
+	mr := &jrpc2.Request{id, m}
 	jbytes, err := json.Marshal(mr)
 	if err != nil {
 		return err
@@ -106,7 +106,7 @@ func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 	}
 	defer rezp.Body.Close()
 
-	switch (rezp.StatusCode) {
+	switch rezp.StatusCode {
 	case http.StatusUnauthorized:
 		return errors.New("Authorization failed: Incorrect user or password")
 	case http.StatusBadRequest, http.StatusNotFound, http.StatusInternalServerError:
@@ -133,7 +133,7 @@ func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 	return json.Unmarshal(rawResp.Raw, resp)
 }
 
-type PingRequest struct {}
+type PingRequest struct{}
 
 func (r *PingRequest) Name() string {
 	return "ping"
@@ -146,7 +146,7 @@ func (b *Bitcoin) Ping() (bool, error) {
 }
 
 type GetNewAddressRequest struct {
-	Label string `json:"label,omitempty"`
+	Label       string `json:"label,omitempty"`
 	AddressType string `json:"address_type,omitempty"`
 }
 
@@ -159,7 +159,7 @@ const (
 )
 
 func (a AddrType) String() string {
-	return []string{"bech32","p2sh-segwit","legacy"}[a]
+	return []string{"bech32", "p2sh-segwit", "legacy"}[a]
 }
 
 func (r *GetNewAddressRequest) Name() string {
@@ -175,9 +175,9 @@ func (b *Bitcoin) GetNewAddress(addrType AddrType) (string, error) {
 }
 
 type GenerateToAddrRequest struct {
-	NumBlocks uint `json:"nblocks"`
-	Address string `json:"address"`
-	MaxTries uint `json:"maxtries,omitempty"`
+	NumBlocks uint   `json:"nblocks"`
+	Address   string `json:"address"`
+	MaxTries  uint   `json:"maxtries,omitempty"`
 }
 
 func (r *GenerateToAddrRequest) Name() string {
@@ -186,22 +186,22 @@ func (r *GenerateToAddrRequest) Name() string {
 
 func (b *Bitcoin) GenerateToAddress(address string, numBlocks uint) ([]string, error) {
 	var resp []string
-	err := b.request(&GenerateToAddrRequest {
+	err := b.request(&GenerateToAddrRequest{
 		NumBlocks: numBlocks,
-		Address: address,
+		Address:   address,
 	}, &resp)
 	return resp, err
 }
 
 type SendToAddrReq struct {
-	Address string `json:"address"`
-	Amount string `json:"amount"`
-	Comment string `json:"comment,omitempty"`
-	CommentTo string `json:"comment_to,omitempty"`
-	SubtractFeeFromAmount bool `json:"subtractfeefromamount,omitempty"`
-	Replaceable bool `json:"replaceable,omitempty"`
-	ConfirmationTarget uint `json:"conf_target,omitempty"`
-	FeeEstimateMode string `json:"estimate_mode,omitempty"`
+	Address               string `json:"address"`
+	Amount                string `json:"amount"`
+	Comment               string `json:"comment,omitempty"`
+	CommentTo             string `json:"comment_to,omitempty"`
+	SubtractFeeFromAmount bool   `json:"subtractfeefromamount,omitempty"`
+	Replaceable           bool   `json:"replaceable,omitempty"`
+	ConfirmationTarget    uint   `json:"conf_target,omitempty"`
+	FeeEstimateMode       string `json:"estimate_mode,omitempty"`
 }
 
 func (r *SendToAddrReq) Name() string {
@@ -212,7 +212,7 @@ func (b *Bitcoin) SendToAddress(address, amount string) (string, error) {
 	var result string
 	err := b.request(&SendToAddrReq{
 		Address: address,
-		Amount: amount,
+		Amount:  amount,
 	}, &result)
 	return result, err
 }
