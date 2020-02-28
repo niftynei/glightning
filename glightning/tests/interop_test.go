@@ -4,8 +4,8 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/niftynei/glightning/glightning"
 	"github.com/niftynei/glightning/gbitcoin"
+	"github.com/niftynei/glightning/glightning"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
@@ -38,7 +38,7 @@ func advanceChain(n *Node, btc *gbitcoin.Bitcoin, numBlocks uint) error {
 	mineBlocks(numBlocks, btc)
 	for {
 		info, _ = n.rpc.GetInfo()
-		if info.Blockheight >= uint(blockheight) + numBlocks {
+		if info.Blockheight >= uint(blockheight)+numBlocks {
 			return nil
 		}
 		if time.Now().After(timeout) {
@@ -47,7 +47,7 @@ func advanceChain(n *Node, btc *gbitcoin.Bitcoin, numBlocks uint) error {
 	}
 }
 
-func waitForChannelActive(n *Node, scid string) (error) {
+func waitForChannelActive(n *Node, scid string) error {
 	timeout := time.Now().Add(time.Duration(defaultTimeout) * time.Second)
 	for {
 		chans, _ := n.rpc.GetChannel(scid)
@@ -452,12 +452,12 @@ func TestCreateOnion(t *testing.T) {
 
 	firstHop := glightning.FirstHop{
 		ShortChannelId: "100x1x1",
-		Direction: 1,
-		AmountMsat: "1000sat",
-		Delay: 8,
+		Direction:      1,
+		AmountMsat:     "1000sat",
+		Delay:          8,
 	}
 
-	// Ideally we'd do a 'real' send onion but we don't 
+	// Ideally we'd do a 'real' send onion but we don't
 	// need to know if c-lightning works, only that the API
 	// functions correctly...
 	_, err = l1.rpc.SendOnionWithDetails(resp.Onion, firstHop, privateHash, "label", resp.SharedSecrets, nil)
@@ -534,14 +534,14 @@ func TestPlugins(t *testing.T) {
 	// open a channel
 	amount := glightning.NewAmount(10000000)
 	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
-	_ , err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
+	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
 	check(t, err)
 
 	// wait til the change is onchain
 	advanceChain(l2, btc, 1)
 
 	// fund a second channel!
-	_ , err = l2.rpc.FundChannelExt(peer3, amount, feerate, true, nil)
+	_, err = l2.rpc.FundChannelExt(peer3, amount, feerate, true, nil)
 	check(t, err)
 
 	mineBlocks(6, btc)
@@ -566,8 +566,8 @@ func TestPlugins(t *testing.T) {
 	check(t, err)
 	// open channel hook called ?? why no working
 	/*
-	err = l1.waitForLog("openchannel called", 1)
-	check(t, err)
+		err = l1.waitForLog("openchannel called", 1)
+		check(t, err)
 	*/
 	// channel opened notification
 	err = l1.waitForLog("channel opened", 1)
