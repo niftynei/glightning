@@ -1456,7 +1456,7 @@ type FundChannelStart struct {
 	Amount   uint64 `json:"amount"`
 	Announce bool   `json:"announce"`
 	FeeRate  string `json:"feerate,omitempty"`
-	CloseTo  string `json:"close_to"`
+	CloseTo  string `json:"close_to,omitempty"`
 }
 type StartResponse struct {
 	Address      string `json:"funding_address"`

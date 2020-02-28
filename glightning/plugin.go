@@ -177,6 +177,7 @@ type OpenChannelResponse struct {
 	// Only allowed if result is "reject"
 	// Sent back to peer.
 	Message string `json:"error_message,omitempty"`
+	CloseToAddress string `json:"close_to,omitempty"`
 }
 
 func (oc *OpenChannelEvent) New() interface{} {
@@ -203,6 +204,13 @@ func (oc *OpenChannelEvent) Reject(errorMessage string) *OpenChannelResponse {
 func (oc *OpenChannelEvent) Continue() *OpenChannelResponse {
 	return &OpenChannelResponse{
 		Result: OcContinue,
+	}
+}
+
+func (oc *OpenChannelEvent) ContinueWithCloseTo(address string) *OpenChannelResponse {
+	return &OpenChannelResponse{
+		Result: OcContinue,
+		CloseToAddress: address,
 	}
 }
 
