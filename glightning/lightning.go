@@ -99,7 +99,8 @@ type PeerChannel struct {
 	ChannelDirection                 int               `json:"direction"`
 	ChannelId                        string            `json:"channel_id"`
 	FundingTxId                      string            `json:"funding_txid"`
-	Funding                          string            `json:"funding"`
+	CloseToAddress                   string            `json:"close_to_addr,omitempty"`
+	CloseToScript                    string            `json:"close_to,omitempty"`
 	Status                           []string          `json:"status"`
 	Private                          bool              `json:"private"`
 	FundingAllocations               map[string]uint64 `json:"funding_allocation_msat"`
