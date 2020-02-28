@@ -963,7 +963,7 @@ type NodeInfo struct {
 	Addresses                  []Address         `json:"address"`
 	Binding                    []AddressInternal `json:"binding"`
 	Version                    string            `json:"version"`
-	Blockheight                int               `json:"blockheight"`
+	Blockheight                uint               `json:"blockheight"`
 	Network                    string            `json:"network"`
 	FeesCollectedMilliSatoshis uint64            `json:"msatoshi_fees_collected"`
 	FeesCollected              string            `json:"fees_collected_msat"`
