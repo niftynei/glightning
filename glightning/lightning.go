@@ -457,14 +457,21 @@ func (ir *InvoiceRequest) Name() string {
 }
 
 type Invoice struct {
-	PaymentHash     string `json:"payment_hash"`
-	ExpiresAt       uint64 `json:"expires_at"`
-	Bolt11          string `json:"bolt11"`
-	WarningOffline  string `json:"warning_offline"`
-	WarningCapacity string `json:"warning_capacity"`
-	Label           string `json:"label"`
-	Status          string `json:"status"`
-	Description     string `json:"description"`
+	Label                   string `json:"label"`
+	Bolt11                  string `json:"bolt11"`
+	PaymentHash             string `json:"payment_hash"`
+	AmountMilliSatoshi      string `json:"amount_msat,omitempty"`
+	AmountMilliSatoshiRaw   uint64 `json:"msatoshi,omitempty"`
+	Status                  string `json:"status"`
+	PayIndex                uint64 `json:"pay_index,omitempty"`
+	MilliSatoshiReceivedRaw uint64 `json:"msatoshi_received,omitempty"`
+	MilliSatoshiReceived    string `json:"amount_received_msat,omitempty"`
+	PaidAt                  uint64 `json:"paid_at,omitempty"`
+	PaymentPreImage         string `json:"payment_preimage,omitempty"`
+	WarningOffline          string `json:"warning_offline,omitempty"`
+	WarningCapacity         string `json:"warning_capacity,omitempty"`
+	Description             string `json:"description"`
+	ExpiresAt               uint64 `json:"expires_at"`
 }
 
 // Creates an invoice with a value of "any", that can be paid with any amount
@@ -536,14 +543,25 @@ func (r *ListInvoiceRequest) Name() string {
 }
 
 // List all invoices
-func (l *Lightning) ListInvoices() ([]Invoice, error) {
-	return l.GetInvoice("")
+func (l *Lightning) ListInvoices() ([]*Invoice, error) {
+	return l.getInvoices("")
 }
 
 // Show invoice {label}.
-func (l *Lightning) GetInvoice(label string) ([]Invoice, error) {
+func (l *Lightning) GetInvoice(label string) (*Invoice, error) {
+	list, err := l.getInvoices(label)
+	if err != nil {
+		return nil, err
+	}
+	if len(list) == 0 {
+		return nil, errors.New(fmt.Sprintf("Invoice %s not found", label))
+	}
+	return list[0], err
+}
+
+func (l *Lightning) getInvoices(label string) ([]*Invoice, error) {
 	var result struct {
-		List []Invoice `json:"invoices"`
+		List []*Invoice `json:"invoices"`
 	}
 	err := l.client.Request(&ListInvoiceRequest{label}, &result)
 	return result.List, err
@@ -581,8 +599,8 @@ func (r *WaitAnyInvoiceRequest) Name() string {
 // an invoice when it gets paid. The first valid 'pay index' is 1.
 //
 // This blocks until it receives a response.
-func (l *Lightning) WaitAnyInvoice(lastPayIndex uint) (*CompletedInvoice, error) {
-	var result CompletedInvoice
+func (l *Lightning) WaitAnyInvoice(lastPayIndex uint) (*Invoice, error) {
+	var result Invoice
 	err := l.client.RequestNoTimeout(&WaitAnyInvoiceRequest{lastPayIndex}, &result)
 	return &result, err
 }
@@ -595,30 +613,15 @@ func (r *WaitInvoiceRequest) Name() string {
 	return "waitinvoice"
 }
 
-type CompletedInvoice struct {
-	Label                string `json:"label"`
-	Bolt11               string `json:"bolt11"`
-	PaymentHash          string `json:"payment_hash"`
-	Status               string `json:"status"`
-	Description          string `json:"description"`
-	PayIndex             int    `json:"pay_index"`
-	MilliSatoshi         uint64 `json:"msatoshi"`
-	AmountMsat           string `json:"amount_msat"`
-	MilliSatoshiReceived uint64 `json:"msatoshi_received"`
-	ReceivedMsat         string `json:"amount_received_msat"`
-	PaidAt               uint64 `json:"paid_at"`
-	ExpiresAt            uint64 `json:"expires_at"`
-}
-
 // Wait for invoice to be filled or for invoice to expire.
 // This blocks until a result is returned from the server and by
 // passes client timeout safeguards.
-func (l *Lightning) WaitInvoice(label string) (*CompletedInvoice, error) {
+func (l *Lightning) WaitInvoice(label string) (*Invoice, error) {
 	if label == "" {
 		return nil, fmt.Errorf("Must call wait invoice with a label")
 	}
 
-	var result CompletedInvoice
+	var result Invoice
 	err := l.client.RequestNoTimeout(&WaitInvoiceRequest{label}, &result)
 	return &result, err
 }

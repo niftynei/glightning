@@ -618,6 +618,52 @@ func TestPlugins(t *testing.T) {
 
 }
 
+func TestInvoiceFieldsOnPaid(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, btc := Init(t)
+	defer CleanUp(testDir)
+	l1, err := LnNode(testDir, dataDir, btcPid, "one")
+	check(t, err)
+
+	l1Info, _ := l1.rpc.GetInfo()
+	assert.Equal(t, 1, len(l1Info.Binding))
+
+	l1Addr := l1Info.Binding[0]
+	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+
+	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
+	check(t, err)
+
+	err = fundNode("1.0", l2, btc)
+	check(t, err)
+	waitToSync(l1)
+	waitToSync(l2)
+
+	// open a channel
+	amount := glightning.NewAmount(10000000)
+	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
+	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
+	check(t, err)
+
+	// wait til the change is onchain
+	advanceChain(l2, btc, 6)
+	waitForChannelReady(t, l2, l1)
+
+	invAmt := uint64(100000)
+	invO, err := l1.rpc.CreateInvoice(invAmt, "pay me", "money", 100, nil, "", false)
+	check(t, err)
+
+	_, err = l2.rpc.PayBolt(invO.Bolt11)
+	check(t, err)
+
+	invA, err := l1.rpc.GetInvoice("pay me")
+	check(t, err)
+
+	assert.Equal(t, invAmt, invA.MilliSatoshiReceivedRaw)
+	assert.True(t, len(invA.PaymentHash) > 0)
+}
+
 // let's try out some hooks!
 func TestHooks(t *testing.T) {
 	short(t)

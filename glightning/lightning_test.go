@@ -702,19 +702,19 @@ func TestWaitAnyInvoice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &glightning.CompletedInvoice{
-		Label:                "bagatab",
-		Bolt11:               "lnbcrt100n1pwz6a8wpp5249mj72sysuemctra4gsmexjec066g2ra7qkkp2rwvuzxuyhhesqdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqc9ua2tv4kqglsgxnt7l2lcrdajc4juwhtl3jkqqvdnzqfyth5lefx25n0ef8emstfxm4v6dcx8s5ae8ef0ug64nquwdxv9zduggxr8lgpg9m473",
-		PaymentHash:          "554bb9795024399de163ed510de4d2ce1fad2143ef816b05437338237097be60",
-		Status:               "paid",
-		Description:          "desc",
-		ExpiresAt:            1546482931,
-		MilliSatoshiReceived: 10000,
-		ReceivedMsat:         "10000msat",
-		MilliSatoshi:         10000,
-		AmountMsat:           "10000msat",
-		PayIndex:             2,
-		PaidAt:               1546482927,
+	assert.Equal(t, &glightning.Invoice{
+		Label:                   "bagatab",
+		Bolt11:                  "lnbcrt100n1pwz6a8wpp5249mj72sysuemctra4gsmexjec066g2ra7qkkp2rwvuzxuyhhesqdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqc9ua2tv4kqglsgxnt7l2lcrdajc4juwhtl3jkqqvdnzqfyth5lefx25n0ef8emstfxm4v6dcx8s5ae8ef0ug64nquwdxv9zduggxr8lgpg9m473",
+		PaymentHash:             "554bb9795024399de163ed510de4d2ce1fad2143ef816b05437338237097be60",
+		Status:                  "paid",
+		Description:             "desc",
+		ExpiresAt:               1546482931,
+		MilliSatoshiReceivedRaw: 10000,
+		MilliSatoshiReceived:    "10000msat",
+		AmountMilliSatoshiRaw:   10000,
+		AmountMilliSatoshi:      "10000msat",
+		PayIndex:                2,
+		PaidAt:                  1546482927,
 	}, invoice)
 }
 
@@ -742,19 +742,19 @@ func TestWaitInvoice(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, &glightning.CompletedInvoice{
-		Label:                "gab",
-		Bolt11:               "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
-		PaymentHash:          "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
-		Status:               "paid",
-		Description:          "desc",
-		ExpiresAt:            1546480005,
-		MilliSatoshiReceived: 10000,
-		ReceivedMsat:         "10000msat",
-		MilliSatoshi:         10000,
-		AmountMsat:           "10000msat",
-		PayIndex:             1,
-		PaidAt:               1546480002,
+	assert.Equal(t, &glightning.Invoice{
+		Label:                   "gab",
+		Bolt11:                  "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
+		PaymentHash:             "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
+		Status:                  "paid",
+		Description:             "desc",
+		ExpiresAt:               1546480005,
+		MilliSatoshiReceivedRaw: 10000,
+		MilliSatoshiReceived:    "10000msat",
+		AmountMilliSatoshiRaw:   10000,
+		AmountMilliSatoshi:      "10000msat",
+		PayIndex:                1,
+		PaidAt:                  1546480002,
 	}, invoice)
 }
 
@@ -851,20 +851,18 @@ func TestGetInvoice(t *testing.T) {
 }`)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	invoices, err := lightning.GetInvoice("uniq")
+	invoice, err := lightning.GetInvoice("uniq")
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []glightning.Invoice{
-		glightning.Invoice{
-			Label:       "uniq",
-			Bolt11:      "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
-			PaymentHash: "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
-			Status:      "expired",
-			Description: "desc",
-			ExpiresAt:   1546475890,
-		},
-	}, invoices)
+	assert.Equal(t, &glightning.Invoice{
+		Label:       "uniq",
+		Bolt11:      "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
+		PaymentHash: "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
+		Status:      "expired",
+		Description: "desc",
+		ExpiresAt:   1546475890,
+	}, invoice)
 }
 
 func TestInvoice(t *testing.T) {
