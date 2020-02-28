@@ -1389,7 +1389,7 @@ func TestCompleteFundChannel(t *testing.T) {
 `)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	result, err := lightning.CompleteFundChannel(id, txid, uint16(0))
+	result, err := lightning.CompleteFundChannel(id, txid, uint32(0))
 	if err != nil {
 		t.Fatal(err)
 	}
