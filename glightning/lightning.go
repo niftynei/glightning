@@ -1055,8 +1055,10 @@ type SendPayRequest struct {
 	Route         []RouteHop `json:"route"`
 	PaymentHash   string     `json:"payment_hash"`
 	Label         string     `json:"label,omitempty"`
-	MilliSatoshis uint64     `json:"msatoshi,omitempty"`
+	MilliSatoshis *uint64    `json:"msatoshi,omitempty"`
 	Bolt11        string     `json:"bolt11,omitempty"`
+	PaymentSecret string     `json:"payment_secret,omitempty"`
+	PartId        *uint64    `json:"partid,omitempty"`
 }
 
 func (r *SendPayRequest) Name() string {
@@ -1064,18 +1066,20 @@ func (r *SendPayRequest) Name() string {
 }
 
 type SendPayFields struct {
-	Id               uint64 `json:"id"`
-	PaymentHash      string `json:"payment_hash"`
-	Destination      string `json:"destination"`
-	MilliSatoshi     uint64 `json:"msatoshi"`
-	AmountMsat       string `json:"amount_msat"`
-	MilliSatoshiSent uint64 `json:"msatoshi_sent"`
-	AmountSentMsat   string `json:"amount_sent_msat"`
-	CreatedAt        uint64 `json:"created_at"`
-	Status           string `json:"status"`
-	PaymentPreimage  string `json:"payment_preimage"`
-	Bolt11           string `json:"bolt11"`
-	PartId           uint64 `json:"partid"`
+	Id                    uint64 `json:"id"`
+	PaymentHash           string `json:"payment_hash"`
+	Destination           string `json:"destination,omitempty"`
+	AmountMilliSatoshiRaw uint64 `json:"msatoshi,omitempty"`
+	AmountMilliSatoshi    string `json:"amount_msat"`
+	MilliSatoshiSentRaw   uint64 `json:"msatoshi_sent"`
+	MilliSatoshiSent      string `json:"amount_sent_msat"`
+	CreatedAt             uint64 `json:"created_at"`
+	Status                string `json:"status"`
+	PaymentPreimage       string `json:"payment_preimage,omitempty"`
+	Label                 string `json:"label,omitempty"`
+	Bolt11                string `json:"bolt11,omitempty"`
+	PartId                uint64 `json:"partid,omitempty"`
+	ErrorOnion            string `json:"erroronion,omitempty"`
 }
 
 type SendPayResult struct {
@@ -1085,7 +1089,7 @@ type SendPayResult struct {
 
 // SendPay, but without description or millisatoshi value
 func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayResult, error) {
-	return l.SendPay(route, paymentHash, "", 0, "")
+	return l.SendPay(route, paymentHash, "", nil, "", "", nil)
 }
 
 // Send along {route} in return for preimage of {paymentHash}
@@ -1114,7 +1118,7 @@ func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayR
 // prevents accidental multiple payments. Calls with the same 'paymentHash',
 // 'msat' and destination as a previous successful payment will return
 // immediately with a success, even if the route is different.
-func (l *Lightning) SendPay(route []RouteHop, paymentHash, label string, msat uint64, bolt11 string) (*SendPayResult, error) {
+func (l *Lightning) SendPay(route []RouteHop, paymentHash, label string, msat *uint64, bolt11 string, paymentSecret string, partId *uint64) (*SendPayResult, error) {
 	if paymentHash == "" {
 		return nil, fmt.Errorf("Must specify a paymentHash to pay")
 	}
@@ -1129,13 +1133,16 @@ func (l *Lightning) SendPay(route []RouteHop, paymentHash, label string, msat ui
 		Label:         label,
 		MilliSatoshis: msat,
 		Bolt11:        bolt11,
+		PaymentSecret: paymentSecret,
+		PartId:        partId,
 	}, &result)
 	return &result, err
 }
 
 type WaitSendPayRequest struct {
-	PaymentHash string `json:"payment_hash"`
-	Timeout     uint   `json:"timeout,omitempty"`
+	PaymentHash string  `json:"payment_hash"`
+	Timeout     uint    `json:"timeout,omitempty"`
+	PartId      *uint64 `json:"partid,omitempty"`
 }
 
 func (r *WaitSendPayRequest) Name() string {
@@ -1144,16 +1151,19 @@ func (r *WaitSendPayRequest) Name() string {
 
 type PaymentError struct {
 	*jrpc2.RpcError
-	Data PaymentErrorData
+	Data *PaymentErrorData
 }
 
 type PaymentErrorData struct {
+	*PaymentFields
+	OnionReply      string `json:"onionreply,omitempty"`
 	ErringIndex     uint64 `json:"erring_index"`
 	FailCode        int    `json:"failcode"`
-	ErringNode      string `json:"erring_node"`
-	ErringChannel   string `json:"erring_channel"`
-	ErringDirection int    `json:"erring_direction"`
-	FailCodeName    string `json:"failcodename"`
+	ErringNode      string `json:"erring_node,omitempty"`
+	ErringChannel   string `json:"erring_channel,omitempty"`
+	ErringDirection int    `json:"erring_direction,omitempty"`
+	FailCodeName    string `json:"failcodename,omitempty"`
+	RawMessage      string `json:"raw_message,omitempty"`
 }
 
 // Polls or waits for the status of an outgoing payment that was
@@ -1166,12 +1176,20 @@ type PaymentErrorData struct {
 //
 // NB: Blocking. Bypasses the default client request timeout mechanism
 func (l *Lightning) WaitSendPay(paymentHash string, timeout uint) (*SendPayFields, error) {
+	return l.WaitSendPayPart(paymentHash, timeout, nil)
+}
+
+func (l *Lightning) WaitSendPayPart(paymentHash string, timeout uint, partId *uint64) (*SendPayFields, error) {
 	if paymentHash == "" {
 		return nil, fmt.Errorf("Must provide a payment hash to pay")
 	}
 
 	var result SendPayFields
-	err := l.client.RequestNoTimeout(&WaitSendPayRequest{paymentHash, timeout}, &result)
+	err := l.client.RequestNoTimeout(&WaitSendPayRequest{
+		PaymentHash: paymentHash,
+		Timeout:     timeout,
+		PartId:      partId,
+	}, &result)
 	if err, ok := err.(*jrpc2.RpcError); ok {
 		var paymentErrData PaymentErrorData
 		parseErr := err.ParseData(&paymentErrData)
@@ -1179,7 +1197,7 @@ func (l *Lightning) WaitSendPay(paymentHash string, timeout uint) (*SendPayField
 			log.Printf(parseErr.Error())
 			return &result, err
 		}
-		return &result, &PaymentError{err, paymentErrData}
+		return &result, &PaymentError{err, &paymentErrData}
 	}
 
 	return &result, err

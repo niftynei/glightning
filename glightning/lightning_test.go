@@ -401,16 +401,16 @@ func TestListSendPays(t *testing.T) {
 	}
 	assert.Equal(t, []glightning.SendPayFields{
 		glightning.SendPayFields{
-			Id:               1,
-			PaymentHash:      "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
-			Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
-			MilliSatoshi:     10000,
-			AmountMsat:       "10000msat",
-			MilliSatoshiSent: 10001,
-			AmountSentMsat:   "10001msat",
-			CreatedAt:        1546480001,
-			Status:           "complete",
-			PaymentPreimage:  "1ca5dd46bb09fdb03cbb888800f8d18954da991c5368a37cd3d62968ae5bf089",
+			Id:                    1,
+			PaymentHash:           "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
+			Destination:           "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
+			AmountMilliSatoshiRaw: 10000,
+			AmountMilliSatoshi:    "10000msat",
+			MilliSatoshiSentRaw:   10001,
+			MilliSatoshiSent:      "10001msat",
+			CreatedAt:             1546480001,
+			Status:                "complete",
+			PaymentPreimage:       "1ca5dd46bb09fdb03cbb888800f8d18954da991c5368a37cd3d62968ae5bf089",
 		},
 	}, payments)
 }
@@ -487,17 +487,17 @@ func TestPay(t *testing.T) {
 		t.Fatal(err)
 	}
 	paymentFields := &glightning.SendPayFields{
-		Id:               5,
-		PaymentHash:      "be8b5435aa8738be31580c31cc747bc237d1c83fe946da338ee1c6bf8ac85a12",
-		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
-		MilliSatoshi:     300000,
-		AmountMsat:       "300000msat",
-		MilliSatoshiSent: 301080,
-		AmountSentMsat:   "301080msat",
-		CreatedAt:        1546484611,
-		Status:           "complete",
-		PaymentPreimage:  "b368340fc5fb5839beaaf59885efa6636557715746be26601cddf876a2bc489b",
-		Bolt11:           "lnbcrt3u1pwz67h2pp5h694gdd2suutuv2cpscucarmcgmarjpla9rd5vuwu8rtlzkgtgfqdpzvehhygr8dahkgueqv9hxggrnv4e8v6trv5cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcvwxa6a3uu2ue80wflztg9ed27vtwu9k6ymtl03yxswnej5qzdw99ndmhwueuckg2ua2g8hfqf0l3mxvn9azs2u6qx0ag3hxye9x6e9qqv29cq5",
+		Id:                    5,
+		PaymentHash:           "be8b5435aa8738be31580c31cc747bc237d1c83fe946da338ee1c6bf8ac85a12",
+		Destination:           "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
+		AmountMilliSatoshiRaw: 300000,
+		AmountMilliSatoshi:    "300000msat",
+		MilliSatoshiSentRaw:   301080,
+		MilliSatoshiSent:      "301080msat",
+		CreatedAt:             1546484611,
+		Status:                "complete",
+		PaymentPreimage:       "b368340fc5fb5839beaaf59885efa6636557715746be26601cddf876a2bc489b",
+		Bolt11:                "lnbcrt3u1pwz67h2pp5h694gdd2suutuv2cpscucarmcgmarjpla9rd5vuwu8rtlzkgtgfqdpzvehhygr8dahkgueqv9hxggrnv4e8v6trv5cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcvwxa6a3uu2ue80wflztg9ed27vtwu9k6ymtl03yxswnej5qzdw99ndmhwueuckg2ua2g8hfqf0l3mxvn9azs2u6qx0ag3hxye9x6e9qqv29cq5",
 	}
 	route := []glightning.RouteHop{
 		glightning.RouteHop{
@@ -572,17 +572,17 @@ func TestWaitSendPay(t *testing.T) {
 		t.Fatal(err)
 	}
 	paymentFields := &glightning.SendPayFields{
-		Id:               4,
-		PaymentHash:      paymentHash,
-		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
-		MilliSatoshi:     10000,
-		AmountMsat:       "10000msat",
-		MilliSatoshiSent: 10001,
-		AmountSentMsat:   "10001msat",
-		CreatedAt:        1546483736,
-		Status:           "complete",
-		PaymentPreimage:  "eb7608df66f66d34c688b90346b8fcd904170b10278d797b608cc1168317458d",
-		Bolt11:           "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
+		Id:                    4,
+		PaymentHash:           paymentHash,
+		Destination:           "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
+		AmountMilliSatoshiRaw: 10000,
+		AmountMilliSatoshi:    "10000msat",
+		MilliSatoshiSentRaw:   10001,
+		MilliSatoshiSent:      "10001msat",
+		CreatedAt:             1546483736,
+		Status:                "complete",
+		PaymentPreimage:       "eb7608df66f66d34c688b90346b8fcd904170b10278d797b608cc1168317458d",
+		Bolt11:                "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
 	}
 	assert.Equal(t, paymentFields, payment)
 
@@ -616,14 +616,15 @@ func TestWaitSendPayError(t *testing.T) {
 		FailCode:        4107,
 		ErringNode:      "038863cf8ab91046230f561cd5b386cbff8309fa02e3f0c3ed161a3aeb64a643b9",
 		ErringChannel:   "1451409x38x0",
+		RawMessage:      "",
 		ErringDirection: 1,
 	}
-	assert.Equal(t, *errData, payErr.Data)
+	assert.Equal(t, payErr.Data, errData)
 
 }
 
 func TestSendPay(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233x1x0","msatoshi":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263x1x0","msatoshi":10000,"delay":9}]},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"sendpay","params":{"partid":1,"payment_hash":"3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993","payment_secret":"hello","route":[{"id":"03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41","channel":"233x1x0","msatoshi":10001,"delay":15},{"id":"023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82","channel":"263x1x0","msatoshi":10000,"delay":9}]},"id":1}`
 	resp := wrapResult(1, `{
   "message": "Monitor status with listsendpays or waitsendpay",
   "id": 1,
@@ -635,6 +636,8 @@ func TestSendPay(t *testing.T) {
   "amount_sent_msat": "10001msat",
   "created_at": 1546480001,
   "status": "pending",
+  "payment_secret": "hello",
+  "partid": 1,
   "bolt11": "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg"
 }`)
 
@@ -656,21 +659,23 @@ func TestSendPay(t *testing.T) {
 	}
 
 	paymentHash := "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993"
-	invoice, err := lightning.SendPay(route, paymentHash, "", 0, "")
+	partid := uint64(1)
+	invoice, err := lightning.SendPay(route, paymentHash, "", nil, "", "hello", &partid)
 	if err != nil {
 		t.Fatal(err)
 	}
 	paymentFields := &glightning.SendPayFields{
-		Id:               1,
-		PaymentHash:      "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
-		Destination:      "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
-		MilliSatoshi:     10000,
-		AmountMsat:       "10000msat",
-		MilliSatoshiSent: 10001,
-		AmountSentMsat:   "10001msat",
-		CreatedAt:        1546480001,
-		Status:           "pending",
-		Bolt11:           "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
+		Id:                    1,
+		PaymentHash:           "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
+		Destination:           "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
+		AmountMilliSatoshiRaw: 10000,
+		AmountMilliSatoshi:    "10000msat",
+		MilliSatoshiSentRaw:   10001,
+		MilliSatoshiSent:      "10001msat",
+		CreatedAt:             1546480001,
+		Status:                "pending",
+		Bolt11:                "lnbcrt100n1pwz66vqpp58krstt2snw6jacqsg7jva5xdgzva4yjswe6w23fdryn372wl9xfsdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcrffyde0s43ylmkypcduqrg7vh2423x6usl4jwyw6jxlsqz2r3s39jqqns2c5wp6lgjffuvlfpwvzkfcp898ea4edvt4tak78qrq3n3qq8mjwlg",
+		PartId:                1,
 	}
 	result := &glightning.SendPayResult{
 		"Monitor status with listsendpays or waitsendpay",
@@ -776,12 +781,13 @@ func TestDeleteInvoice(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, &glightning.Invoice{
-		Label:       "uniq",
-		Bolt11:      "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
-		PaymentHash: "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
-		Status:      "expired",
-		Description: "desc",
-		ExpiresAt:   1546475890,
+		Label:                 "uniq",
+		Bolt11:                "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
+		PaymentHash:           "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
+		Status:                "expired",
+		Description:           "desc",
+		ExpiresAt:             1546475890,
+		AmountMilliSatoshiRaw: 1,
 	}, invoices)
 }
 
@@ -814,8 +820,8 @@ func TestListInvoices(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, []glightning.Invoice{
-		glightning.Invoice{
+	assert.Equal(t, []*glightning.Invoice{
+		&glightning.Invoice{
 			Label:       "label",
 			Bolt11:      "lnbcrt1pwz646mpp59plmhlzsnz0yu6twf2mtjmydt40zlle2fzlkkkdzlmxqgqeha2gsdq8v3jhxccxqzxgcqp2vj8dqhg6yyzrvcd7kfwu4svh6k44mv5uy6wetpwfyxav504rthkxhxll2d9e4dwcm7xzpsxy9l9aulpmskepqad2x8vz82krme8zevgq3utwgq",
 			PaymentHash: "287fbbfc50989e4e696e4ab6b96c8d5d5e2fff2a48bf6b59a2fecc040337ea91",
@@ -823,13 +829,14 @@ func TestListInvoices(t *testing.T) {
 			Description: "desc",
 			ExpiresAt:   1546475555,
 		},
-		glightning.Invoice{
-			Label:       "uniq",
-			Bolt11:      "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
-			PaymentHash: "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
-			Status:      "expired",
-			Description: "desc",
-			ExpiresAt:   1546475890,
+		&glightning.Invoice{
+			Label:                 "uniq",
+			Bolt11:                "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
+			PaymentHash:           "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
+			Status:                "expired",
+			Description:           "desc",
+			ExpiresAt:             1546475890,
+			AmountMilliSatoshiRaw: uint64(1),
 		},
 	}, invoices)
 }
@@ -856,12 +863,13 @@ func TestGetInvoice(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, &glightning.Invoice{
-		Label:       "uniq",
-		Bolt11:      "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
-		PaymentHash: "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
-		Status:      "expired",
-		Description: "desc",
-		ExpiresAt:   1546475890,
+		Label:                 "uniq",
+		Bolt11:                "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
+		PaymentHash:           "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
+		Status:                "expired",
+		Description:           "desc",
+		ExpiresAt:             1546475890,
+		AmountMilliSatoshiRaw: uint64(1),
 	}, invoice)
 }
 

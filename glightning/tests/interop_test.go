@@ -598,13 +598,19 @@ func TestPlugins(t *testing.T) {
 
 	_, err = l1.rpc.SendPayLite(route2, inv2.PaymentHash)
 	check(t, err)
-	_, err = l1.rpc.WaitSendPay(inv2.PaymentHash, 0)
-	assert.NotNil(t, err)
+	_, failure := l1.rpc.WaitSendPay(inv2.PaymentHash, 0)
 
+	pe, ok := failure.(*glightning.PaymentError)
+	if !ok {
+		t.Fatal(failure)
+	}
+
+	data := pe.Data
+	assert.Equal(t, data.Status, "failed")
+	assert.Equal(t, data.AmountSentMilliSatoshi, "10001msat")
 	// SEND PAY FAILURE
 	err = l1.waitForLog("send pay failure!", 1)
 	check(t, err)
-
 }
 
 func TestAcceptWithClose(t *testing.T) {
