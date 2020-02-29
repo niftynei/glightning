@@ -9,7 +9,7 @@ import (
 func main() {
 	plugin := glightning.NewPlugin(onInit)
 	plugin.RegisterHooks(&glightning.Hooks{
-		HtlcAccepted:   OnHtlcAccepted,
+		HtlcAccepted: OnHtlcAccepted,
 	})
 
 	err := plugin.Start(os.Stdin, os.Stdout)

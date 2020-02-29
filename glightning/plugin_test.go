@@ -332,7 +332,7 @@ func TestHook_AddHtlc(t *testing.T) {
 			expected := &glightning.HtlcAcceptedEvent{
 				Onion: glightning.Onion{
 					Payload: "0000000000000000000000000000c3500000014b000000000000000000000000",
-					PerHop: glightning.PerHop{
+					PerHop: &glightning.PerHop{
 						Realm:                      "00",
 						ShortChannelId:             "0x0x0",
 						ForwardAmountMilliSatoshis: "50000msat",
@@ -342,7 +342,7 @@ func TestHook_AddHtlc(t *testing.T) {
 					SharedSecret: "eb5ab3e3db045e589597687e0eba89a98af0d19fd1967e1f24feb6f2814cb9c5",
 				},
 				Htlc: glightning.HtlcOffer{
-					Amount:             "50000msat",
+					AmountMilliSatoshi: "50000msat",
 					CltvExpiry:         331,
 					CltvExpiryRelative: 23,
 					PaymentHash:        "6440c8f51f2ee53213ef9f2e58ffdf46982fe91dd7c9228a92a557450ae2f2f5",
