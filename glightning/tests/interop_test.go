@@ -355,10 +355,8 @@ func TestListTransactions(t *testing.T) {
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
 	check(t, err)
 
-	err = fundNode("1.0", l1, btc)
-	check(t, err)
-	err = fundNode("1.0", l1, btc)
-	check(t, err)
+	fundNode(t, "1.0", l1, btc)
+	fundNode(t, "1.0", l1, btc)
 	waitToSync(l1)
 	trans, err := l1.rpc.ListTransactions()
 	check(t, err)
@@ -371,15 +369,11 @@ func connect(l1, l2 *Node) error {
 	return err
 }
 
-func fundNode(amount string, n *Node, b *gbitcoin.Bitcoin) error {
+func fundNode(t *testing.T, amount string, n *Node, b *gbitcoin.Bitcoin) error {
 	addr, err := n.rpc.NewAddr()
-	if err != nil {
-		return err
-	}
+	check(t, err)
 	_, err = b.SendToAddress(addr, amount)
-	if err != nil {
-		return err
-	}
+	check(t, err)
 
 	return mineBlocks(1, b)
 }
@@ -526,8 +520,7 @@ func TestPlugins(t *testing.T) {
 	peer3, err := l2.rpc.Connect(l3Info.Id, "localhost", uint(l3Info.Binding[0].Port))
 	check(t, err)
 
-	err = fundNode("1.0", l2, btc)
-	check(t, err)
+	fundNode(t, "1.0", l2, btc)
 	waitToSync(l1)
 	waitToSync(l2)
 
@@ -564,11 +557,7 @@ func TestPlugins(t *testing.T) {
 	// warnings go off because of feerate misfires
 	err = l1.waitForLog("Got a warning!!", 1)
 	check(t, err)
-	// open channel hook called ?? why no working
-	/*
-		err = l1.waitForLog("openchannel called", 1)
-		check(t, err)
-	*/
+
 	// channel opened notification
 	err = l1.waitForLog("channel opened", 1)
 	check(t, err)
@@ -644,8 +633,7 @@ func TestAcceptWithClose(t *testing.T) {
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
 	check(t, err)
 
-	err = fundNode("1.0", l2, btc)
-	check(t, err)
+	fundNode(t, "1.0", l2, btc)
 	waitToSync(l1)
 	waitToSync(l2)
 
@@ -680,7 +668,6 @@ func TestAcceptWithClose(t *testing.T) {
 
 	closeTo := "bcrt1q8q4xevfuwgsm7mxant8aadz50xt67768s4332d"
 	assert.Equal(t, closeTo, peer.Channels[0].CloseToAddress)
-
 }
 
 func TestCloseTo(t *testing.T) {
@@ -700,8 +687,7 @@ func TestCloseTo(t *testing.T) {
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
 	check(t, err)
 
-	err = fundNode("1.0", l2, btc)
-	check(t, err)
+	fundNode(t, "1.0", l2, btc)
 	waitToSync(l1)
 	waitToSync(l2)
 
@@ -753,8 +739,7 @@ func TestInvoiceFieldsOnPaid(t *testing.T) {
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
 	check(t, err)
 
-	err = fundNode("1.0", l2, btc)
-	check(t, err)
+	fundNode(t, "1.0", l2, btc)
 	waitToSync(l1)
 	waitToSync(l2)
 
@@ -816,4 +801,103 @@ func TestHooks(t *testing.T) {
 	l2.rpc.Disconnect(l1Info.Id, true)
 	err = l1.waitForLog("disconnect called for", 1)
 	check(t, err)
+}
+
+func pluginPath(t *testing.T, pluginName string) string {
+	// Get the path to our current test binary
+	val, ok := os.LookupEnv("PLUGINS_PATH")
+	if !ok {
+		t.Skip("No plugin example path (PLUGINS_PATH) passed in")
+	}
+	return filepath.Join(val, pluginName)
+}
+
+func loadPlugin(t *testing.T, n *Node, exPlugin string) {
+	_, err := n.rpc.StartPlugin(exPlugin)
+	check(t, err)
+	err = n.waitForLog(`successfully init'd`, 5)
+	check(t, err)
+}
+
+func connectNode(t *testing.T, from, to *Node) string {
+	info, _ := to.rpc.GetInfo()
+	peerId, err := from.rpc.Connect(info.Id, "localhost", uint(info.Binding[0].Port))
+	check(t, err)
+	return peerId
+}
+
+func openChannel(t *testing.T, btc *gbitcoin.Bitcoin, from, to *Node, amt uint64, waitTilReady bool) {
+	peerId := connectNode(t, from, to)
+	amount := glightning.NewAmt(amt)
+	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
+	_, err := from.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
+	check(t, err)
+
+	mineBlocks(6, btc)
+
+	if waitTilReady {
+		waitForChannelReady(t, from, to)
+	}
+}
+
+func TestHtlcAcceptedHook(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, btc := Init(t)
+	defer CleanUp(testDir)
+	l1, err := LnNode(testDir, dataDir, btcPid, "one")
+	check(t, err)
+	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+	check(t, err)
+	l3, err := LnNode(testDir, dataDir, btcPid, "three")
+	check(t, err)
+
+	// 2nd + 3rd node listens for htlc accepts
+	exPlugin := pluginPath(t, "plugin_htlcacc")
+	loadPlugin(t, l2, exPlugin)
+	loadPlugin(t, l3, exPlugin)
+
+	// fund l1 + l2
+	fundNode(t, "1.0", l1, btc)
+	fundNode(t, "1.0", l2, btc)
+	waitToSync(l1)
+	waitToSync(l2)
+
+	// open a channel
+	openChannel(t, btc, l2, l3, uint64(10000000), true)
+	openChannel(t, btc, l1, l2, uint64(10000000), true)
+
+	// wait for everybody to know about other channels
+	scid23 := getShortChannelId(t, l2, l3)
+	err = l2.waitForLog(fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid23), 20)
+	check(t, err)
+	scid21 := getShortChannelId(t, l1, l2)
+	err = l2.waitForLog(fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid21), 20)
+	check(t, err)
+	waitForChannelActive(l1, scid23)
+	waitForChannelActive(l3, scid21)
+
+	invAmt := uint64(100000)
+	inv, err := l3.rpc.CreateInvoice(invAmt, "push pay", "money", 100, nil, "", false)
+	check(t, err)
+
+	// now route from l1 -> l3
+	_, err = l1.rpc.PayBolt(inv.Bolt11)
+	check(t, err)
+	_, err = l1.rpc.WaitSendPay(inv.PaymentHash, 0)
+	check(t, err)
+
+	// l2 should have gotten an htlc_accept hook call
+	l2.waitForLog("htlc_accepted called", 1)
+	l2.waitForLog(`type is tlv`, 1)
+	l2.waitForLog(`has perhop? false`, 1)
+	l2.waitForLog(`payment secret is empty`, 1)
+	l2.waitForLog(`amount is empty`, 1)
+
+	// l3 should have gotten an htlc_accept hook call, with different info
+	l3.waitForLog("htlc_accepted called", 1)
+	l3.waitForLog(`type is tlv`, 1)
+	l3.waitForLog(`has perhop? false`, 1)
+	l3.waitForLog(`payment secret is not empty`, 1)
+	l3.waitForLog(`amount is 10000000msat`, 1)
 }

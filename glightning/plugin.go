@@ -232,7 +232,15 @@ type Onion struct {
 	Payload      string `json:"payload"`
 	NextOnion    string `json:"next_onion"`
 	SharedSecret string `json:"shared_secret"`
-	PerHop       PerHop `json:"per_hop_v0"`
+	// Note that 'PerHop' is deprecated
+	PerHop       *PerHop `json:"per_hop_v0,omitempty"`
+	// The two type options are: 'legacy' and 'tlv'
+	Type         string `json:"type"`
+	// Only included if there's a next hop/'forward channel'
+	ShortChannelId             string `json:"short_channel_id,omitempty"`
+	PaymentSecret string `json:"payment_secret,omitempty"`
+	// Only included if has payment secret
+	TotalMilliSatoshi string `json:"total_msat"`
 }
 
 type PerHop struct {
@@ -243,7 +251,7 @@ type PerHop struct {
 }
 
 type HtlcOffer struct {
-	Amount             string `json:"amount"`
+	AmountMilliSatoshi             string `json:"amount"`
 	CltvExpiry         int    `json:"cltv_expiry"`
 	CltvExpiryRelative int    `json:"cltv_expiry_relative"`
 	PaymentHash        string `json:"payment_hash"`
