@@ -1700,6 +1700,12 @@ func (s *SatoshiAmount) String() string {
 	return fmt.Sprint(s.Amount)
 }
 
+func NewAmt(amount uint64) *SatoshiAmount {
+	return &SatoshiAmount{
+		Amount: amount,
+	}
+}
+
 func NewAmount(amount int) *SatoshiAmount {
 	return &SatoshiAmount{
 		Amount: uint64(amount),
