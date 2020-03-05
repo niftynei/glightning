@@ -2,19 +2,19 @@
 
 [![CircleCI](https://circleci.com/gh/niftynei/glightning.svg?style=svg)](https://circleci.com/gh/niftynei/glightning)
 
-glightning is a driver for the Lightning Network protocol implemenation [c-lightning](https://github.com/ElementsProject/lightning).
+glightning is a driver for the Lightning Daemon [c-lightning](https://github.com/ElementsProject/lightning).
 
-It offers an RPC client for calling lightning commands and a Plugin infrastructure, for creating your own c-lightning commands and registering for subscriptions.
-
-More details on c-lightning plugins can be found in the [c-lightning docs](https://github.com/ElementsProject/lightning/blob/master/doc/PLUGINS.md)
+It offers an RPC client for calling lightning commands and a framework for writing 
+Go-native [plugins](https://github.com/ElementsProject/lightning/blob/master/doc/PLUGINS.md)
 
 
 ## Plugins: How to Use
-`glightning` builds upon the method paradigm established in [`jrpc2`](jrpc2/README.md). Options, RpcMethods, and Subscriptions all must be registered on the plugin prior to start in order to be included in your manifest. 
+For a complete example of the Hooks, Options, Subscriptions and Methods see the examples in [examples/plugin](examples/plugin/plugin_example.go)
 
-RpcMethods and Subscriptons are both a form of `jrpc2.Method`. 
+Below is a quick primer on each of these options.
 
-### Adding a startup option
+
+### Options
 
 c-lightning plugins allow you to specify command line options that you can set
 when you startup lightningd.
@@ -28,22 +28,32 @@ $ ./lightningd --network=testnet --name=Ginger
 Here's how to register an option with the `glightning` plugin.
 
 ```
-// The last value is the default value. This option will default to 'Mary' 
+// The last value is the default value, e.g. this option will default to 'Mary' 
 // if not set.
 option := glightning.NewOption("name", "How you'd like to be called", "Mary")
 plugin.RegisterOption(option)
 
 ```
 
-### Creating a new RpcMethod
+### Creating a new Method
 
-`RpcMethods` are `jrpc2.ServerMethod`s with a few extra fields. These fields are
-added when you create the new RpcMethod via the glightning helper. Here's an example:
+You can create your own RPC methods to add additional functionality to a clightning node by registering
+new methods!
+
+Each method definition requires a struct that implements the jrpc2.ServerMethod interface.
+There are three method on this interface: 
+
+   - Name, which returns the callable name of the function, 
+   - New, which returns a new copy of this method struct, and
+   - Call, which executes when this method is called.
+
+
+Here's a quick example
 
 ```
 // Set up the struct for the RPC method you'd like to add to c-lightning
 type Hello struct {
-	// This struct has no params
+	// This method takes no parameters, so there's no fields here
 }
 
 func (h *Hello) New() interface{} {
@@ -58,16 +68,14 @@ func (h *Hello) Name() string {
 
 // This is what gets run when you call the command.
 func (h *Hello) Call() (jrpc2.Result, error) {
-	// Here we're using an option value in the result
+	// Here we're using an startup option value in the result
 	name := plugin.GetOptionValue("name")
 	return fmt.Sprintf("Howdy %s!", name), nil
 }
 ```
 
-Once your function has been defined via a struct, you need to register it with 
-the plugin. You'll also need to provide a description and an optional 'long 
-description', with more details on how the command can be used. These details
-will be shown when you call the c-lightning `help` command.
+A method should be registered so c-lightning knows about it. These are 
+defined before starting up the plugin.
 
 ```
 plugin := glightning.NewPlugin(initfn)
@@ -79,32 +87,28 @@ plugin.RegisterMethod(rpcHello)
 ```
 
 
-### Subscribing to a notification stream
+### Subscriptions
 
 Subscriptions allow your plugin to receive a notification every time an 
 event matching the notification type occurs within c-lightning. 
 
-The two currently supported notifications are `connect` and `disconnect`.
+Here's how you'd create a `connect` callback and register it with 
+the plugin.
 
-By way of example, here's how you'd create a `connect` callback and 
-register it with the plugin.
-
-```
-func OnConnect(e *glightning.ConnectEvent) {
-    log.Printf("Connected to %s\n", e.PeerId)
-}
-
-func main() {
-	plugin := glightning.NewPlugin(initfn)
+    func OnConnect(e *glightning.ConnectEvent) {
+        log.Printf("Connected to %s\n", e.PeerId)
+    }
+    
+    func main() {
+    	plugin := glightning.NewPlugin(initfn)
 	plugin.SubscribeConnect(OnConnect)
-}
-
-```
+    }
 
 
-### Callback from Init
+### Initializing a Plugin
 
-After your plugin's manifest has been parsed by c-lightning, c-lightning will call your plugin's Init method. `glightning` registers this for you automatically. You need to supply the `NewPlugin` method with a callback function that will trigger once the plugin has been initialized.
+c-lightning will call your plugin's Init method when it's started. `glightning` registers this for you automatically. 
+You need to supply the `NewPlugin` method with a callback function that will trigger once the plugin has been initialized.
 
 The init function has the following signature:
 
@@ -131,9 +135,12 @@ You can make any calls provided on the Lightning RPC then.
 	log.Printf("You know about %d channels", len(channels))
 ```
 
+
 ### Dynamic plugin loading and unloading
 
-Plugins can be configured to be dynamically controlled through the CLI/RPC.  By default a plugin loaded at startup will be stoppable.  This behavior can be overridden by calling the plugin's `SetDynamic` command.
+Plugins can be configured to be dynamically controlled through the CLI/RPC.  
+By default a plugin loaded at startup will be stoppable.  This behavior can be 
+overridden by calling the plugin's `SetDynamic` command.
 
 ```
 func main() {
@@ -146,9 +153,14 @@ will disable management with the [plugin control](https://github.com/ElementsPro
 
 
 ## Logging as a c-lightning Plugin
-The c-lightning plugin subsystem uses stdin and stdout as its communication pipes. As most logging would interfere with normal operation of the plugin `glightning` overrides the `log` package to pipe all logs to c-lightning. When developing a plugin, it is best practice to use the `log` library write all print statements, so as not to interfere with normal operation of the plugin.
 
-You can override this by providing a logfile to write to via the environment variable `GOLIGHT_DEBUG_LOGFILE`. See [plugin debugging](#plugin_debugging).
+The c-lightning plugin subsystem uses stdin and stdout as its communication pipes. As most logging would 
+interfere with normal operation of the plugin `glightning` overrides the `log` package to pipe all 
+logs to c-lightning. When developing a plugin, it is best practice to use the `log` library write 
+all print statements, so as not to interfere with normal operation of the plugin.
+
+You can override this by providing a logfile to write to via the environment variable 
+`GOLIGHT_DEBUG_LOGFILE`. See [plugin debugging](#plugin_debugging).
 
 
 ### Plugin Debugging
@@ -157,27 +169,36 @@ You can override this by providing a logfile to write to via the environment var
 
 `GOLIGHT_DEBUG_LOGFILE`: If set, will log to the file named in this variable. Otherwise, sends logs back to c-lightning to be added to its internal log buffer.
 
-`GO_LIGHT_DEBUG_IO_IN`: Logs any incoming IO messages. Useful if you want to log incoming messages without specifying a debug log file.
+`GOLIGHT_DEBUG_IO_IN`: Logs any incoming IO messages. Useful if you want to log incoming messages without specifying a debug log file.
 
 `GOLIGHT_DEBUG_IO`: Logs all json messages sent and received from c-lightning. Must be used in conjunction with `GOLIGHT_DEBUG_LOGFILE` to avoid creating a log loop.
+
 
 Example usage: 
 
 ```
-$ GOLIGHT_DEBUG_IO=1 GOLIGHT_DEBUG_LOGFILE=plugin.log lightupfg --plugin=/path/to/plugin/exec
+$ GOLIGHT_DEBUG_IO=1 GOLIGHT_DEBUG_LOGFILE=plugin.log lightningd --plugin=/path/to/plugin/exec --daemon 
 ```
 
 
 #### Using Strict Mode
 
-glightning is versioned such that it is meant to be used with the corresponding c-lightning version. Updates to the c-lightning RPC API are reflected in each new glightning version.
+glightning is meant to be used with the corresponding c-lightning version. Updates to the 
+c-lightning RPC API are reflected in each new glightning version.
 
-The default configuration of glightning is such that it works `allow-deprecated-apis=true`, which is the default setting on c-lightning; however if you wish to run it 'strict mode', such that glightning will fail if an RPC response includes unexpected parameters, you should set the environment variable`GOLIGHT_STRICT_MODE=1` and the c-lightning startup flag `allow-deprecated-apis=false`.
+Support for older versions of lightningd is coming soon TM
+
+The default configuration of glightning is such that it works `allow-deprecated-apis=true`, which is the 
+default setting on c-lightning; however if you wish to run it 'strict mode', such that glightning 
+will fail if an RPC response includes unexpected parameters, you should set the environment 
+variable`GOLIGHT_STRICT_MODE=1` and the c-lightning startup flag `allow-deprecated-apis=false`.
 
 
 ### Dev Commands
 
-Note that most of the 'dev' commands aren't well tested, and that many of them require you to set various flags at compile or configuration time (of lightningd) in order to use them. You'll need to at least have configured your c-lightning build into developer mode, ie:
+Note that most of the 'dev' commands aren't well tested, and that many of them require you to set 
+various flags at compile or configuration time (of lightningd) in order to use them. You'll 
+need to at least have configured your c-lightning build into developer mode, ie:
 
 ```
 cwd/lightning$ ./configure --enable-developer && make
