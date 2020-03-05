@@ -233,7 +233,7 @@ type Onion struct {
 	NextOnion    string `json:"next_onion"`
 	SharedSecret string `json:"shared_secret"`
 	// Note that 'PerHop' is deprecated
-	PerHop *PerHop `json:"per_hop_v0,omitempty"`
+	PerHop *PerHop `json:"per_hop_v0"`
 	// The two type options are: 'legacy' and 'tlv'
 	Type string `json:"type"`
 	// Only included if there's a next hop/'forward channel'
