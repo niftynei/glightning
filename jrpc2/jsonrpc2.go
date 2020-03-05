@@ -398,6 +398,19 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 		fVal.Set(v)
 		return nil
 	}
+
+	// json.RawMessage escape hatch
+	var eg json.RawMessage
+	if fVal.Type() == reflect.TypeOf(eg) {
+		out, err := json.Marshal(value)
+		if err != nil {
+			return err
+		}
+		jm := json.RawMessage(out)
+		fVal.Set(reflect.ValueOf(jm))
+		return nil
+	}
+
 	switch fVal.Kind() {
 	case reflect.Map:
 		fVal.Set(reflect.MakeMap(fVal.Type()))
@@ -416,11 +429,19 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 		}
 		return nil
 	case reflect.Slice:
-		arrValue := value.([]interface{})
-		fVal.Set(reflect.MakeSlice(fVal.Type(), len(arrValue), len(arrValue)))
-		// for each, do the thing thing thing
-		for i := range arrValue {
-			err := innerParse(targetValue, fVal.Index(i), arrValue[i])
+		// string -> []byte parsing
+		sv, sok := value.(string)
+		var xx []uint8
+		if sok && fVal.Type() == reflect.TypeOf(xx) {
+			av := []byte(sv)
+			fVal.Set(reflect.ValueOf(av))
+			return nil
+		}
+
+		av := value.([]interface{})
+		fVal.Set(reflect.MakeSlice(fVal.Type(), len(av), len(av)))
+		for i := range av {
+			err := innerParse(targetValue, fVal.Index(i), av[i])
 			if err != nil {
 				return err
 			}

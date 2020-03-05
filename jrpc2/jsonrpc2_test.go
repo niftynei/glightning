@@ -583,6 +583,44 @@ func (e ErroringMethod) Name() string {
 	return "error"
 }
 
+type ByteMethod struct {
+	Bytes []byte `json:"raw"`
+	RawBytes json.RawMessage `json:"too_raw"`
+}
+
+func (b *ByteMethod) Call() (jrpc2.Result, error) {
+	return len(b.Bytes) + len(b.RawBytes), nil
+}
+
+func (b *ByteMethod) New() interface{} {
+	return &ByteMethod{}
+}
+
+func (b *ByteMethod) Name() string {
+	return "byteme"
+}
+
+func TestByteFields(t *testing.T) {
+	objParams := `{"jsonrpc":"2.0","method":"byteme","params":{"too_raw":["more","raw","things"],"raw":"abcde1939"}}`
+	arrParams := `{"jsonrpc":"2.0","method":"hello","params":["abcde1939",["more","raw","things"]]}`
+
+	s := jrpc2.NewServer()
+	s.Register(new(ByteMethod))
+
+	var req jrpc2.Request
+	err := s.Unmarshal([]byte(objParams), &req)
+	assert.Nil(t, err)
+
+	bytes := req.Method.(*ByteMethod)
+	assert.Equal(t, json.RawMessage(`["more","raw","things"]`), bytes.RawBytes)
+	assert.Equal(t, []byte("abcde1939"), bytes.Bytes)
+
+	err = s.Unmarshal([]byte(arrParams), &req)
+	assert.Equal(t, json.RawMessage(`["more","raw","things"]`), bytes.RawBytes)
+	assert.Equal(t, []byte("abcde1939"), bytes.Bytes)
+}
+
+
 func TestInboundServer(t *testing.T) {
 	sub := &SubtractMethod{5, 2}
 	// when the server gets an inbound message, it makes the call
