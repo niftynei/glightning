@@ -990,7 +990,7 @@ func TestWithdraw(t *testing.T) {
 }`)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloByte, 125)
+	feerate := glightning.NewFeeRate(glightning.PerKb, 125)
 	result, err := lightning.Withdraw(addr, glightning.NewAmount(500000), feerate, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -1016,7 +1016,7 @@ func TestWithdrawUtxos(t *testing.T) {
 }`)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloByte, 125)
+	feerate := glightning.NewFeeRate(glightning.PerKb, 125)
 	result, err := lightning.WithdrawWithUtxos(addr, glightning.NewAmount(500000), feerate, nil, utxos)
 	if err != nil {
 		t.Fatal(err)
@@ -1036,7 +1036,7 @@ func TestWithdrawAll(t *testing.T) {
 }`)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloByte, 125)
+	feerate := glightning.NewFeeRate(glightning.PerKb, 125)
 	result, err := lightning.Withdraw(addr, glightning.NewAllAmount(), feerate, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -1050,7 +1050,7 @@ func TestWithdrawAll(t *testing.T) {
 func TestTxPrepare(t *testing.T) {
 	destination := "bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg"
 	amount := 100000
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, 243)
+	feerate := glightning.NewFeeRate(glightning.PerKw, 243)
 	minConf := uint16(1)
 	req := `{"jsonrpc":"2.0","method":"txprepare","params":{"feerate":"243perkw","minconf":1,"outputs":[{"bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg":"100000sat"}]},"id":1}`
 	resp := wrapResult(1, `{
@@ -1080,7 +1080,7 @@ func TestTxPrepare(t *testing.T) {
 func TestTxPrepareUtxos(t *testing.T) {
 	destination := "bcrt1qeyyk6sl5pr49ycpqyckvmttus5ttj25pd0zpvg"
 	amount := 100000
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, 243)
+	feerate := glightning.NewFeeRate(glightning.PerKw, 243)
 	minConf := uint16(1)
 	utxos := []*glightning.Utxo{
 		&glightning.Utxo{
@@ -1300,7 +1300,7 @@ func TestFundChannel(t *testing.T) {
 }
 `)
 	sats := glightning.NewAmount(amount)
-	feeRate := glightning.NewFeeRate(glightning.SatPerKiloSipa, 500)
+	feeRate := glightning.NewFeeRate(glightning.PerKw, 500)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	result, err := lightning.FundChannelExt(id, sats, feeRate, false, nil)
@@ -1321,7 +1321,7 @@ func TestFundChannel(t *testing.T) {
 }
 `)
 	sats = &glightning.SatoshiAmount{Amount: uint64(amount)}
-	feeRate = glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
+	feeRate = glightning.NewFeeRateByDirective(glightning.PerKb, glightning.Urgent)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"%d","announce":true,"feerate":"urgent","id":"%s"},"id":%d}`, amount, id, 2)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	_, err = lightning.FundChannelExt(id, sats, feeRate, true, nil)
@@ -1339,7 +1339,7 @@ func TestFundChannel(t *testing.T) {
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"%s","announce":true,"feerate":"300perkb","id":"%s"},"id":%d}`, "all", id, 3)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	sats = &glightning.SatoshiAmount{SendAll: true}
-	feeRate = glightning.NewFeeRate(glightning.SatPerKiloByte, uint(300))
+	feeRate = glightning.NewFeeRate(glightning.PerKb, uint(300))
 	_, err = lightning.FundChannelExt(id, sats, feeRate, true, nil)
 	if err != nil {
 		t.Fatal(err)
@@ -1353,7 +1353,7 @@ func TestFundChannel(t *testing.T) {
 }
 `)
 	sats = &glightning.SatoshiAmount{SendAll: true}
-	feeRate = glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
+	feeRate = glightning.NewFeeRateByDirective(glightning.PerKb, glightning.Urgent)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"all","announce":false,"feerate":"urgent","id":"%s"},"id":%d}`, id, 4)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	_, err = lightning.FundChannelExt(id, sats, feeRate, false, nil)
@@ -1365,7 +1365,7 @@ func TestFundChannel(t *testing.T) {
 func TestStartFundChannel(t *testing.T) {
 	id := "0334b7c8e723c00aedb6aaab0988619a6929f0039275ac195185efbadad1a343f9"
 	sats := uint64(100000)
-	feeRate := glightning.NewFeeRateByDirective(glightning.SatPerKiloByte, glightning.Urgent)
+	feeRate := glightning.NewFeeRateByDirective(glightning.PerKb, glightning.Urgent)
 	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel_start","params":{"amount":%d,"announce":true,"close_to":"2NEgepweLjk6b6KyCRhgNgeLXeDaCUTfRsh","feerate":"urgent","id":"%s"},"id":%d}`, sats, id, 1)
 	resp := wrapResult(1, `{"funding_address" : "bcrt1qc4p5fwkgznrrlml5z4hy0xwauys8nlsxsca2zn2ew2wez27hlyequp6sff","scriptpubkey":"00206f8318ef548f36abf6b34a9e64b6d10fd1943698a9f9eab3a11a4642a4f19918"}
 `)
@@ -2002,12 +2002,12 @@ func TestFeeRate(t *testing.T) {
 
 	// queue request & response
 	go runServerSide(t, expectedRequest, reply, replyQ, requestQ)
-	rates, err := lightning.FeeRates(glightning.SatPerKiloByte)
+	rates, err := lightning.FeeRates(glightning.PerKb)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, &glightning.FeeRateEstimate{
-		Style: glightning.SatPerKiloByte,
+		Style: glightning.PerKb,
 		Details: &glightning.FeeRateDetails{
 			Urgent:        3328,
 			Normal:        1012,
@@ -2029,12 +2029,12 @@ func TestFeeRate(t *testing.T) {
 
 	// queue request & response
 	go runServerSide(t, expectedRequest, reply, replyQ, requestQ)
-	rates, err = lightning.FeeRates(glightning.SatPerKiloSipa)
+	rates, err = lightning.FeeRates(glightning.PerKw)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, &glightning.FeeRateEstimate{
-		Style: glightning.SatPerKiloSipa,
+		Style: glightning.PerKw,
 		Details: &glightning.FeeRateDetails{
 			Urgent:        832,
 			Normal:        253,
@@ -2318,12 +2318,12 @@ func TestLimitedFeeRates(t *testing.T) {
 
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, request, reply, replyQ, requestQ)
-	rates, err := lightning.FeeRates(glightning.SatPerKiloSipa)
+	rates, err := lightning.FeeRates(glightning.PerKw)
 	if err != nil {
 		t.Fatal(err)
 	}
 	assert.Equal(t, &glightning.FeeRateEstimate{
-		Style: glightning.SatPerKiloSipa,
+		Style: glightning.PerKw,
 		Details: &glightning.FeeRateDetails{
 			MinAcceptable: 253,
 			MaxAcceptable: 4294967295,

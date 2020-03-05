@@ -526,7 +526,7 @@ func TestPlugins(t *testing.T) {
 
 	// open a channel
 	amount := glightning.NewAmount(10000000)
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
+	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
 	check(t, err)
 
@@ -643,7 +643,7 @@ func TestAcceptWithClose(t *testing.T) {
 	waitToSync(l1)
 	waitToSync(l2)
 
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
+	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	amount := uint64(100000)
 	starter, err := l2.rpc.StartFundChannel(peerId, amount, true, feerate, "")
 	check(t, err)
@@ -699,7 +699,7 @@ func TestCloseTo(t *testing.T) {
 
 	closeTo, err := btc.GetNewAddress(gbitcoin.Bech32)
 	check(t, err)
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
+	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	amount := uint64(100000)
 	starter, err := l2.rpc.StartFundChannel(peerId, amount, true, feerate, closeTo)
 	check(t, err)
@@ -751,7 +751,7 @@ func TestInvoiceFieldsOnPaid(t *testing.T) {
 
 	// open a channel
 	amount := glightning.NewAmount(10000000)
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
+	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
 	check(t, err)
 
@@ -835,7 +835,7 @@ func connectNode(t *testing.T, from, to *Node) string {
 func openChannel(t *testing.T, btc *gbitcoin.Bitcoin, from, to *Node, amt uint64, waitTilReady bool) {
 	peerId := connectNode(t, from, to)
 	amount := glightning.NewAmt(amt)
-	feerate := glightning.NewFeeRate(glightning.SatPerKiloSipa, uint(253))
+	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	_, err := from.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
 	check(t, err)
 

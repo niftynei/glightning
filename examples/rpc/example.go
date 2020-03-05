@@ -11,7 +11,7 @@ func main() {
 	lone.StartUp("lightning-rpc", "/tmp/clight-1")
 	id := "03a13a469bae4785e27fae24e7664e648cfdb976b97f95c694dea5e55e7d302846"
 	sats := glightning.NewAmount(600000)
-	feerate := glightning.NewFeeRateByDirective(glightning.SatPerKiloSipa, glightning.Urgent)
+	feerate := glightning.NewFeeRateByDirective(glightning.PerKw, glightning.Urgent)
 	minConf := uint16(1)
 	result, err := lone.FundChannelExt(id, sats, feerate, true, &minConf)
 	if err != nil {
