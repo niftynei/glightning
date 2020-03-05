@@ -67,7 +67,7 @@ func main() {
 	registerSubscriptions(plugin)
 	plugin.RegisterHooks(&glightning.Hooks{
 		PeerConnected:  OnPeerConnect,
-		DbWrite:        OnDbWrite,
+		RpcCommand:     OnRpcCommand,
 		InvoicePayment: OnInvoicePayment,
 		OpenChannel:    OnOpenChannel,
 		HtlcAccepted:   OnHtlcAccepted,
@@ -183,5 +183,13 @@ func OnHtlcAccepted(event *glightning.HtlcAcceptedEvent) (*glightning.HtlcAccept
 	log.Printf("htlc_accepted called\n")
 
 	// See also: Fail(failureCode), Resolve(paymentKey)
+	return event.Continue(), nil
+}
+
+func OnRpcCommand(event *glightning.RpcCommandEvent) (*glightning.RpcCommandResponse, error) {
+	cmd := event.X.Cmd
+	id, _ := cmd.Id()
+	log.Printf("command %s called id %s", cmd.MethodName, id)
+
 	return event.Continue(), nil
 }

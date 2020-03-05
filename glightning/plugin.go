@@ -30,7 +30,10 @@ const (
 	_InvoicePayment Hook         = "invoice_payment"
 	_OpenChannel    Hook         = "openchannel"
 	_HtlcAccepted   Hook         = "htlc_accepted"
+	_RpcCommand     Hook         = "rpc_command"
 )
+
+var lightningMethodRegistry map[string]*jrpc2.Method
 
 // This hook is called whenever a peer has connected and successfully completed
 //   the cryptographic handshake. The parameters have the following structure if
@@ -212,6 +215,169 @@ func (oc *OpenChannelEvent) ContinueWithCloseTo(address string) *OpenChannelResp
 		Result:         OcContinue,
 		CloseToAddress: address,
 	}
+}
+
+type RpcCommandEvent struct {
+	X CmdLayer `json:"rpc_command"`
+	hook func(*RpcCommandEvent) (*RpcCommandResponse, error)
+}
+
+// nesting for the rpc command is too deep :/
+// { "rpc_command": { "rpc_command" : { obj } }
+type CmdLayer struct {
+	Cmd RpcCmd `json:"rpc_command"`
+}
+
+type RpcCmd struct {
+	ParsedId         json.RawMessage        `json:"id"`
+	MethodName string          `json:"method"`
+	RawParams  json.RawMessage `json:"params"`
+
+	m jrpc2.Method
+	id *jrpc2.Id
+}
+
+func (rc *RpcCommandEvent) New() interface{} {
+	return &RpcCommandEvent{
+		hook: rc.hook,
+	}
+}
+
+func (rc *RpcCommandEvent) Name() string {
+	return string(_RpcCommand)
+}
+
+func (rc *RpcCommandEvent) Call() (jrpc2.Result, error) {
+	return rc.hook(rc)
+}
+
+func (r *RpcCmd) Id() (*jrpc2.Id, error) {
+	if r.id != nil {
+		return r.id, nil
+	}
+
+	id := new(jrpc2.Id)
+	err := id.UnmarshalJSON(r.ParsedId)
+	if err != nil {
+		return nil, err
+	}
+	r.id = id
+	return r.id, nil
+}
+
+// if the rpc command hook is registered, the plugin
+// pulls a list of 'known commands'
+func findMethod(methodName string) (jrpc2.Method, error) {
+	m_gen, ok := Lightning_RpcMethods[methodName]
+
+	if !ok {
+		return nil, fmt.Errorf("Command %s not registered", methodName)
+	}
+	return m_gen(), nil
+}
+
+// magic to get the method + params out
+func (r *RpcCmd) Get() (jrpc2.Method, error) {
+	// cached for maximum je ne se qua
+	if r.m != nil {
+		return r.m, nil
+	}
+
+	m, err := findMethod(r.MethodName)
+	if err != nil {
+		return nil, err
+	}
+
+	// set on rpc event
+	r.m = m
+
+	// there's no params on this method
+	if len(r.RawParams) == 0 {
+		return r.m, nil
+	}
+
+	var obj map[string]interface{}
+	err = json.Unmarshal(r.RawParams, &obj)
+	if err != nil {
+		return nil, err
+	}
+	// per hook definition, expected to always be named params
+	err = jrpc2.ParseNamedParams(r.m, obj)
+
+	return r.m, err
+}
+
+// the result can be any of the following. providing more than
+// one's behavior is undefined. the API around this should protect you
+// from that, however
+type RpcCommandResponse struct {
+	Continue *bool `json:"continue,omitempty"`
+	//Result     RpcCommandResult `json:"result,omitempty"`
+	ReplaceObj *jrpc2.Request   `json:"replace,omitempty"`
+	ReturnObj  json.RawMessage  `json:"return,omitempty"`
+}
+
+type RpcCommand_Return interface{}
+type RpcCommandResult string
+
+/* for 0.8.1 ?
+const (
+	RpcCommand_Continue RpcCommandResult = "continue"
+)
+*/
+
+func (rc *RpcCommandEvent) Continue() *RpcCommandResponse {
+	t := true
+	return &RpcCommandResponse{
+		Continue: &t,
+	}
+}
+
+// Replace the existing command with a new command. for usability reasons, we
+// unilaterally reuse the id of the original command
+func (rc *RpcCommandEvent) ReplaceWith(m jrpc2.Method) *RpcCommandResponse {
+	// the marshalling call on this also includes a version field
+	// which shouldn't affect parsing
+	id, _ := rc.X.Cmd.Id()
+	req := &jrpc2.Request{id, m}
+
+	return &RpcCommandResponse{
+		ReplaceObj: req,
+	}
+}
+
+func (rc *RpcCommandEvent) ReturnResult(resp RpcCommand_Return) (*RpcCommandResponse, error) {
+	result := &struct {
+		Result RpcCommand_Return `json:"result"`
+	}{
+		Result: resp,
+	}
+	marshaled, err := json.Marshal(result)
+	if err != nil {
+		return nil, err
+	}
+	return &RpcCommandResponse{
+		ReturnObj: marshaled,
+	}, nil
+}
+
+func (rc *RpcCommandEvent) ReturnError(errMsg string, errCode int) (*RpcCommandResponse, error) {
+	type ErrResp struct {
+		Message string `json:"message"`
+		Code int `json:"code"`
+	}
+	result := &struct {
+		Result ErrResp `json:"error"`
+	}{
+		Result: ErrResp{errMsg, errCode},
+	}
+	marshaled, err := json.Marshal(result)
+	if err != nil {
+		return nil, err
+	}
+	return &RpcCommandResponse{
+		ReturnObj: marshaled,
+	}, nil
 }
 
 // The `htlc_accepted` hook is called whenever an incoming HTLC is accepted, and
@@ -749,6 +915,7 @@ type Hooks struct {
 	InvoicePayment func(*InvoicePaymentEvent) (*InvoicePaymentResponse, error)
 	OpenChannel    func(*OpenChannelEvent) (*OpenChannelResponse, error)
 	HtlcAccepted   func(*HtlcAcceptedEvent) (*HtlcAcceptedResponse, error)
+	RpcCommand     func(*RpcCommandEvent) (*RpcCommandResponse, error)
 }
 
 func (p *Plugin) RegisterHooks(hooks *Hooks) error {
@@ -796,6 +963,15 @@ func (p *Plugin) RegisterHooks(hooks *Hooks) error {
 			return err
 		}
 		p.hooks = append(p.hooks, _HtlcAccepted)
+	}
+	if hooks.RpcCommand != nil {
+		err := p.server.Register(&RpcCommandEvent{
+			hook: hooks.RpcCommand,
+		})
+		if err != nil {
+			return err
+		}
+		p.hooks = append(p.hooks, _RpcCommand)
 	}
 	return nil
 }

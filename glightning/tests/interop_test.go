@@ -790,32 +790,60 @@ func TestHooks(t *testing.T) {
 	defer CleanUp(testDir)
 	l1, err := LnNode(testDir, dataDir, btcPid, "one")
 	check(t, err)
-
-	// Get the path to our current test binary
-	var val string
-	var ok bool
-	if val, ok = os.LookupEnv("PLUGINS_PATH"); !ok {
-		t.Skip("No plugin example path (PLUGINS_PATH) passed in")
-	}
-
-	exPlugin := filepath.Join(val, "plugin_example")
-	_, err = l1.rpc.StartPlugin(exPlugin)
+	l2, err := LnNode(testDir, dataDir, btcPid, "two")
 	check(t, err)
-	l1.waitForLog("successfully init'd!", 1)
+
+	exPlugin := pluginPath(t, "plugin_example")
+	loadPlugin(t, l1, exPlugin)
 
 	l1Info, _ := l1.rpc.GetInfo()
-	l1Addr := l1Info.Binding[0]
+	l2Info, _ := l2.rpc.GetInfo()
+	peerId := connectNode(t, l1, l2)
+	assert.Equal(t, peerId, l2Info.Id)
 
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
-	peerId, err := l2.rpc.Connect(l1Info.Id, l1Addr.Addr, uint(l1Addr.Port))
-	check(t, err)
-	assert.Equal(t, peerId, l1Info.Id)
 	err = l1.waitForLog("peer connected called", 1)
 	check(t, err)
 
 	l2.rpc.Disconnect(l1Info.Id, true)
 	err = l1.waitForLog("disconnect called for", 1)
 	check(t, err)
+}
+
+func TestRpcCmd(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, _ := Init(t)
+	defer CleanUp(testDir)
+	l1, err := LnNode(testDir, dataDir, btcPid, "one")
+	check(t, err)
+	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+	check(t, err)
+
+	exPlugin := pluginPath(t, "plugin_rpccmd")
+	loadPlugin(t, l1, exPlugin)
+
+	peerId := connectNode(t, l1, l2)
+	//err = l1.waitForLog("command connect called id 2", 1)
+	check(t, err)
+
+	addr, err := l1.rpc.NewAddress(glightning.P2SHSegwit)
+	check(t, err)
+
+	// we pass in segwit but the rpc_command hook always gives
+	// us back bech32
+	assert.NotNil(t, addr.Bech32, "tb1")
+	assert.Equal(t, "", addr.P2SHSegwit)
+
+	amt := glightning.NewAmount(10000)
+	rate := glightning.NewFeeRate(glightning.PerKw, 253)
+	res, err := l1.rpc.Withdraw(addr.Bech32, amt, rate, nil)
+
+	assert.Equal(t, "-401:withdrawals not allowed", err.Error())
+	assert.Equal(t, &glightning.WithdrawResult{}, res)
+
+	// this fails because we can't handle random responses 
+	_, err = l1.rpc.Ping(peerId)
+	assert.NotNil(t, err)
 }
 
 func pluginPath(t *testing.T, pluginName string) string {
