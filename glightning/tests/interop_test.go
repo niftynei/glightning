@@ -779,7 +779,6 @@ func TestInvoiceFieldsOnPaid(t *testing.T) {
 	invA, err := l1.rpc.GetInvoice("pay me")
 	check(t, err)
 
-	assert.Equal(t, invAmt, invA.MilliSatoshiReceivedRaw)
 	assert.True(t, len(invA.PaymentHash) > 0)
 }
 
