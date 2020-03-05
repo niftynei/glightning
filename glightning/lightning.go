@@ -53,7 +53,7 @@ type ListConfigsRequest struct {
 	Config string `json:"config,omitempty"`
 }
 
-func (r *ListConfigsRequest) Name() string {
+func (r ListConfigsRequest) Name() string {
 	return "listconfigs"
 }
 
@@ -78,7 +78,7 @@ type ListPeersRequest struct {
 	Level  string `json:"level,omitempty"`
 }
 
-func (r *ListPeersRequest) Name() string {
+func (r ListPeersRequest) Name() string {
 	return "listpeers"
 }
 
@@ -198,7 +198,7 @@ type ListNodeRequest struct {
 	NodeId string `json:"id,omitempty"`
 }
 
-func (ln *ListNodeRequest) Name() string {
+func (ln ListNodeRequest) Name() string {
 	return "listnodes"
 }
 
@@ -258,7 +258,7 @@ type RouteHop struct {
 	Direction      uint8  `json:"direction,omitempty"`
 }
 
-func (rr *RouteRequest) Name() string {
+func (rr RouteRequest) Name() string {
 	return "getroute"
 }
 
@@ -327,7 +327,7 @@ type FirstHop struct {
 	Delay          uint   `json:"delay"`
 }
 
-func (r *SendOnionRequest) Name() string {
+func (r SendOnionRequest) Name() string {
 	return "sendonion"
 }
 
@@ -366,7 +366,7 @@ type CreateOnionRequest struct {
 	SessionKey string `json:"session_key,omitempty"`
 }
 
-func (r *CreateOnionRequest) Name() string {
+func (r CreateOnionRequest) Name() string {
 	return "createonion"
 }
 
@@ -397,7 +397,7 @@ type ListChannelRequest struct {
 	Source         string `json:"source,omitempty"`
 }
 
-func (lc *ListChannelRequest) Name() string {
+func (lc ListChannelRequest) Name() string {
 	return "listchannels"
 }
 
@@ -453,7 +453,7 @@ type InvoiceRequest struct {
 	ExposePrivateChans bool     `json:"exposeprivatechannels"`
 }
 
-func (ir *InvoiceRequest) Name() string {
+func (ir InvoiceRequest) Name() string {
 	return "invoice"
 }
 
@@ -539,7 +539,7 @@ type ListInvoiceRequest struct {
 	Label string `json:"label,omitempty"`
 }
 
-func (r *ListInvoiceRequest) Name() string {
+func (r ListInvoiceRequest) Name() string {
 	return "listinvoices"
 }
 
@@ -573,7 +573,7 @@ type DeleteInvoiceRequest struct {
 	Status string `json:"status"`
 }
 
-func (r *DeleteInvoiceRequest) Name() string {
+func (r DeleteInvoiceRequest) Name() string {
 	return "delinvoice"
 }
 
@@ -588,7 +588,7 @@ type WaitAnyInvoiceRequest struct {
 	LastPayIndex uint `json:"lastpay_index,omitempty"`
 }
 
-func (r *WaitAnyInvoiceRequest) Name() string {
+func (r WaitAnyInvoiceRequest) Name() string {
 	return "waitanyinvoice"
 }
 
@@ -610,7 +610,7 @@ type WaitInvoiceRequest struct {
 	Label string `json:"label"`
 }
 
-func (r *WaitInvoiceRequest) Name() string {
+func (r WaitInvoiceRequest) Name() string {
 	return "waitinvoice"
 }
 
@@ -631,7 +631,7 @@ type DeleteExpiredInvoiceReq struct {
 	MaxExpiryTime uint64 `json:"maxexpirytime,omitempty"`
 }
 
-func (r *DeleteExpiredInvoiceReq) Name() string {
+func (r DeleteExpiredInvoiceReq) Name() string {
 	return "delexpiredinvoice"
 }
 
@@ -647,7 +647,7 @@ type AutoCleanInvoiceRequest struct {
 
 type AutoCleanResult struct{}
 
-func (r *AutoCleanInvoiceRequest) Name() string {
+func (r AutoCleanInvoiceRequest) Name() string {
 	return "autocleaninvoice"
 }
 
@@ -668,7 +668,7 @@ type DecodePayRequest struct {
 	Description string `json:"description,omitempty"`
 }
 
-func (r *DecodePayRequest) Name() string {
+func (r DecodePayRequest) Name() string {
 	return "decodepay"
 }
 
@@ -752,7 +752,7 @@ type PayStatusRequest struct {
 	Bolt11 string `json:"bolt11,omitempty"`
 }
 
-func (r *PayStatusRequest) Name() string {
+func (r PayStatusRequest) Name() string {
 	return "paystatus"
 }
 
@@ -788,7 +788,7 @@ type HelpRequest struct {
 	Command string `json:"command,omitempty"`
 }
 
-func (r *HelpRequest) Name() string {
+func (r HelpRequest) Name() string {
 	return "help"
 }
 
@@ -824,7 +824,7 @@ func (l *Lightning) HelpFor(command string) (*Command, error) {
 
 type StopRequest struct{}
 
-func (r *StopRequest) Name() string {
+func (r StopRequest) Name() string {
 	return "stop"
 }
 
@@ -860,7 +860,7 @@ type LogRequest struct {
 	Level string `json:"level,omitempty"`
 }
 
-func (r *LogRequest) Name() string {
+func (r LogRequest) Name() string {
 	return "getlog"
 }
 
@@ -890,7 +890,7 @@ type DevRHashRequest struct {
 	Secret string `json:"secret"`
 }
 
-func (r *DevRHashRequest) Name() string {
+func (r DevRHashRequest) Name() string {
 	return "dev-rhash"
 }
 
@@ -911,7 +911,7 @@ func (l *Lightning) DevHash(secret string) (string, error) {
 
 type DevCrashRequest struct{}
 
-func (r *DevCrashRequest) Name() string {
+func (r DevCrashRequest) Name() string {
 	return "dev-crash"
 }
 
@@ -926,7 +926,7 @@ type DevQueryShortChanIdsRequest struct {
 	ShortChanIds []string `json:"scids"`
 }
 
-func (r *DevQueryShortChanIdsRequest) Name() string {
+func (r DevQueryShortChanIdsRequest) Name() string {
 	return "dev-query-scids"
 }
 
@@ -951,7 +951,7 @@ func (l *Lightning) DevQueryShortChanIds(peerId string, shortChanIds []string) (
 
 type GetInfoRequest struct{}
 
-func (r *GetInfoRequest) Name() string {
+func (r GetInfoRequest) Name() string {
 	return "getinfo"
 }
 
@@ -1008,7 +1008,7 @@ type SignMessageRequest struct {
 	Message string `json:"message"`
 }
 
-func (r *SignMessageRequest) Name() string {
+func (r SignMessageRequest) Name() string {
 	return "signmessage"
 }
 
@@ -1029,7 +1029,7 @@ type CheckMessageRequest struct {
 	Pubkey  string `json:"pubkey,omitempty"`
 }
 
-func (r *CheckMessageRequest) Name() string {
+func (r CheckMessageRequest) Name() string {
 	return "checkmessage"
 }
 
@@ -1061,7 +1061,7 @@ type SendPayRequest struct {
 	PartId        *uint64    `json:"partid,omitempty"`
 }
 
-func (r *SendPayRequest) Name() string {
+func (r SendPayRequest) Name() string {
 	return "sendpay"
 }
 
@@ -1145,7 +1145,7 @@ type WaitSendPayRequest struct {
 	PartId      *uint64 `json:"partid,omitempty"`
 }
 
-func (r *WaitSendPayRequest) Name() string {
+func (r WaitSendPayRequest) Name() string {
 	return "waitsendpay"
 }
 
@@ -1214,7 +1214,7 @@ type PayRequest struct {
 	ExemptFee     bool    `json:"exemptfee,omitempty"`
 }
 
-func (r *PayRequest) Name() string {
+func (r PayRequest) Name() string {
 	return "pay"
 }
 
@@ -1302,7 +1302,7 @@ type ListPaysRequest struct {
 	Bolt11 string `json:"bolt11,omitempty"`
 }
 
-func (r *ListPaysRequest) Name() string {
+func (r ListPaysRequest) Name() string {
 	return "listpays"
 }
 
@@ -1327,7 +1327,7 @@ type ListSendPaysRequest struct {
 	PaymentHash string `json:"payment_hash,omitempty"`
 }
 
-func (r *ListSendPaysRequest) Name() string {
+func (r ListSendPaysRequest) Name() string {
 	return "listsendpays"
 }
 
@@ -1360,7 +1360,7 @@ func (l *Lightning) listSendPays(req *ListSendPaysRequest) ([]SendPayFields, err
 type TransactionsRequest struct {
 }
 
-func (r *TransactionsRequest) Name() string {
+func (r TransactionsRequest) Name() string {
 	return "listtransactions"
 }
 
@@ -1404,7 +1404,7 @@ type ConnectRequest struct {
 	Port   uint   `json:"port"`
 }
 
-func (r *ConnectRequest) Name() string {
+func (r ConnectRequest) Name() string {
 	return "connect"
 }
 
@@ -1429,7 +1429,7 @@ type FundChannelRequest struct {
 	MinConf  uint16 `json:"minconf,omitempty"`
 }
 
-func (r *FundChannelRequest) Name() string {
+func (r FundChannelRequest) Name() string {
 	return "fundchannel"
 }
 
@@ -1481,7 +1481,7 @@ type StartResponse struct {
 	ScriptPubkey string `json:"scriptpubkey"`
 }
 
-func (r *FundChannelStart) Name() string {
+func (r FundChannelStart) Name() string {
 	return "fundchannel_start"
 }
 
@@ -1510,7 +1510,7 @@ type FundChannelComplete struct {
 	TxOut  uint32 `json:"txout"`
 }
 
-func (r *FundChannelComplete) Name() string {
+func (r FundChannelComplete) Name() string {
 	return "fundchannel_complete"
 }
 
@@ -1528,7 +1528,7 @@ type FundChannelCancel struct {
 	PeerId string `json:"id"`
 }
 
-func (r *FundChannelCancel) Name() string {
+func (r FundChannelCancel) Name() string {
 	return "fundchannel_cancel"
 }
 
@@ -1547,7 +1547,7 @@ type CloseRequest struct {
 	Destination string `json:"destination,omitempty"`
 }
 
-func (r *CloseRequest) Name() string {
+func (r CloseRequest) Name() string {
 	return "close"
 }
 
@@ -1584,7 +1584,7 @@ type DevSignLastTxRequest struct {
 	PeerId string `json:"id"`
 }
 
-func (r *DevSignLastTxRequest) Name() string {
+func (r DevSignLastTxRequest) Name() string {
 	return "dev-sign-last-tx"
 }
 
@@ -1602,7 +1602,7 @@ type DevFailRequest struct {
 	PeerId string `json:"id"`
 }
 
-func (r *DevFailRequest) Name() string {
+func (r DevFailRequest) Name() string {
 	return "dev-fail"
 }
 
@@ -1617,7 +1617,7 @@ type DevReenableCommitRequest struct {
 	PeerId string `json:"id"`
 }
 
-func (r *DevReenableCommitRequest) Name() string {
+func (r DevReenableCommitRequest) Name() string {
 	return "dev-reenable-commit"
 }
 
@@ -1634,7 +1634,7 @@ type PingRequest struct {
 	PongBytes uint   `json:"pongbytes"`
 }
 
-func (r *PingRequest) Name() string {
+func (r PingRequest) Name() string {
 	return "ping"
 }
 
@@ -1656,7 +1656,7 @@ func (l *Lightning) PingWithLen(peerId string, pingLen, pongByteLen uint) (*Pong
 
 type DevMemDumpRequest struct{}
 
-func (r *DevMemDumpRequest) Name() string {
+func (r DevMemDumpRequest) Name() string {
 	return "dev-memdump"
 }
 
@@ -1676,7 +1676,7 @@ func (l *Lightning) DevMemDump() ([]*MemDumpEntry, error) {
 
 type DevMemLeakRequest struct{}
 
-func (r *DevMemLeakRequest) Name() string {
+func (r DevMemLeakRequest) Name() string {
 	return "dev-memleak"
 }
 
@@ -1791,7 +1791,7 @@ func NewFeeRateByDirective(style FeeRateStyle, directive FeeDirective) *FeeRate 
 	}
 }
 
-func (r *WithdrawRequest) Name() string {
+func (r WithdrawRequest) Name() string {
 	return "withdraw"
 }
 
@@ -1848,7 +1848,7 @@ type NewAddrRequest struct {
 	AddressType string `json:"addresstype,omitempty"`
 }
 
-func (r *NewAddrRequest) Name() string {
+func (r NewAddrRequest) Name() string {
 	return "newaddr"
 }
 
