@@ -1755,8 +1755,8 @@ func (f FeeDirective) String() string {
 type FeeRateStyle int
 
 const (
-	SatPerKiloByte FeeRateStyle = iota
-	SatPerKiloSipa
+	PerKb FeeRateStyle = iota
+	PerKw
 )
 
 type FeeRate struct {
@@ -2179,9 +2179,9 @@ func (l *Lightning) FeeRates(style FeeRateStyle) (*FeeRateEstimate, error) {
 
 	var details *FeeRateDetails
 	switch style {
-	case SatPerKiloByte:
+	case PerKb:
 		details = result.PerKb
-	case SatPerKiloSipa:
+	case PerKw:
 		details = result.PerKw
 	}
 
