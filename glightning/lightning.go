@@ -2287,3 +2287,64 @@ func (l *Lightning) StopPlugin(pluginName string) ([]PluginInfo, error) {
 	err := l.client.Request(&PluginRequestPlugin{"stop", pluginName}, &result)
 	return result.Plugins, err
 }
+
+// List of all non-dev RPC methods
+var Lightning_RpcMethods map[string](func() jrpc2.Method)
+
+// we register all of the methods here, so the rpc command
+// hook in the plugin works as expected
+// FIXME: have this registry be generated dynamically
+//        at build
+func init() {
+	Lightning_RpcMethods = make(map[string]func() jrpc2.Method)
+
+	Lightning_RpcMethods[(&ListConfigsRequest{}).Name()] = func() jrpc2.Method { return new(ListConfigsRequest) }
+	Lightning_RpcMethods[(&ListPeersRequest{}).Name()] = func() jrpc2.Method { return new(ListPeersRequest) }
+	Lightning_RpcMethods[(&ListNodeRequest{}).Name()] = func() jrpc2.Method { return new(ListNodeRequest) }
+	Lightning_RpcMethods[(&RouteRequest{}).Name()] = func() jrpc2.Method { return new(RouteRequest) }
+	Lightning_RpcMethods[(&SendOnionRequest{}).Name()] = func() jrpc2.Method { return new(SendOnionRequest) }
+	Lightning_RpcMethods[(&CreateOnionRequest{}).Name()] = func() jrpc2.Method { return new(CreateOnionRequest) }
+	Lightning_RpcMethods[(&ListChannelRequest{}).Name()] = func() jrpc2.Method { return new(ListChannelRequest) }
+	Lightning_RpcMethods[(&InvoiceRequest{}).Name()] = func() jrpc2.Method { return new(InvoiceRequest) }
+	Lightning_RpcMethods[(&ListInvoiceRequest{}).Name()] = func() jrpc2.Method { return new(ListInvoiceRequest) }
+	Lightning_RpcMethods[(&DeleteInvoiceRequest{}).Name()] = func() jrpc2.Method { return new(DeleteInvoiceRequest) }
+	Lightning_RpcMethods[(&WaitAnyInvoiceRequest{}).Name()] = func() jrpc2.Method { return new(WaitAnyInvoiceRequest) }
+	Lightning_RpcMethods[(&WaitInvoiceRequest{}).Name()] = func() jrpc2.Method { return new(WaitInvoiceRequest) }
+	Lightning_RpcMethods[(&DeleteExpiredInvoiceReq{}).Name()] = func() jrpc2.Method { return new(DeleteExpiredInvoiceReq) }
+	Lightning_RpcMethods[(&AutoCleanInvoiceRequest{}).Name()] = func() jrpc2.Method { return new(AutoCleanInvoiceRequest) }
+	Lightning_RpcMethods[(&DecodePayRequest{}).Name()] = func() jrpc2.Method { return new(DecodePayRequest) }
+	Lightning_RpcMethods[(&PayStatusRequest{}).Name()] = func() jrpc2.Method { return new(PayStatusRequest) }
+	Lightning_RpcMethods[(&HelpRequest{}).Name()] = func() jrpc2.Method { return new(HelpRequest) }
+	Lightning_RpcMethods[(&StopRequest{}).Name()] = func() jrpc2.Method { return new(StopRequest) }
+	Lightning_RpcMethods[(&LogRequest{}).Name()] = func() jrpc2.Method { return new(LogRequest) }
+
+	// we skip all the Dev-commands
+
+	Lightning_RpcMethods[(&GetInfoRequest{}).Name()] = func() jrpc2.Method { return new(GetInfoRequest) }
+	Lightning_RpcMethods[(&SignMessageRequest{}).Name()] = func() jrpc2.Method { return new(SignMessageRequest) }
+	Lightning_RpcMethods[(&CheckMessageRequest{}).Name()] = func() jrpc2.Method { return new(CheckMessageRequest) }
+	Lightning_RpcMethods[(&SendPayRequest{}).Name()] = func() jrpc2.Method { return new(SendPayRequest) }
+	Lightning_RpcMethods[(&WaitSendPayRequest{}).Name()] = func() jrpc2.Method { return new(WaitSendPayRequest) }
+	Lightning_RpcMethods[(&PayRequest{}).Name()] = func() jrpc2.Method { return new(PayRequest) }
+	Lightning_RpcMethods[(&ListPaysRequest{}).Name()] = func() jrpc2.Method { return new(ListPaysRequest) }
+	Lightning_RpcMethods[(&ListSendPaysRequest{}).Name()] = func() jrpc2.Method { return new(ListSendPaysRequest) }
+	Lightning_RpcMethods[(&TransactionsRequest{}).Name()] = func() jrpc2.Method { return new(TransactionsRequest) }
+	Lightning_RpcMethods[(&ConnectRequest{}).Name()] = func() jrpc2.Method { return new(ConnectRequest) }
+	Lightning_RpcMethods[(&FundChannelRequest{}).Name()] = func() jrpc2.Method { return new(FundChannelRequest) }
+	Lightning_RpcMethods[(&FundChannelStart{}).Name()] = func() jrpc2.Method { return new(FundChannelStart) }
+	Lightning_RpcMethods[(&FundChannelComplete{}).Name()] = func() jrpc2.Method { return new(FundChannelComplete) }
+	Lightning_RpcMethods[(&FundChannelCancel{}).Name()] = func() jrpc2.Method { return new(FundChannelCancel) }
+	Lightning_RpcMethods[(&CloseRequest{}).Name()] = func() jrpc2.Method { return new(CloseRequest) }
+	Lightning_RpcMethods[(&PingRequest{}).Name()] = func() jrpc2.Method { return new(PingRequest) }
+	Lightning_RpcMethods[(&WithdrawRequest{}).Name()] = func() jrpc2.Method { return new(WithdrawRequest) }
+	Lightning_RpcMethods[(&NewAddrRequest{}).Name()] = func() jrpc2.Method { return new(NewAddrRequest) }
+	Lightning_RpcMethods[(&TxPrepare{}).Name()] = func() jrpc2.Method { return new(TxPrepare) }
+	Lightning_RpcMethods[(&TxDiscard{}).Name()] = func() jrpc2.Method { return new(TxDiscard) }
+	Lightning_RpcMethods[(&TxSend{}).Name()] = func() jrpc2.Method { return new(TxSend) }
+	Lightning_RpcMethods[(&ListFundsRequest{}).Name()] = func() jrpc2.Method { return new(ListFundsRequest) }
+	Lightning_RpcMethods[(&ListForwardsRequest{}).Name()] = func() jrpc2.Method { return new(ListForwardsRequest) }
+	Lightning_RpcMethods[(&DisconnectRequest{}).Name()] = func() jrpc2.Method { return new(DisconnectRequest) }
+	Lightning_RpcMethods[(&FeeRatesRequest{}).Name()] = func() jrpc2.Method { return new(FeeRatesRequest) }
+	Lightning_RpcMethods[(&SetChannelFeeRequest{}).Name()] = func() jrpc2.Method { return new(SetChannelFeeRequest) }
+	Lightning_RpcMethods[(&PluginRequest{}).Name()] = func() jrpc2.Method { return new(PluginRequest) }
+}
