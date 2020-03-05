@@ -150,10 +150,20 @@ func SpinUpBitcoind(t *testing.T, dir string) (string, int, int, *gbitcoin.Bitco
 }
 
 func (node *Node) waitForLog(phrase string, timeoutSec int) error {
-	logfile, _ := os.Open(filepath.Join(node.dir, "log"))
+	timeout := time.Now().Add(time.Duration(timeoutSec) * time.Second)
+
+	// at startup we need to wait for the file to open
+	logfilePath := filepath.Join(node.dir, "log")
+	for time.Now().Before(timeout) || timeoutSec == 0 {
+		if _, err := os.Stat(logfilePath); os.IsNotExist(err) {
+			time.Sleep(100 * time.Millisecond)
+			continue
+		}
+		break
+	}
+	logfile, _ := os.Open(logfilePath)
 	defer logfile.Close()
 
-	timeout := time.Now().Add(time.Duration(timeoutSec) * time.Second)
 	reader := bufio.NewReader(logfile)
 	for timeoutSec == 0 || time.Now().Before(timeout) {
 		line, err := reader.ReadString('\n')
