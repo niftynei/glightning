@@ -64,6 +64,10 @@ func (id *Id) UnmarshalJSON(data []byte) error {
 }
 
 func (id *Id) Val() string {
+	return id.String()
+}
+
+func (id Id) String() string {
 	if id.strVal != "" {
 		return id.strVal
 	}
