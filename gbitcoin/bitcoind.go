@@ -354,7 +354,7 @@ func (b *Bitcoin) FundRawWithOptions(txstring string, options *FundRawOptions, i
 
 type SendRawTransactionReq struct {
 	TxString      string `json:"hexstring"`
-	AllowHighFees *bool  `json:"allowhighfees,omitempty'`
+	AllowHighFees *bool   `json:"allowhighfees,omitempty"`
 }
 
 func (r *SendRawTransactionReq) Name() string {
