@@ -9,7 +9,7 @@ import (
 func main() {
 	plugin := glightning.NewPlugin(onInit)
 	plugin.RegisterHooks(&glightning.Hooks{
-		RpcCommand:     OnRpcCommand,
+		RpcCommand: OnRpcCommand,
 	})
 
 	err := plugin.Start(os.Stdin, os.Stdout)
