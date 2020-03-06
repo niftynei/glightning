@@ -91,6 +91,10 @@ func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 		return err
 	}
 
+	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
+		log.Println(string(jbytes))
+	}
+
 	req, err := http.NewRequest("POST", b.Endpoint(), bytes.NewBuffer(jbytes))
 	if err != nil {
 		return err
@@ -121,8 +125,19 @@ func (b *Bitcoin) request(m jrpc2.Method, resp interface{}) error {
 	}
 
 	var rawResp jrpc2.RawResponse
-	decoder := json.NewDecoder(rezp.Body)
-	err = decoder.Decode(&rawResp)
+	if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
+		data, err := ioutil.ReadAll(rezp.Body)
+		if err != nil {
+			log.Printf("err response, %s", err)
+			return err
+		}
+		log.Println(string(data))
+		err = json.Unmarshal(data, &rawResp)
+	} else {
+		decoder := json.NewDecoder(rezp.Body)
+		err = decoder.Decode(&rawResp)
+	}
+
 	if err != nil {
 		return err
 	}
