@@ -1096,6 +1096,13 @@ func (p *Plugin) unregisterMethod(rpc *RpcMethod) error {
 	return nil
 }
 
+func (p *Plugin) RegisterNewOption(optionName, description, defaultVal string) error {
+	return p.RegisterOption(&Option{
+		Name:        optionName,
+		description: description,
+		Default:     defaultVal})
+}
+
 func (p *Plugin) RegisterOption(o *Option) error {
 	if o == nil {
 		return fmt.Errorf("Can't register an empty option")

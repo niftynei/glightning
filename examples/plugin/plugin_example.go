@@ -96,7 +96,7 @@ func onInit(plugin *glightning.Plugin, options map[string]string, config *glight
 }
 
 func registerOptions(p *glightning.Plugin) {
-	p.RegisterOption(glightning.NewOption("name", "How you'd like to be called", "Mary"))
+	p.RegisterNewOption("name", "How you'd like to be called", "Mary")
 }
 
 func registerMethods(p *glightning.Plugin) {
