@@ -244,12 +244,35 @@ func LnNode(t *testing.T, testDir, dataDir string, btcPort int, name string, plu
 	lightningd.SysProcAttr = &syscall.SysProcAttr{
 		Pdeathsig: syscall.SIGKILL,
 	}
+	stderr, err := lightningd.StderrPipe()
+	check(t, err)
+	stdout, err := lightningd.StdoutPipe()
 	log.Printf("starting %s on %d...", lightningPath, port)
-	if err := lightningd.Start(); err != nil {
-		return nil, err
-	}
 	err = lightningd.Start()
 	check(t, err)
+	go func() {
+		// print any stderr output to the test log
+		log.Printf("Starting stderr scanner")
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			log.Println(scanner.Text())
+		}
+	}()
+	go func() {
+		// print any stderr output to the test log
+		log.Printf("Starting stdout scanner")
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			log.Println(scanner.Text())
+		}
+	}()
+	go func() {
+		err := lightningd.Wait()
+		if err != nil {
+			t.Fatal(fmt.Sprintf("lightningd exited with error %s", err))
+		}
+		log.Printf("process exited normally")
+	}()
 
 	time.Sleep(200 * time.Millisecond)
 
