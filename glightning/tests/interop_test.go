@@ -30,19 +30,19 @@ func check(t *testing.T, err error) {
 	}
 }
 
-func advanceChain(n *Node, btc *gbitcoin.Bitcoin, numBlocks uint) error {
+func advanceChain(t *testing.T, n *Node, btc *gbitcoin.Bitcoin, numBlocks uint) {
 	timeout := time.Now().Add(time.Duration(defaultTimeout) * time.Second)
 
 	info, _ := n.rpc.GetInfo()
 	blockheight := info.Blockheight
-	mineBlocks(numBlocks, btc)
+	mineBlocks(t, numBlocks, btc)
 	for {
 		info, _ = n.rpc.GetInfo()
 		if info.Blockheight >= uint(blockheight)+numBlocks {
-			return nil
+			return
 		}
 		if time.Now().After(timeout) {
-			return errors.New("timed out waiting for chain to advance")
+			t.Fatal("timed out waiting for chain to advance")
 		}
 	}
 }
@@ -146,10 +146,11 @@ func SpinUpBitcoind(t *testing.T, dir string) (string, int, int, *gbitcoin.Bitco
 	check(t, err)
 	_, err = btc.GenerateToAddress(addr, 101)
 	check(t, err)
+
 	return bitcoindDir, bitcoind.Process.Pid, btcPort, btc
 }
 
-func (node *Node) waitForLog(phrase string, timeoutSec int) error {
+func (node *Node) waitForLog(t *testing.T, phrase string, timeoutSec int) {
 	timeout := time.Now().Add(time.Duration(timeoutSec) * time.Second)
 
 	// at startup we need to wait for the file to open
@@ -171,19 +172,17 @@ func (node *Node) waitForLog(phrase string, timeoutSec int) error {
 			if err == io.EOF {
 				time.Sleep(100 * time.Millisecond)
 			} else {
-				return err
+				check(t, err)
 			}
 		}
 		m, err := regexp.MatchString(phrase, line)
-		if err != nil {
-			return err
-		}
+		check(t, err)
 		if m {
-			return nil
+			return
 		}
 	}
 
-	return errors.New(fmt.Sprintf("Unable to find \"%s\" in %s/log", phrase, node.dir))
+	t.Fatal(fmt.Sprintf("Unable to find \"%s\" in %s/log", phrase, node.dir))
 }
 
 func getPort() (int, error) {
@@ -204,27 +203,22 @@ type Node struct {
 	dir string
 }
 
-func LnNode(testDir, dataDir string, btcPort int, name string) (*Node, error) {
+func LnNode(t *testing.T, testDir, dataDir string, btcPort int, name string) *Node {
 	var err error
 	lightningPath := os.Getenv("LIGHTNINGD_PATH")
 	if lightningPath == "" {
 		// assume it's just a thing i can call
 		lightningPath, err = exec.LookPath("lightningd")
-		if err != nil {
-			return nil, err
-		}
+		check(t, err)
 	}
 
 	lightningdDir := filepath.Join(testDir, fmt.Sprintf("lightningd-%s", name))
 	err = os.Mkdir(lightningdDir, os.ModeDir|0755)
-	if err != nil {
-		return nil, err
-	}
+	check(t, err)
 
 	port, err := getPort()
-	if err != nil {
-		return nil, err
-	}
+	check(t, err)
+
 	lightningd := exec.Command(lightningPath,
 		fmt.Sprintf("--lightning-dir=%s", lightningdDir),
 		fmt.Sprintf("--bitcoin-datadir=%s", dataDir),
@@ -246,22 +240,21 @@ func LnNode(testDir, dataDir string, btcPort int, name string) (*Node, error) {
 	if err := lightningd.Start(); err != nil {
 		return nil, err
 	}
+	err = lightningd.Start()
+	check(t, err)
 
 	time.Sleep(200 * time.Millisecond)
 
 	lightningdDir = filepath.Join(lightningdDir, "regtest")
 	node := &Node{nil, lightningdDir}
 	log.Printf("starting node in %s\n", lightningdDir)
-	err = node.waitForLog("Server started with public key", 30)
-	if err != nil {
-		return nil, err
-	}
+	node.waitForLog(t, "Server started with public key", 30)
 	log.Printf(" lightningd started (%d)!\n", lightningd.Process.Pid)
 
 	node.rpc = glightning.NewLightning()
 	node.rpc.StartUp("lightning-rpc", lightningdDir)
 
-	return node, nil
+	return node
 }
 
 func short(t *testing.T) {
@@ -286,14 +279,13 @@ func TestConnectRpc(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
 
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
 	peerId, err := l2.rpc.Connect(l1Info.Id, l1Addr.Addr, uint(l1Addr.Port))
 	check(t, err)
 	assert.Equal(t, peerId, l1Info.Id)
@@ -304,8 +296,7 @@ func TestConfigsRpc(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
 
 	configs, err := l1.rpc.ListConfigs()
 	check(t, err)
@@ -322,8 +313,7 @@ func TestHelpRpc(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
 
 	commands, err := l1.rpc.Help()
 	check(t, err)
@@ -342,10 +332,8 @@ func TestSignCheckMessage(t *testing.T) {
 	msg := "hello there"
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
 
 	l1Info, _ := l1.rpc.GetInfo()
 
@@ -362,8 +350,7 @@ func TestListTransactions(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
 
 	fundNode(t, "1.0", l1, btc)
 	fundNode(t, "1.0", l1, btc)
@@ -379,26 +366,21 @@ func connect(l1, l2 *Node) error {
 	return err
 }
 
-func fundNode(t *testing.T, amount string, n *Node, b *gbitcoin.Bitcoin) error {
+func fundNode(t *testing.T, amount string, n *Node, b *gbitcoin.Bitcoin) {
 	addr, err := n.rpc.NewAddr()
 	check(t, err)
 	_, err = b.SendToAddress(addr, amount)
 	check(t, err)
 
-	return mineBlocks(1, b)
+	mineBlocks(t, 1, b)
 }
 
 // n is number of blocks to mine
-func mineBlocks(n uint, b *gbitcoin.Bitcoin) error {
+func mineBlocks(t *testing.T, n uint, b *gbitcoin.Bitcoin) {
 	addr, err := b.GetNewAddress(gbitcoin.Bech32)
-	if err != nil {
-		return err
-	}
+	check(t, err)
 	_, err = b.GenerateToAddress(addr, n)
-	if err != nil {
-		return err
-	}
-	return nil
+	check(t, err)
 }
 
 func waitToSync(n *Node) {
@@ -416,8 +398,7 @@ func TestCreateOnion(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
 
 	hops := []glightning.Hop{
 		glightning.Hop{
@@ -488,8 +469,7 @@ func TestPlugins(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
 
 	plugins, err := l1.rpc.ListPlugins()
 	check(t, err)
@@ -506,21 +486,19 @@ func TestPlugins(t *testing.T) {
 	plugins, err = l1.rpc.StartPlugin(exPlugin)
 	check(t, err)
 	assert.Equal(t, pluginCount+1, len(plugins))
-	err = l1.waitForLog(`Is this initial node startup\? false`, 1)
-	check(t, err)
+	l1.waitForLog(t, `Is this initial node startup\? false`, 1)
 
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
 	plugins, err = l2.rpc.StartPlugin(exPlugin)
 	check(t, err)
-	err = l2.waitForLog(`Is this initial node startup\? false`, 1)
-	check(t, err)
+	l2.waitForLog(t, `Is this initial node startup\? false`, 1)
 
 	// We should have a third node!
-	l3, err := LnNode(testDir, dataDir, btcPid, "three")
+	l3 := LnNode(t, testDir, dataDir, btcPid, "three")
 	check(t, err)
 
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
@@ -541,36 +519,32 @@ func TestPlugins(t *testing.T) {
 	check(t, err)
 
 	// wait til the change is onchain
-	advanceChain(l2, btc, 1)
+	advanceChain(t, l2, btc, 1)
 
 	// fund a second channel!
 	_, err = l2.rpc.FundChannelExt(peer3, amount, feerate, true, nil)
 	check(t, err)
 
-	mineBlocks(6, btc)
+	mineBlocks(t, 6, btc)
 
 	waitForChannelReady(t, l2, l3)
 	waitForChannelReady(t, l2, l1)
 
 	// there's two now??
 	scid23 := getShortChannelId(t, l2, l3)
-	err = l2.waitForLog(fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid23), 20)
-	check(t, err)
+	l2.waitForLog(t, fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid23), 20)
 	scid21 := getShortChannelId(t, l2, l1)
-	err = l2.waitForLog(fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid21), 20)
-	check(t, err)
+	l2.waitForLog(t, fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid21), 20)
 
 	// wait for everybody to know about other channels
 	waitForChannelActive(l1, scid23)
 	waitForChannelActive(l3, scid21)
 
 	// warnings go off because of feerate misfires
-	err = l1.waitForLog("Got a warning!!", 1)
-	check(t, err)
+	l1.waitForLog(t, "Got a warning!!", 1)
 
 	// channel opened notification
-	err = l1.waitForLog("channel opened", 1)
-	check(t, err)
+	l1.waitForLog(t, "channel opened", 1)
 
 	invAmt := uint64(100000)
 	invAmt2 := uint64(10000)
@@ -588,14 +562,11 @@ func TestPlugins(t *testing.T) {
 	check(t, err)
 
 	// SEND PAY SUCCESS
-	err = l2.waitForLog("send pay success!", 1)
-	check(t, err)
-	err = l1.waitForLog("invoice paid", 1)
-	check(t, err)
+	l2.waitForLog(t, "send pay success!", 1)
+	l1.waitForLog(t, "invoice paid", 1)
 
 	/* ?? why no work
-	err = l2.waitForLog("invoice payment called", 1)
-	check(t, err)
+	l2.waitForLog(t, "invoice payment called", 1)
 	*/
 
 	// now try to route from l1 -> l3 (but with broken middle)
@@ -604,7 +575,7 @@ func TestPlugins(t *testing.T) {
 
 	_, err = l2.rpc.CloseNormal(peer3)
 	check(t, err)
-	mineBlocks(1, btc)
+	mineBlocks(t, 1, btc)
 
 	_, err = l1.rpc.SendPayLite(route2, inv2.PaymentHash)
 	check(t, err)
@@ -619,8 +590,7 @@ func TestPlugins(t *testing.T) {
 	assert.Equal(t, data.Status, "failed")
 	assert.Equal(t, data.AmountSentMilliSatoshi, "10001msat")
 	// SEND PAY FAILURE
-	err = l1.waitForLog("send pay failure!", 1)
-	check(t, err)
+	l1.waitForLog(t, "send pay failure!", 1)
 }
 
 func TestAcceptWithClose(t *testing.T) {
@@ -628,8 +598,7 @@ func TestAcceptWithClose(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
 
 	val, ok := os.LookupEnv("PLUGINS_PATH")
 	if !ok {
@@ -637,14 +606,13 @@ func TestAcceptWithClose(t *testing.T) {
 	}
 
 	exPlugin := filepath.Join(val, "plugin_openchan")
-	_, err = l1.rpc.StartPlugin(exPlugin)
-	check(t, err)
-	l1.waitForLog("successfully init'd!", 1)
+	_, err := l1.rpc.StartPlugin(exPlugin)
+	l1.waitForLog(t, "successfully init'd!", 1)
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
 
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
 	check(t, err)
@@ -676,7 +644,7 @@ func TestAcceptWithClose(t *testing.T) {
 	_, err = l2.rpc.CompleteFundChannel(peerId, tx.TxId, txout)
 	check(t, err)
 
-	l1.waitForLog("openchannel called", 1)
+	l1.waitForLog(t, "openchannel called", 1)
 
 	l2info, _ := l2.rpc.GetInfo()
 	peer, err := l1.rpc.GetPeer(l2info.Id)
@@ -691,14 +659,13 @@ func TestCloseTo(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
 
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
 
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
 	check(t, err)
@@ -743,14 +710,13 @@ func TestInvoiceFieldsOnPaid(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
 
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
 
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
 	check(t, err)
@@ -766,7 +732,7 @@ func TestInvoiceFieldsOnPaid(t *testing.T) {
 	check(t, err)
 
 	// wait til the change is onchain
-	advanceChain(l2, btc, 6)
+	advanceChain(t, l2, btc, 6)
 	waitForChannelReady(t, l2, l1)
 
 	invAmt := uint64(100000)
@@ -788,10 +754,8 @@ func TestHooks(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
 
 	exPlugin := pluginPath(t, "plugin_example")
 	loadPlugin(t, l1, exPlugin)
@@ -801,12 +765,10 @@ func TestHooks(t *testing.T) {
 	peerId := connectNode(t, l1, l2)
 	assert.Equal(t, peerId, l2Info.Id)
 
-	err = l1.waitForLog("peer connected called", 1)
-	check(t, err)
+	l1.waitForLog(t, "peer connected called", 1)
 
 	l2.rpc.Disconnect(l1Info.Id, true)
-	err = l1.waitForLog("disconnect called for", 1)
-	check(t, err)
+	l1.waitForLog(t, "disconnect called for", 1)
 }
 
 func TestRpcCmd(t *testing.T) {
@@ -814,17 +776,14 @@ func TestRpcCmd(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
 
 	exPlugin := pluginPath(t, "plugin_rpccmd")
 	loadPlugin(t, l1, exPlugin)
 
 	peerId := connectNode(t, l1, l2)
-	//err = l1.waitForLog("command connect called id 2", 1)
-	check(t, err)
+	//l1.waitForLog(t, "command connect called id 2", 1)
 
 	addr, err := l1.rpc.NewAddress(glightning.P2SHSegwit)
 	check(t, err)
@@ -858,8 +817,7 @@ func pluginPath(t *testing.T, pluginName string) string {
 func loadPlugin(t *testing.T, n *Node, exPlugin string) {
 	_, err := n.rpc.StartPlugin(exPlugin)
 	check(t, err)
-	err = n.waitForLog(`successfully init'd`, 5)
-	check(t, err)
+	n.waitForLog(t, `successfully init'd`, 5)
 }
 
 func connectNode(t *testing.T, from, to *Node) string {
@@ -876,7 +834,7 @@ func openChannel(t *testing.T, btc *gbitcoin.Bitcoin, from, to *Node, amt uint64
 	_, err := from.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
 	check(t, err)
 
-	mineBlocks(6, btc)
+	mineBlocks(t, 6, btc)
 
 	if waitTilReady {
 		waitForChannelReady(t, from, to)
@@ -888,12 +846,9 @@ func TestHtlcAcceptedHook(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1, err := LnNode(testDir, dataDir, btcPid, "one")
-	check(t, err)
-	l2, err := LnNode(testDir, dataDir, btcPid, "two")
-	check(t, err)
-	l3, err := LnNode(testDir, dataDir, btcPid, "three")
-	check(t, err)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
+	l3 := LnNode(t, testDir, dataDir, btcPid, "three")
 
 	// 2nd + 3rd node listens for htlc accepts
 	exPlugin := pluginPath(t, "plugin_htlcacc")
@@ -912,11 +867,9 @@ func TestHtlcAcceptedHook(t *testing.T) {
 
 	// wait for everybody to know about other channels
 	scid23 := getShortChannelId(t, l2, l3)
-	err = l2.waitForLog(fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid23), 20)
-	check(t, err)
+	l2.waitForLog(t, fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid23), 20)
 	scid21 := getShortChannelId(t, l1, l2)
-	err = l2.waitForLog(fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid21), 20)
-	check(t, err)
+	l2.waitForLog(t, fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid21), 20)
 	waitForChannelActive(l1, scid23)
 	waitForChannelActive(l3, scid21)
 
@@ -931,16 +884,16 @@ func TestHtlcAcceptedHook(t *testing.T) {
 	check(t, err)
 
 	// l2 should have gotten an htlc_accept hook call
-	l2.waitForLog("htlc_accepted called", 1)
-	l2.waitForLog(`type is tlv`, 1)
-	l2.waitForLog(`has perhop? false`, 1)
-	l2.waitForLog(`payment secret is empty`, 1)
-	l2.waitForLog(`amount is empty`, 1)
+	l2.waitForLog(t, "htlc_accepted called", 1)
+	l2.waitForLog(t, `type is tlv`, 1)
+	l2.waitForLog(t, `has perhop? false`, 1)
+	l2.waitForLog(t, `payment secret is empty`, 1)
+	l2.waitForLog(t, `amount is empty`, 1)
 
 	// l3 should have gotten an htlc_accept hook call, with different info
-	l3.waitForLog("htlc_accepted called", 1)
-	l3.waitForLog(`type is tlv`, 1)
-	l3.waitForLog(`has perhop? false`, 1)
-	l3.waitForLog(`payment secret is not empty`, 1)
-	l3.waitForLog(`amount is 10000000msat`, 1)
+	l3.waitForLog(t, "htlc_accepted called", 1)
+	l3.waitForLog(t, `type is tlv`, 1)
+	l3.waitForLog(t, `has perhop? false`, 1)
+	l3.waitForLog(t, `payment secret is not empty`, 1)
+	l3.waitForLog(t, `amount is 10000000msat`, 1)
 }
