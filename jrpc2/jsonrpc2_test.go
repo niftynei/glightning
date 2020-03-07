@@ -584,7 +584,7 @@ func (e ErroringMethod) Name() string {
 }
 
 type ByteMethod struct {
-	Bytes []byte `json:"raw"`
+	Bytes    []byte          `json:"raw"`
 	RawBytes json.RawMessage `json:"too_raw"`
 }
 
@@ -619,7 +619,6 @@ func TestByteFields(t *testing.T) {
 	assert.Equal(t, json.RawMessage(`["more","raw","things"]`), bytes.RawBytes)
 	assert.Equal(t, []byte("abcde1939"), bytes.Bytes)
 }
-
 
 func TestInboundServer(t *testing.T) {
 	sub := &SubtractMethod{5, 2}

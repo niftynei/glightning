@@ -841,7 +841,7 @@ func TestRpcCmd(t *testing.T) {
 	assert.Equal(t, "-401:withdrawals not allowed", err.Error())
 	assert.Equal(t, &glightning.WithdrawResult{}, res)
 
-	// this fails because we can't handle random responses 
+	// this fails because we can't handle random responses
 	_, err = l1.rpc.Ping(peerId)
 	assert.NotNil(t, err)
 }
