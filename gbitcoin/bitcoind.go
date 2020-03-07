@@ -163,6 +163,157 @@ func (b *Bitcoin) Ping() (bool, error) {
 	return err == nil, err
 }
 
+type GetBlockChainInfoRequest struct{}
+
+func (r *GetBlockChainInfoRequest) Name() string {
+	return "getblockchaininfo"
+}
+
+type ChainInfo struct {
+	Chain                string               `json:"chain"`
+	Blocks               uint32               `json:"blocks"`
+	Headers              uint32               `json:"headers"`
+	BestBlockHash        string               `json:"bestblockhash"`
+	Difficulty           float64              `json:"difficulty"`
+	MedianTime           uint64               `json:"mediantime"`
+	VerificationProgress float64              `json:"verificationprogress"`
+	InitialBlockDownload bool                 `json:"initialblockdownload"`
+	ChainWork            string               `json:"chainwork"`
+	SizeOnDisk           uint64               `json:"size_on_disk"`
+	Pruned               bool                 `json:"pruned"`
+	SoftForks            []*Fork              `json:"softforks"`
+	Bip9SoftForks        map[string]*Bip9Fork `json:"softforks"`
+	Warnings             string               `json:"warnings"`
+}
+
+type Fork struct {
+	Id      string     `json:"id"`
+	Version uint       `json:"version"`
+	Reject  *RejectObj `json:"reject"`
+}
+
+type RejectObj struct {
+	Status bool `json:"status"`
+}
+
+type Bip9Fork struct {
+	// defined, started, locked_in, active, failed, ??
+	Status      string     `json:"status"`
+	StartTime   int        `json:"start_time"`
+	Timeout     uint64     `json:"timeout"`
+	SinceHeight uint32     `json:"since"`
+	Statistics  *Bip9Stats `json:"statistics,omitempty"`
+}
+
+type Bip9Stats struct {
+	Period    uint32 `json:"period"`
+	Threshold uint32 `json:"threshold"`
+	Elapsed   uint32 `json:"elapsed"`
+	Count     uint32 `json:"count"`
+	Possible  bool   `json:"possible"`
+}
+
+func (b *Bitcoin) GetChainInfo() (*ChainInfo, error) {
+	var result ChainInfo
+	err := b.request(&GetBlockChainInfoRequest{}, &result)
+	return &result, err
+}
+
+type GetBlockHashRequest struct {
+	BlockHeight uint32 `json:"height"`
+}
+
+func (r *GetBlockHashRequest) Name() string {
+	return "getblockhash"
+}
+
+func (b *Bitcoin) GetBlockHash(height uint32) (string, error) {
+	var result string
+	err := b.request(&GetBlockHashRequest{height}, &result)
+	return result, err
+}
+
+type BlockVerbosity uint16
+
+// FIXME: support options other than just raw block data
+const (
+	RawBlock BlockVerbosity = iota
+	Json_TxId
+	Json_TxData
+)
+
+type GetBlockRequest struct {
+	BlockHash string `json:"blockhash"`
+	// valid options: 0,1,2
+	Verbosity BlockVerbosity `json:"verbosity"`
+}
+
+func (r *GetBlockRequest) Name() string {
+	return "getblock"
+}
+
+// fetches raw block hex-string
+func (b *Bitcoin) GetRawBlock(blockhash string) (string, error) {
+	var result string
+	err := b.request(&GetBlockRequest{blockhash, RawBlock}, &result)
+	return result, err
+}
+
+type EstimateFeeRequest struct {
+	Blocks uint32 `json:"conf_target"`
+	Mode   string `json:"estimate_mode,omitempty"`
+}
+
+func (r *EstimateFeeRequest) Name() string {
+	return "estimatesmartfee"
+}
+
+type FeeResponse struct {
+	FeeRate float64  `json:"feerate,omitempty"`
+	Errors  []string `json:"errors,omitempty"`
+	Blocks  uint32   `json:"blocks"`
+}
+
+func (fr *FeeResponse) SatPerKb() uint64 {
+	return ConvertBtc(fr.FeeRate)
+}
+
+func (b *Bitcoin) EstimateFee(blocks uint32, mode string) (*FeeResponse, error) {
+	var result FeeResponse
+	err := b.request(&EstimateFeeRequest{blocks, mode}, &result)
+	return &result, err
+}
+
+type GetTxOutRequest struct {
+	TxId           string `json:"txid"`
+	Vout           uint32 `json:"n"`
+	IncludeMempool bool   `json:"include_mempool"`
+}
+
+func (r *GetTxOutRequest) Name() string {
+	return "gettxout"
+}
+
+type TxOutResp struct {
+	BestBlockHash string     `json:"bestblock"`
+	Confirmations uint32     `json:"confirmations"`
+	Value         float64    `json:"value"`
+	ScriptPubKey  *OutScript `json:"scriptPubKey"`
+	Coinbase      bool       `json:"coinbase"`
+}
+
+func (b *Bitcoin) GetTxOut(txid string, vout uint32) (*TxOutResp, error) {
+	var result TxOutResp
+	err := b.request(&GetTxOutRequest{txid, vout, true}, &result)
+
+	// return a nil rather than an empty
+	if result == (TxOutResp{}) {
+		return nil, err
+	}
+
+	return &result, err
+}
+
 type GetNewAddressRequest struct {
 	Label       string `json:"label,omitempty"`
 	AddressType string `json:"address_type,omitempty"`
@@ -448,4 +599,13 @@ func (b *Bitcoin) DecodeRawTx(txstring string) (*Tx, error) {
 func (b *Bitcoin) NextId() *jrpc2.Id {
 	val := atomic.AddInt64(&b.requestCounter, 1)
 	return jrpc2.NewIdAsInt(val)
+}
+
+func ConvertBtc(btc float64) uint64 {
+	// this may need some intervention
+	sat := btc * 100000000
+	if sat != btc*100000000 {
+		panic(fmt.Sprintf("overflowed converting %f to sat", btc))
+	}
+	return uint64(sat)
 }

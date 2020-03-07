@@ -779,6 +779,65 @@ func TestInvoiceFieldsOnPaid(t *testing.T) {
 	assert.True(t, len(invA.PaymentHash) > 0)
 }
 
+func TestBtcBackend(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, btc := Init(t)
+	defer CleanUp(testDir)
+
+	exPlugin := pluginPath(t, "plugin_btc")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", exPlugin)
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", exPlugin)
+	l1.waitForLog(t, "All Bitcoin plugin commands registered", 1)
+
+	l1.waitForLog(t, "called getchaininfo", 1)
+	l1.waitForLog(t, "called getfeerate", 1)
+	l1.waitForLog(t, "called blockbyheight", 1)
+
+	fundNode(t, "1.0", l1, btc)
+	waitToSync(l1)
+
+	// send yourself some funds, so sendrawtransaction gets called
+	addr, err := l1.rpc.NewAddr()
+	check(t, err)
+	amt := glightning.NewAmount(10000)
+	rate := glightning.NewFeeRate(glightning.PerKw, 253)
+	_, err = l1.rpc.Withdraw(addr, amt, rate, nil)
+	check(t, err)
+	l1.waitForLog(t, "called sendrawtransaction", 1)
+	mineBlocks(t, 1, btc)
+
+	// try to open a channel and then cancel it, so getutxo gets called
+	peerId := connectNode(t, l1, l2)
+	channelfunds := uint64(100000)
+	starter, err := l1.rpc.StartFundChannel(peerId, channelfunds, true, rate, "")
+	check(t, err)
+
+	// build a transaction
+	outs := []*gbitcoin.TxOut{
+		&gbitcoin.TxOut{
+			Address: starter.Address,
+			Satoshi: channelfunds,
+		},
+	}
+	rawtx, err := btc.CreateRawTx(nil, outs, nil, nil)
+	check(t, err)
+	fundedtx, err := btc.FundRawTx(rawtx)
+	check(t, err)
+	tx, err := btc.DecodeRawTx(fundedtx.TxString)
+	check(t, err)
+	txout, err := tx.FindOutputIndex(starter.Address)
+	check(t, err)
+	_, err = l1.rpc.CompleteFundChannel(peerId, tx.TxId, txout)
+	check(t, err)
+
+	// ok this will call a check for the utxo...
+	canceled, err := l1.rpc.CancelFundChannel(peerId)
+	check(t, err)
+	assert.True(t, canceled)
+	l1.waitForLog(t, "called getutxo", 1)
+}
+
 // let's try out some hooks!
 func TestHooks(t *testing.T) {
 	short(t)

@@ -1711,6 +1711,22 @@ type SatoshiAmount struct {
 	SendAll bool
 }
 
+func ConvertBtc(btc float64) *SatoshiAmount {
+	// fixme: precision errors
+	sat := btc * 100000000
+	if sat != btc*100000000 {
+		panic(fmt.Sprintf("overflowed converting %f to sat", btc))
+	}
+	return NewAmt(uint64(sat))
+}
+
+func (s *SatoshiAmount) AsMsat() string {
+	if s.Amount*1000 < s.Amount {
+		panic(fmt.Sprintf("overflowed converting %d to msat", s.Amount))
+	}
+	return fmt.Sprintf("%dmsat", s.Amount*1000)
+}
+
 func (s *SatoshiAmount) String() string {
 	if s.SendAll {
 		return "all"
