@@ -203,7 +203,7 @@ type Node struct {
 	dir string
 }
 
-func LnNode(t *testing.T, testDir, dataDir string, btcPort int, name string) *Node {
+func LnNode(t *testing.T, testDir, dataDir string, btcPort int, name string, pluginPath string) *Node {
 	var err error
 	lightningPath := os.Getenv("LIGHTNINGD_PATH")
 	if lightningPath == "" {
@@ -219,6 +219,13 @@ func LnNode(t *testing.T, testDir, dataDir string, btcPort int, name string) *No
 	port, err := getPort()
 	check(t, err)
 
+	var pluginOpt string
+	if pluginPath == "" {
+		pluginOpt = ""
+	} else {
+		pluginOpt = fmt.Sprintf("--plugin=%s", pluginPath)
+	}
+
 	lightningd := exec.Command(lightningPath,
 		fmt.Sprintf("--lightning-dir=%s", lightningdDir),
 		fmt.Sprintf("--bitcoin-datadir=%s", dataDir),
@@ -231,7 +238,8 @@ func LnNode(t *testing.T, testDir, dataDir string, btcPort int, name string) *No
 		"--bitcoin-rpcpassword=btcpass",
 		"--dev-fast-gossip",
 		"--dev-bitcoind-poll=1",
-		"--allow-deprecated-apis=false")
+		"--allow-deprecated-apis=false",
+		pluginOpt)
 
 	lightningd.SysProcAttr = &syscall.SysProcAttr{
 		Pdeathsig: syscall.SIGKILL,
@@ -279,13 +287,13 @@ func TestConnectRpc(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
 
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
 	peerId, err := l2.rpc.Connect(l1Info.Id, l1Addr.Addr, uint(l1Addr.Port))
 	check(t, err)
 	assert.Equal(t, peerId, l1Info.Id)
@@ -296,7 +304,7 @@ func TestConfigsRpc(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
 
 	configs, err := l1.rpc.ListConfigs()
 	check(t, err)
@@ -313,7 +321,7 @@ func TestHelpRpc(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
 
 	commands, err := l1.rpc.Help()
 	check(t, err)
@@ -332,8 +340,8 @@ func TestSignCheckMessage(t *testing.T) {
 	msg := "hello there"
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
-	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
 
 	l1Info, _ := l1.rpc.GetInfo()
 
@@ -350,7 +358,7 @@ func TestListTransactions(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
 
 	fundNode(t, "1.0", l1, btc)
 	fundNode(t, "1.0", l1, btc)
@@ -398,7 +406,7 @@ func TestCreateOnion(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
 
 	hops := []glightning.Hop{
 		glightning.Hop{
@@ -469,7 +477,7 @@ func TestPlugins(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
 
 	plugins, err := l1.rpc.ListPlugins()
 	check(t, err)
@@ -492,13 +500,13 @@ func TestPlugins(t *testing.T) {
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
 	plugins, err = l2.rpc.StartPlugin(exPlugin)
 	check(t, err)
 	l2.waitForLog(t, `Is this initial node startup\? false`, 1)
 
 	// We should have a third node!
-	l3 := LnNode(t, testDir, dataDir, btcPid, "three")
+	l3 := LnNode(t, testDir, dataDir, btcPid, "three", "")
 	check(t, err)
 
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
@@ -598,7 +606,7 @@ func TestAcceptWithClose(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
 
 	val, ok := os.LookupEnv("PLUGINS_PATH")
 	if !ok {
@@ -612,7 +620,7 @@ func TestAcceptWithClose(t *testing.T) {
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
 
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
 	check(t, err)
@@ -659,13 +667,13 @@ func TestCloseTo(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
 
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
 
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
 	check(t, err)
@@ -710,13 +718,13 @@ func TestInvoiceFieldsOnPaid(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
 
 	l1Info, _ := l1.rpc.GetInfo()
 	assert.Equal(t, 1, len(l1Info.Binding))
 
 	l1Addr := l1Info.Binding[0]
-	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
 
 	peerId, err := l2.rpc.Connect(l1Info.Id, "localhost", uint(l1Addr.Port))
 	check(t, err)
@@ -754,8 +762,8 @@ func TestHooks(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
-	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
 
 	exPlugin := pluginPath(t, "plugin_example")
 	loadPlugin(t, l1, exPlugin)
@@ -776,8 +784,8 @@ func TestRpcCmd(t *testing.T) {
 
 	testDir, dataDir, btcPid, _ := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
-	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
 
 	exPlugin := pluginPath(t, "plugin_rpccmd")
 	loadPlugin(t, l1, exPlugin)
@@ -846,9 +854,9 @@ func TestHtlcAcceptedHook(t *testing.T) {
 
 	testDir, dataDir, btcPid, btc := Init(t)
 	defer CleanUp(testDir)
-	l1 := LnNode(t, testDir, dataDir, btcPid, "one")
-	l2 := LnNode(t, testDir, dataDir, btcPid, "two")
-	l3 := LnNode(t, testDir, dataDir, btcPid, "three")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", "")
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
+	l3 := LnNode(t, testDir, dataDir, btcPid, "three", "")
 
 	// 2nd + 3rd node listens for htlc accepts
 	exPlugin := pluginPath(t, "plugin_htlcacc")
