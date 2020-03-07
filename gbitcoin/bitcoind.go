@@ -364,7 +364,7 @@ func (r *SendRawTransactionReq) Name() string {
 func (b *Bitcoin) SendRawTx(txstring string) (string, error) {
 	var result string
 	err := b.request(&SendRawTransactionReq{
-		TxString: txstring,
+		TxString:      txstring,
 	}, &result)
 	return result, err
 }

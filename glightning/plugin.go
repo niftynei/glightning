@@ -218,7 +218,7 @@ func (oc *OpenChannelEvent) ContinueWithCloseTo(address string) *OpenChannelResp
 }
 
 type RpcCommandEvent struct {
-	X CmdLayer `json:"rpc_command"`
+	X    CmdLayer `json:"rpc_command"`
 	hook func(*RpcCommandEvent) (*RpcCommandResponse, error)
 }
 
@@ -229,11 +229,11 @@ type CmdLayer struct {
 }
 
 type RpcCmd struct {
-	ParsedId         json.RawMessage        `json:"id"`
+	ParsedId   json.RawMessage `json:"id"`
 	MethodName string          `json:"method"`
 	RawParams  json.RawMessage `json:"params"`
 
-	m jrpc2.Method
+	m  jrpc2.Method
 	id *jrpc2.Id
 }
 
@@ -313,8 +313,8 @@ func (r *RpcCmd) Get() (jrpc2.Method, error) {
 type RpcCommandResponse struct {
 	Continue *bool `json:"continue,omitempty"`
 	//Result     RpcCommandResult `json:"result,omitempty"`
-	ReplaceObj *jrpc2.Request   `json:"replace,omitempty"`
-	ReturnObj  json.RawMessage  `json:"return,omitempty"`
+	ReplaceObj *jrpc2.Request  `json:"replace,omitempty"`
+	ReturnObj  json.RawMessage `json:"return,omitempty"`
 }
 
 type RpcCommand_Return interface{}
@@ -364,7 +364,7 @@ func (rc *RpcCommandEvent) ReturnResult(resp RpcCommand_Return) (*RpcCommandResp
 func (rc *RpcCommandEvent) ReturnError(errMsg string, errCode int) (*RpcCommandResponse, error) {
 	type ErrResp struct {
 		Message string `json:"message"`
-		Code int `json:"code"`
+		Code    int    `json:"code"`
 	}
 	result := &struct {
 		Result ErrResp `json:"error"`
