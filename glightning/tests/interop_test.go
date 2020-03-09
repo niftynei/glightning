@@ -219,27 +219,26 @@ func LnNode(t *testing.T, testDir, dataDir string, btcPort int, name string, plu
 	port, err := getPort()
 	check(t, err)
 
-	var pluginOpt string
-	if pluginPath == "" {
-		pluginOpt = ""
-	} else {
-		pluginOpt = fmt.Sprintf("--plugin=%s", pluginPath)
-	}
-
-	lightningd := exec.Command(lightningPath,
+	args := []string{
 		fmt.Sprintf("--lightning-dir=%s", lightningdDir),
 		fmt.Sprintf("--bitcoin-datadir=%s", dataDir),
 		"--network=regtest", "--funding-confirms=3",
 		fmt.Sprintf("--addr=localhost:%d", port),
 		fmt.Sprintf("--bitcoin-rpcport=%d", btcPort),
 		"--log-file=log",
-		"--log-level=debug",
+		"--log-level=io",
 		"--bitcoin-rpcuser=btcuser",
 		"--bitcoin-rpcpassword=btcpass",
 		"--dev-fast-gossip",
 		"--dev-bitcoind-poll=1",
 		"--allow-deprecated-apis=false",
-		pluginOpt)
+	}
+
+	if pluginPath != "" {
+		args = append(args, fmt.Sprintf("--plugin=%s", pluginPath))
+	}
+
+	lightningd := exec.Command(lightningPath, args...)
 
 	lightningd.SysProcAttr = &syscall.SysProcAttr{
 		Pdeathsig: syscall.SIGKILL,
