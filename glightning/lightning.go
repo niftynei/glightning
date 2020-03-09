@@ -1,6 +1,7 @@
 package glightning
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -202,12 +203,35 @@ func (ln ListNodeRequest) Name() string {
 	return "listnodes"
 }
 
+type Hexed struct {
+	Str string
+	Raw []byte
+}
+
+func (h *Hexed) UnmarshalJSON(b []byte) error {
+	// assumed string, check first and last are '"'
+	if b[0] != '"' || b[len(b)-1] != '"' {
+		return fmt.Errorf("%s is not a string", string(b))
+	}
+	// trim string markers
+	b = b[1:len(b)-1]
+
+	// b - bytes of string of hex
+	h.Raw = make([]byte, hex.DecodedLen(len(b)))
+	_, err := hex.Decode(h.Raw, b)
+	if err != nil {
+		return err
+	}
+	h.Str = string(b)
+	return nil
+}
+
 type Node struct {
 	Id            string    `json:"nodeid"`
 	Alias         string    `json:"alias"`
 	Color         string    `json:"color"`
 	LastTimestamp uint      `json:"last_timestamp"`
-	Features      string    `json:"features"`
+	Features      *Hexed     `json:"features"`
 	Addresses     []Address `json:"addresses"`
 }
 
@@ -687,13 +711,14 @@ type DecodedBolt11 struct {
 	Extra              []BoltExtra   `json:"extra"`
 	PaymentHash        string        `json:"payment_hash"`
 	Signature          string        `json:"signature"`
+	Features           Hexed	 `json:"features"`
 }
 
 type Fallback struct {
 	// fixme: use enum (P2PKH,P2SH,P2WPKH,P2WSH)
 	Type    string `json:"type"`
 	Address string `json:"addr"`
-	Hex     string `json:"hex"`
+	Hex     *Hexed `json:"hex"`
 }
 
 type BoltRoute struct {
