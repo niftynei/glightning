@@ -791,12 +791,23 @@ func NewManifestRpcMethod(p *Plugin) *RpcMethod {
 	}
 }
 
+type FeatureBits struct {
+	Node    *Hexed `json:"node,omitempty"`
+	Init    *Hexed `json:"init,omitempty"`
+	Invoice *Hexed `json:"invoice,omitempty"`
+}
+
+func (fb *FeatureBits) AreSet() bool {
+	return fb.Node != nil || fb.Init != nil || fb.Invoice != nil
+}
+
 type Manifest struct {
 	Options       []*Option    `json:"options"`
 	RpcMethods    []*RpcMethod `json:"rpcmethods"`
 	Dynamic       bool         `json:"dynamic"`
 	Subscriptions []string     `json:"subscriptions,omitempty"`
 	Hooks         []Hook       `json:"hooks,omitempty"`
+	FeatureBits   *FeatureBits `json:"featurebits,omitempty"`
 }
 
 func (gm GetManifestMethod) Name() string {
@@ -836,6 +847,14 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 	}
 
 	m.Dynamic = gm.plugin.dynamic
+
+	if gm.plugin.features.AreSet() {
+		m.Dynamic = false
+		if gm.plugin.dynamic {
+			log.Printf("feature bits set, overriding dynamic = true")
+		}
+	}
+	m.FeatureBits = gm.plugin.features
 
 	return m, nil
 }
@@ -988,15 +1007,17 @@ type Plugin struct {
 	Config        *Config
 	stopped       bool
 	dynamic       bool
+	features      *FeatureBits
 }
 
 func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plugin {
-	plugin := &Plugin{}
+	plugin := new(Plugin)
 	plugin.server = jrpc2.NewServer()
 	plugin.options = make(map[string]*Option)
 	plugin.methods = make(map[string]*RpcMethod)
 	plugin.initFn = initHandler
 	plugin.dynamic = true
+	plugin.features = new(FeatureBits)
 	return plugin
 }
 
@@ -1048,6 +1069,18 @@ func (p *Plugin) checkForMonkeyPatch() {
 	}(in, p)
 	log.SetFlags(log.Ltime | log.Lshortfile)
 	log.SetOutput(out)
+}
+
+func (p *Plugin) AddNodeFeatures(bits []byte) {
+	p.features.Node = NewHexx(bits)
+}
+
+func (p *Plugin) AddInitFeatures(bits []byte) {
+	p.features.Init = NewHexx(bits)
+}
+
+func (p *Plugin) AddInvoiceFeatures(bits []byte) {
+	p.features.Invoice = NewHexx(bits)
 }
 
 func (p *Plugin) RegisterMethod(m *RpcMethod) error {

@@ -164,7 +164,7 @@ func TestGetManifest(t *testing.T) {
 	plugin.SetDynamic(true)
 
 	msg := "{\"jsonrpc\":\"2.0\",\"method\":\"getmanifest\",\"id\":\"aloha\"}\n\n"
-	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[{\"name\":\"greeting\",\"type\":\"string\",\"default\":\"Mary\",\"description\":\"How you'd like to be called\"}],\"rpcmethods\":[{\"name\":\"hi\",\"description\":\"Send a greeting.\",\"usage\":\"\"}],\"dynamic\":true,\"subscriptions\":[\"connect\"]},\"id\":\"aloha\"}"
+	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[{\"name\":\"greeting\",\"type\":\"string\",\"default\":\"Mary\",\"description\":\"How you'd like to be called\"}],\"rpcmethods\":[{\"name\":\"hi\",\"description\":\"Send a greeting.\",\"usage\":\"\"}],\"dynamic\":true,\"subscriptions\":[\"connect\"],\"featurebits\":{}},\"id\":\"aloha\"}"
 	runTest(t, plugin, msg, resp)
 }
 
@@ -182,7 +182,7 @@ func TestManifestWithHooks(t *testing.T) {
 	})
 
 	msg := "{\"jsonrpc\":\"2.0\",\"method\":\"getmanifest\",\"id\":\"aloha\"}\n\n"
-	resp := `{"jsonrpc":"2.0","result":{"options":[],"rpcmethods":[],"dynamic":true,"hooks":["db_write","peer_connected","invoice_payment","openchannel","htlc_accepted"]},"id":"aloha"}`
+	resp := `{"jsonrpc":"2.0","result":{"options":[],"rpcmethods":[],"dynamic":true,"hooks":["db_write","peer_connected","invoice_payment","openchannel","htlc_accepted"],"featurebits":{}},"id":"aloha"}`
 	runTest(t, plugin, msg, resp)
 }
 
@@ -237,6 +237,7 @@ func TestHook_PeerConnectedOk(t *testing.T) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
+
 	plugin.RegisterHooks(&glightning.Hooks{
 		PeerConnected: func(event *glightning.PeerConnectedEvent) (*glightning.PeerConnectedResponse, error) {
 			expected := glightning.PeerEvent{
