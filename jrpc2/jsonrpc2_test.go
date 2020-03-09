@@ -601,8 +601,8 @@ func (b *ByteMethod) Name() string {
 }
 
 func TestByteFields(t *testing.T) {
-	objParams := `{"jsonrpc":"2.0","method":"byteme","params":{"too_raw":["more","raw","things"],"raw":"abcde1939"}}`
-	arrParams := `{"jsonrpc":"2.0","method":"hello","params":["abcde1939",["more","raw","things"]]}`
+	objParams := `{"jsonrpc":"2.0","method":"byteme","params":{"too_raw":["more","raw","things"],"raw":"deadbeef"}}`
+	arrParams := `{"jsonrpc":"2.0","method":"hello","params":["deadbeef",["more","raw","things"]]}`
 
 	s := jrpc2.NewServer()
 	s.Register(new(ByteMethod))
@@ -611,13 +611,14 @@ func TestByteFields(t *testing.T) {
 	err := s.Unmarshal([]byte(objParams), &req)
 	assert.Nil(t, err)
 
+	var assertBytes = []byte {222, 173, 190, 239}
 	bytes := req.Method.(*ByteMethod)
 	assert.Equal(t, json.RawMessage(`["more","raw","things"]`), bytes.RawBytes)
-	assert.Equal(t, []byte("abcde1939"), bytes.Bytes)
+	assert.Equal(t, assertBytes, bytes.Bytes)
 
 	err = s.Unmarshal([]byte(arrParams), &req)
 	assert.Equal(t, json.RawMessage(`["more","raw","things"]`), bytes.RawBytes)
-	assert.Equal(t, []byte("abcde1939"), bytes.Bytes)
+	assert.Equal(t, assertBytes, bytes.Bytes)
 }
 
 func TestInboundServer(t *testing.T) {
