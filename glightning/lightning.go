@@ -220,17 +220,25 @@ type Address struct {
 
 // Get all nodes in our local network view, filter on node {id},
 // if provided
-func (l *Lightning) GetNode(nodeId string) ([]Node, error) {
+func (l *Lightning) GetNode(nodeId string) (*Node, error) {
+	nodes, err := l.getNodes(nodeId)
+	if len(nodes) == 0 {
+		return nil, fmt.Errorf("Node %s not found", nodeId)
+	}
+	return &nodes[0], err
+}
+
+// List all nodes in our local network view
+func (l *Lightning) ListNodes() ([]Node, error) {
+	return l.getNodes("")
+}
+
+func (l *Lightning) getNodes(nodeId string) ([]Node, error) {
 	var result struct {
 		Nodes []Node `json:"nodes"`
 	}
 	err := l.client.Request(&ListNodeRequest{nodeId}, &result)
 	return result.Nodes, err
-}
-
-// List all nodes in our local network view
-func (l *Lightning) ListNodes() ([]Node, error) {
-	return l.GetNode("")
 }
 
 type RouteRequest struct {
@@ -513,6 +521,13 @@ func (l *Lightning) CreateInvoice(msat uint64, label, description string, expiry
 
 }
 
+func (l *Lightning) Invoice(msat uint64, label, description string) (*Invoice, error) {
+	if msat <= 0 {
+		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
+	}
+	return createInvoice(l, fmt.Sprint(msat), label, description, 0, nil, "", false)
+}
+
 func createInvoice(l *Lightning, msat, label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivateChans bool) (*Invoice, error) {
 
 	if label == "" {
@@ -708,6 +723,10 @@ type BoltRoute struct {
 type BoltExtra struct {
 	Tag  string `json:"tag"`
 	Data string `json:"data"`
+}
+
+func (l *Lightning) DecodeBolt11(bolt11 string) (*DecodedBolt11, error) {
+	return l.DecodePay(bolt11, "")
 }
 
 // Decode the {bolt11}, using the provided 'description' if necessary.*
