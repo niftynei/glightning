@@ -1,7 +1,6 @@
 package glightning
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -87,7 +86,7 @@ type Peer struct {
 	Id           string         `json:"id"`
 	Connected    bool           `json:"connected"`
 	NetAddresses []string       `json:"netaddr"`
-	Features     string         `json:"features"`
+	Features     *Hexed         `json:"features"`
 	Channels     []*PeerChannel `json:"channels"`
 	Logs         []*Log         `json:"log,omitempty"`
 }
@@ -201,29 +200,6 @@ type ListNodeRequest struct {
 
 func (ln ListNodeRequest) Name() string {
 	return "listnodes"
-}
-
-type Hexed struct {
-	Str string
-	Raw []byte
-}
-
-func (h *Hexed) UnmarshalJSON(b []byte) error {
-	// assumed string, check first and last are '"'
-	if b[0] != '"' || b[len(b)-1] != '"' {
-		return fmt.Errorf("%s is not a string", string(b))
-	}
-	// trim string markers
-	b = b[1:len(b)-1]
-
-	// b - bytes of string of hex
-	h.Raw = make([]byte, hex.DecodedLen(len(b)))
-	_, err := hex.Decode(h.Raw, b)
-	if err != nil {
-		return err
-	}
-	h.Str = string(b)
-	return nil
 }
 
 type Node struct {

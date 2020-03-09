@@ -2,7 +2,6 @@ package glightning_test
 
 import (
 	"bufio"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/niftynei/glightning/glightning"
@@ -206,12 +205,13 @@ func TestListPeers(t *testing.T) {
 			LocalTrimmed: true,
 		},
 	}
+	hex, _ := glightning.NewHex("8a")
 	expected := []*glightning.Peer{
 		&glightning.Peer{
 			Id:           "02e3cd7849f177a46f137ae3bfc1a08fc6a90bf4026c74f83c1ecc8430c282fe96",
 			Connected:    true,
 			NetAddresses: []string{"0.0.0.0:6677"},
-			Features:     "8a",
+			Features:     hex,
 			Channels: []*glightning.PeerChannel{
 				&glightning.PeerChannel{
 					State:                            "CHANNELD_NORMAL",
@@ -1596,14 +1596,13 @@ func TestListNodes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	featureHex, _ := hex.DecodeString("88")
-	assert.Equal(t, []glightning.Node{
-		glightning.Node{
+	featureHex, _ := glightning.NewHex("88")
+	assert.Equal(t, &glightning.Node{
 			Id:            "02befaace6e8970aaca34eafe85f30f988e374628ec279d94e7eca8b574b738eb4",
 			Alias:         "LightningBerry [LND]",
 			Color:         "68f442",
 			LastTimestamp: uint(1542574678),
-			Features:      &glightning.Hexed{"88", featureHex},
+			Features:      featureHex,
 			Addresses: []glightning.Address{
 				glightning.Address{
 					Type: "ipv4",
@@ -1611,7 +1610,6 @@ func TestListNodes(t *testing.T) {
 					Port: 9735,
 				},
 			},
-		},
 	}, nodes)
 }
 
@@ -1879,7 +1877,7 @@ func TestDecodePayWithDescAndFallbacks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	hexbytes, _ := hex.DecodeString("76a91404b61f7dc1ea0dc99424464cc4064dc564d91e8988ac")
+	hexbytes, _ := glightning.NewHex("76a91404b61f7dc1ea0dc99424464cc4064dc564d91e8988ac")
 	assert.Equal(t, &glightning.DecodedBolt11{
 		Currency:           "bc",
 		CreatedAt:          uint64(1496314658),
@@ -1895,7 +1893,7 @@ func TestDecodePayWithDescAndFallbacks(t *testing.T) {
 			glightning.Fallback{
 				Type:    "P2PKH",
 				Address: "1RustyRX2oai4EYYDpQGWvEL62BBGqN9T",
-				Hex:  &glightning.Hexed{"76a91404b61f7dc1ea0dc99424464cc4064dc564d91e8988ac",hexbytes},
+				Hex:  hexbytes,
 			},
 		},
 		Routes: [][]glightning.BoltRoute{
