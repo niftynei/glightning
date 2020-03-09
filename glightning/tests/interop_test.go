@@ -931,6 +931,46 @@ func openChannel(t *testing.T, btc *gbitcoin.Bitcoin, from, to *Node, amt uint64
 	}
 }
 
+func TestFeatureBits(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, btc := Init(t)
+	defer CleanUp(testDir)
+
+	pp := pluginPath(t, "plugin_featurebits")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", pp)
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", "")
+	connect(l1, l2)
+
+	// open a channel + wait til active
+	l1Info, _ := l1.rpc.GetInfo()
+
+	fundNode(t, "1.0", l2, btc)
+	waitToSync(l2)
+	amount := glightning.NewAmount(10000000)
+	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
+	_, err := l2.rpc.FundChannelExt(l1Info.Id, amount, feerate, true, nil)
+	check(t, err)
+	mineBlocks(t, 6, btc)
+	waitForChannelReady(t, l2, l1)
+	scid21 := getShortChannelId(t, l2, l1)
+	waitForChannelActive(l1, scid21)
+
+	// check for init message bits (1 << 101)
+	peer, _ := l2.rpc.GetPeer(l1Info.Id)
+	assert.True(t, peer.Features.IsSet(101))
+
+	// check for 1 << 105
+	inv, err := l1.rpc.Invoice(uint64(10000), "test", "desc")
+	check(t, err)
+	decoded, err := l1.rpc.DecodeBolt11(inv.Bolt11)
+	assert.True(t, decoded.Features.IsSet(105))
+
+	node, err := l2.rpc.GetNode(l1Info.Id)
+	check(t, err)
+	assert.True(t, node.Features.IsSet(103))
+}
+
 func TestHtlcAcceptedHook(t *testing.T) {
 	short(t)
 

@@ -32,6 +32,6 @@ func TestManifestWithUsage(t *testing.T) {
 	plugin.RegisterMethod(glightning.NewRpcMethod(&ParamMethod{}, "Call a param"))
 
 	msg := "{\"jsonrpc\":\"2.0\",\"method\":\"getmanifest\",\"id\":\"aloha\"}\n\n"
-	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[],\"rpcmethods\":[{\"name\":\"param-test\",\"description\":\"Call a param\",\"usage\":\"required [optional]\"}],\"dynamic\":true},\"id\":\"aloha\"}"
+	resp := "{\"jsonrpc\":\"2.0\",\"result\":{\"options\":[],\"rpcmethods\":[{\"name\":\"param-test\",\"description\":\"Call a param\",\"usage\":\"required [optional]\"}],\"dynamic\":true,\"featurebits\":{}},\"id\":\"aloha\"}"
 	runTest(t, plugin, msg, resp)
 }
