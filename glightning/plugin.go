@@ -46,6 +46,7 @@ type PeerConnectedEvent struct {
 type PeerEvent struct {
 	PeerId   string `json:"id"`
 	Addr     string `json:"addr"`
+	// fixme: use Hexed
 	Features string `json:"features"`
 }
 
