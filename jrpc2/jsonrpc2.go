@@ -1,6 +1,7 @@
 package jrpc2
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -433,7 +434,13 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 		sv, sok := value.(string)
 		var xx []uint8
 		if sok && fVal.Type() == reflect.TypeOf(xx) {
-			av := []byte(sv)
+			// actually, we assume the string is
+			// a hexstring becasuse ... yikes.
+			// fixme: better would be to have a 'hexstring' type
+			av, err := hex.DecodeString(sv)
+			if err != nil {
+				return err
+			}
 			fVal.Set(reflect.ValueOf(av))
 			return nil
 		}
