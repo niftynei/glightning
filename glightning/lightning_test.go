@@ -897,6 +897,30 @@ func TestInvoice(t *testing.T) {
 	}, invoice)
 }
 
+func TestInvoiceWithChannelExposure(t *testing.T) {
+	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":["111x1x0","123x0x0"],"label":"uniq","msatoshi":"1"},"id":1}`
+	resp := wrapResult(1, `{
+  "payment_hash": "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
+  "expires_at": 1546475890,
+  "bolt11": "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
+  "warning_capacity": "No channels have sufficient incoming capacity"
+} `)
+
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	expose := []string{ "111x1x0","123x0x0"}
+	invoice, err := lightning.CreateInvoiceExposing(uint64(1), "uniq", "desc", uint32(200), nil, "", expose)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, &glightning.Invoice{
+		PaymentHash:     "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
+		ExpiresAt:       1546475890,
+		Bolt11:          "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
+		WarningCapacity: "No channels have sufficient incoming capacity",
+	}, invoice)
+}
+
 func TestInvoiceAny(t *testing.T) {
 	req := `{"jsonrpc":"2.0","method":"invoice","params":{"description":"desc","expiry":200,"exposeprivatechannels":false,"label":"label","msatoshi":"any"},"id":1}`
 	resp := wrapResult(1, `{

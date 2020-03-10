@@ -458,7 +458,10 @@ type InvoiceRequest struct {
 	ExpirySeconds      uint32   `json:"expiry,omitempty"`
 	Fallbacks          []string `json:"fallbacks,omitempty"`
 	PreImage           string   `json:"preimage,omitempty"`
-	ExposePrivateChans bool     `json:"exposeprivatechannels"`
+	// Note that these both have the same json key. we use checks
+	// to make sure that only one of them is filled in
+	ExposePrivChansFlag *bool     `json:"exposeprivatechannels,omitempty"`
+	ExposeTheseChannels []string `json:"exposeprivatechannels,omitempty"`
 }
 
 func (ir InvoiceRequest) Name() string {
@@ -485,7 +488,7 @@ type Invoice struct {
 
 // Creates an invoice with a value of "any", that can be paid with any amount
 func (l *Lightning) CreateInvoiceAny(label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivateChans bool) (*Invoice, error) {
-	return createInvoice(l, "any", label, description, expirySeconds, fallbacks, preimage, exposePrivateChans)
+	return createInvoice(l, "any", label, description, expirySeconds, fallbacks, preimage, exposePrivateChans, nil)
 }
 
 // Creates an invoice with a value of `msat`. Label and description must be set.
@@ -512,29 +515,49 @@ func (l *Lightning) CreateInvoiceAny(label, description string, expirySeconds ui
 // was used in its creation and keeping it secret.
 // This parameter is an advanced feature intended for use with cutting-edge
 // cryptographic protocols and should not be used unless explicitly needed.
-func (l *Lightning) CreateInvoice(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivateChannels bool) (*Invoice, error) {
+func (l *Lightning) CreateInvoice(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string, willExposePrivateChans bool) (*Invoice, error) {
 
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, exposePrivateChannels)
+	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, willExposePrivateChans, nil)
+}
 
+func (l *Lightning) CreateInvoiceExposing(msat uint64, label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivChans []string) (*Invoice, error) {
+	if msat <= 0 {
+		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
+	}
+	return createInvoice(l, fmt.Sprint(msat), label, description, expirySeconds, fallbacks, preimage, false, exposePrivChans)
 }
 
 func (l *Lightning) Invoice(msat uint64, label, description string) (*Invoice, error) {
 	if msat <= 0 {
 		return nil, fmt.Errorf("No value set for invoice. (`msat` is less than or equal to zero).")
 	}
-	return createInvoice(l, fmt.Sprint(msat), label, description, 0, nil, "", false)
+	return createInvoice(l, fmt.Sprint(msat), label, description, 0, nil, "", false, nil)
 }
 
-func createInvoice(l *Lightning, msat, label, description string, expirySeconds uint32, fallbacks []string, preimage string, exposePrivateChans bool) (*Invoice, error) {
+func createInvoice(l *Lightning, msat, label, description string, expirySeconds uint32, fallbacks []string, preimage string, flagExposePrivate bool, exposeShortChannelIds []string) (*Invoice, error) {
 
 	if label == "" {
 		return nil, fmt.Errorf("Must set a label on an invoice")
 	}
 	if description == "" {
 		return nil, fmt.Errorf("Must set a description on an invoice")
+	}
+
+	if flagExposePrivate && exposeShortChannelIds != nil {
+		return nil, fmt.Errorf("Cannot both flag to expose private and provide list of short channel ids")
+	}
+
+	var exposePrivFlag *bool
+	if flagExposePrivate {
+		exposePrivFlag = &flagExposePrivate
+	} else if exposeShortChannelIds == nil || len(exposeShortChannelIds) == 0 {
+		f := false
+		exposePrivFlag = &f
+	} else {
+		exposePrivFlag = nil
 	}
 
 	var result Invoice
@@ -545,7 +568,8 @@ func createInvoice(l *Lightning, msat, label, description string, expirySeconds 
 		ExpirySeconds:      expirySeconds,
 		Fallbacks:          fallbacks,
 		PreImage:           preimage,
-		ExposePrivateChans: exposePrivateChans,
+		ExposePrivChansFlag: exposePrivFlag,
+		ExposeTheseChannels: exposeShortChannelIds,
 	}, &result)
 	return &result, err
 }
