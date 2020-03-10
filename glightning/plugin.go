@@ -90,11 +90,9 @@ func (pc *PeerConnectedEvent) Disconnect(errMsg string) *PeerConnectedResponse {
 // Note that this Hook is called before the plugin is initialized.
 // A plugin that registers for this hook may not register for any other
 // hooks.
-//
-// Any response but "true" will cause lightningd to error without committing
-// to the database.
 type DbWriteEvent struct {
 	Writes []string `json:"writes"`
+	DataVersion uint64 `json:"data_version"`
 	hook   func(*DbWriteEvent) (*DbWriteResponse, error)
 }
 
