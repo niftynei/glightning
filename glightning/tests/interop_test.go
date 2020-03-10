@@ -546,14 +546,14 @@ func TestPlugins(t *testing.T) {
 	amount := glightning.NewSat(10000000)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	pushSats := glightning.NewMsat(10000)
-	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
+	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil, pushSats)
 	check(t, err)
 
 	// wait til the change is onchain
 	advanceChain(t, l2, btc, 1)
 
 	// fund a second channel!
-	_, err = l2.rpc.FundChannelExt(peer3, amount, feerate, true, nil)
+	_, err = l2.rpc.FundChannelAtFee(peer3, amount, feerate)
 	check(t, err)
 
 	mineBlocks(t, 6, btc)
@@ -759,7 +759,7 @@ func TestInvoiceFieldsOnPaid(t *testing.T) {
 	// open a channel
 	amount := glightning.NewSat(10000000)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
-	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
+	_, err = l2.rpc.FundChannelAtFee(peerId, amount, feerate)
 	check(t, err)
 
 	// wait til the change is onchain
@@ -921,7 +921,7 @@ func openChannel(t *testing.T, btc *gbitcoin.Bitcoin, from, to *Node, amt uint64
 	peerId := connectNode(t, from, to)
 	amount := glightning.NewSat64(amt)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
-	_, err := from.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
+	_, err := from.rpc.FundChannelAtFee(peerId, amount, feerate)
 	check(t, err)
 
 	mineBlocks(t, 6, btc)
@@ -949,7 +949,7 @@ func TestFeatureBits(t *testing.T) {
 	waitToSync(l2)
 	amount := glightning.NewSat(10000000)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
-	_, err := l2.rpc.FundChannelExt(l1Info.Id, amount, feerate, true, nil)
+	_, err := l2.rpc.FundChannelAtFee(l1Info.Id, amount, feerate)
 	check(t, err)
 	mineBlocks(t, 6, btc)
 	waitForChannelReady(t, l2, l1)
