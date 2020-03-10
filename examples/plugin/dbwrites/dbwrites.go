@@ -27,4 +27,3 @@ func OnDbWrite(event *glightning.DbWriteEvent) (*glightning.DbWriteResponse, err
 	// can also call 'Fail'
 	return event.Continue(), nil
 }
-

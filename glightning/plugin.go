@@ -44,8 +44,8 @@ type PeerConnectedEvent struct {
 }
 
 type PeerEvent struct {
-	PeerId   string `json:"id"`
-	Addr     string `json:"addr"`
+	PeerId string `json:"id"`
+	Addr   string `json:"addr"`
 	// fixme: use Hexed
 	Features string `json:"features"`
 }
@@ -91,12 +91,13 @@ func (pc *PeerConnectedEvent) Disconnect(errMsg string) *PeerConnectedResponse {
 // A plugin that registers for this hook may not register for any other
 // hooks.
 type DbWriteEvent struct {
-	Writes []string `json:"writes"`
-	DataVersion uint64 `json:"data_version"`
-	hook   func(*DbWriteEvent) (*DbWriteResponse, error)
+	Writes      []string `json:"writes"`
+	DataVersion uint64   `json:"data_version"`
+	hook        func(*DbWriteEvent) (*DbWriteResponse, error)
 }
 
 type _DbWrite_Result string
+
 const _DbW_Continue _DbWrite_Result = "continue"
 const _DbW_Fail _DbWrite_Result = "fail"
 
@@ -141,8 +142,8 @@ type _InvoicePaymentResult string
 const _InvResult_Continue _InvoicePaymentResult = "continue"
 
 type InvoicePaymentResponse struct {
-	Result _InvoicePaymentResult`json:"result,omitempty"`
-	FailureCode *uint16 `json:"failure_code,omitempty"`
+	Result      _InvoicePaymentResult `json:"result,omitempty"`
+	FailureCode *uint16               `json:"failure_code,omitempty"`
 }
 
 type InvoicePaymentEvent struct {
@@ -338,10 +339,10 @@ func (r *RpcCmd) Get() (jrpc2.Method, error) {
 // from that, however
 type RpcCommandResponse struct {
 	// deprecated in v0.8.1
-	Continue *bool `json:"continue,omitempty"`
+	Continue   *bool              `json:"continue,omitempty"`
 	Result     _RpcCommand_Result `json:"result,omitempty"`
-	ReplaceObj *jrpc2.Request  `json:"replace,omitempty"`
-	ReturnObj  json.RawMessage `json:"return,omitempty"`
+	ReplaceObj *jrpc2.Request     `json:"replace,omitempty"`
+	ReturnObj  json.RawMessage    `json:"return,omitempty"`
 }
 
 type RpcCommand_Return interface{}
