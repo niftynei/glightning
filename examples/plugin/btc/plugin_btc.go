@@ -69,7 +69,7 @@ func GetUtxOut(txid string, vout uint32) (string, string, error) {
 
 	log.Printf("txout is %v", txout)
 	amt := glightning.ConvertBtc(txout.Value)
-	return amt.AsMsat(), txout.ScriptPubKey.Hex, nil
+	return amt.ConvertMsat().String(), txout.ScriptPubKey.Hex, nil
 }
 
 func GetChainInfo() (*glightning.Btc_ChainInfo, error) {

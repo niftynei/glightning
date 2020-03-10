@@ -1460,21 +1460,21 @@ type FundChannelResult struct {
 }
 
 // Fund channel, defaults to public channel and default feerate.
-func (l *Lightning) FundChannel(id string, amount *SatoshiAmount) (*FundChannelResult, error) {
+func (l *Lightning) FundChannel(id string, amount *Sat) (*FundChannelResult, error) {
 	return l.FundChannelExt(id, amount, nil, true, nil)
 }
 
 // Fund channel with node {id} using {satoshi} satoshis, with feerate of {feerate}. Uses
 // default feerate if unset.
 // If announce is false, channel announcements will not be sent.
-func (l *Lightning) FundChannelExt(id string, amount *SatoshiAmount, feerate *FeeRate, announce bool, minConf *uint16) (*FundChannelResult, error) {
-	if amount == nil || (amount.Amount == 0 && !amount.SendAll) {
+func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, announce bool, minConf *uint16) (*FundChannelResult, error) {
+	if amount == nil || (amount.Value == 0 && !amount.SendAll) {
 		return nil, fmt.Errorf("Must set satoshi amount to send")
 	}
 
 	req := &FundChannelRequest{
 		Id:       id,
-		Amount:   amount.String(),
+		Amount:   amount.RawString(),
 		Announce: announce,
 	}
 	if feerate != nil {
@@ -1726,52 +1726,6 @@ type WithdrawRequest struct {
 	Utxos       []string `json:"utxos,omitempty"`
 }
 
-type SatoshiAmount struct {
-	Amount  uint64
-	SendAll bool
-}
-
-func ConvertBtc(btc float64) *SatoshiAmount {
-	// fixme: precision errors
-	sat := btc * 100000000
-	if sat != btc*100000000 {
-		panic(fmt.Sprintf("overflowed converting %f to sat", btc))
-	}
-	return NewAmt(uint64(sat))
-}
-
-func (s *SatoshiAmount) AsMsat() string {
-	if s.Amount*1000 < s.Amount {
-		panic(fmt.Sprintf("overflowed converting %d to msat", s.Amount))
-	}
-	return fmt.Sprintf("%dmsat", s.Amount*1000)
-}
-
-func (s *SatoshiAmount) String() string {
-	if s.SendAll {
-		return "all"
-	}
-	return fmt.Sprint(s.Amount)
-}
-
-func NewAmt(amount uint64) *SatoshiAmount {
-	return &SatoshiAmount{
-		Amount: amount,
-	}
-}
-
-func NewAmount(amount int) *SatoshiAmount {
-	return &SatoshiAmount{
-		Amount: uint64(amount),
-	}
-}
-
-func NewAllAmount() *SatoshiAmount {
-	return &SatoshiAmount{
-		SendAll: true,
-	}
-}
-
 type FeeDirective int
 
 const (
@@ -1848,12 +1802,12 @@ type WithdrawResult struct {
 // and 'perkb' means it is interpreted bitcoind-style as satoshi-per-kilobyte.
 // Omitting the suffix is equivalent to 'perkb'
 // If not set, {feerate} defaults to 'normal'.
-func (l *Lightning) Withdraw(destination string, amount *SatoshiAmount, feerate *FeeRate, minConf *uint16) (*WithdrawResult, error) {
+func (l *Lightning) Withdraw(destination string, amount *Sat, feerate *FeeRate, minConf *uint16) (*WithdrawResult, error) {
 	return l.WithdrawWithUtxos(destination, amount, feerate, minConf, nil)
 }
 
-func (l *Lightning) WithdrawWithUtxos(destination string, amount *SatoshiAmount, feerate *FeeRate, minConf *uint16, utxos []*Utxo) (*WithdrawResult, error) {
-	if amount == nil || (amount.Amount == 0 && !amount.SendAll) {
+func (l *Lightning) WithdrawWithUtxos(destination string, amount *Sat, feerate *FeeRate, minConf *uint16, utxos []*Utxo) (*WithdrawResult, error) {
+	if amount == nil || (amount.Value == 0 && !amount.SendAll) {
 		return nil, fmt.Errorf("Must set satoshi amount to send")
 	}
 	if destination == "" {
@@ -1862,7 +1816,7 @@ func (l *Lightning) WithdrawWithUtxos(destination string, amount *SatoshiAmount,
 
 	request := &WithdrawRequest{
 		Destination: destination,
-		Satoshi:     amount.String(),
+		Satoshi:     amount.RawString(),
 	}
 	if feerate != nil {
 		request.FeeRate = feerate.String()

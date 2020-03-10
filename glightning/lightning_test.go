@@ -992,7 +992,7 @@ func TestWithdraw(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	feerate := glightning.NewFeeRate(glightning.PerKb, 125)
-	result, err := lightning.Withdraw(addr, glightning.NewAmount(500000), feerate, nil)
+	result, err := lightning.Withdraw(addr, glightning.NewSat(500000), feerate, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1018,7 +1018,7 @@ func TestWithdrawUtxos(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	feerate := glightning.NewFeeRate(glightning.PerKb, 125)
-	result, err := lightning.WithdrawWithUtxos(addr, glightning.NewAmount(500000), feerate, nil, utxos)
+	result, err := lightning.WithdrawWithUtxos(addr, glightning.NewSat(500000), feerate, nil, utxos)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1038,7 +1038,7 @@ func TestWithdrawAll(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	feerate := glightning.NewFeeRate(glightning.PerKb, 125)
-	result, err := lightning.Withdraw(addr, glightning.NewAllAmount(), feerate, nil)
+	result, err := lightning.Withdraw(addr, glightning.AllSats(), feerate, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1300,7 +1300,7 @@ func TestFundChannel(t *testing.T) {
   "channel_id": "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c"
 }
 `)
-	sats := glightning.NewAmount(amount)
+	sats := glightning.NewSat(amount)
 	feeRate := glightning.NewFeeRate(glightning.PerKw, 500)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
@@ -1321,7 +1321,7 @@ func TestFundChannel(t *testing.T) {
   "channel_id": "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c"
 }
 `)
-	sats = &glightning.SatoshiAmount{Amount: uint64(amount)}
+	sats = glightning.NewSat(amount)
 	feeRate = glightning.NewFeeRateByDirective(glightning.PerKb, glightning.Urgent)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"%d","announce":true,"feerate":"urgent","id":"%s"},"id":%d}`, amount, id, 2)
 	go runServerSide(t, req, resp, replyQ, requestQ)
@@ -1339,7 +1339,7 @@ func TestFundChannel(t *testing.T) {
 `)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"%s","announce":true,"feerate":"300perkb","id":"%s"},"id":%d}`, "all", id, 3)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	sats = &glightning.SatoshiAmount{SendAll: true}
+	sats = glightning.AllSats()
 	feeRate = glightning.NewFeeRate(glightning.PerKb, uint(300))
 	_, err = lightning.FundChannelExt(id, sats, feeRate, true, nil)
 	if err != nil {
@@ -1353,7 +1353,7 @@ func TestFundChannel(t *testing.T) {
   "channel_id": "5c0b7f05822b0f6581cd3c588ffacfe5c5f835e1244934ea575065dd4480157c"
 }
 `)
-	sats = &glightning.SatoshiAmount{SendAll: true}
+	sats = glightning.AllSats()
 	feeRate = glightning.NewFeeRateByDirective(glightning.PerKb, glightning.Urgent)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"all","announce":false,"feerate":"urgent","id":"%s"},"id":%d}`, id, 4)
 	go runServerSide(t, req, resp, replyQ, requestQ)

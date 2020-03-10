@@ -543,8 +543,9 @@ func TestPlugins(t *testing.T) {
 	waitToSync(l2)
 
 	// open a channel
-	amount := glightning.NewAmount(10000000)
+	amount := glightning.NewSat(10000000)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
+	pushSats := glightning.NewMsat(10000)
 	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
 	check(t, err)
 
@@ -756,7 +757,7 @@ func TestInvoiceFieldsOnPaid(t *testing.T) {
 	waitToSync(l2)
 
 	// open a channel
-	amount := glightning.NewAmount(10000000)
+	amount := glightning.NewSat(10000000)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
 	check(t, err)
@@ -799,7 +800,7 @@ func TestBtcBackend(t *testing.T) {
 	// send yourself some funds, so sendrawtransaction gets called
 	addr, err := l1.rpc.NewAddr()
 	check(t, err)
-	amt := glightning.NewAmount(10000)
+	amt := glightning.NewSat(10000)
 	rate := glightning.NewFeeRate(glightning.PerKw, 253)
 	_, err = l1.rpc.Withdraw(addr, amt, rate, nil)
 	check(t, err)
@@ -882,7 +883,7 @@ func TestRpcCmd(t *testing.T) {
 	assert.NotNil(t, addr.Bech32, "tb1")
 	assert.Equal(t, "", addr.P2SHSegwit)
 
-	amt := glightning.NewAmount(10000)
+	amt := glightning.NewSat(10000)
 	rate := glightning.NewFeeRate(glightning.PerKw, 253)
 	res, err := l1.rpc.Withdraw(addr.Bech32, amt, rate, nil)
 
@@ -918,7 +919,7 @@ func connectNode(t *testing.T, from, to *Node) string {
 
 func openChannel(t *testing.T, btc *gbitcoin.Bitcoin, from, to *Node, amt uint64, waitTilReady bool) {
 	peerId := connectNode(t, from, to)
-	amount := glightning.NewAmt(amt)
+	amount := glightning.NewSat64(amt)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	_, err := from.rpc.FundChannelExt(peerId, amount, feerate, true, nil)
 	check(t, err)
@@ -946,7 +947,7 @@ func TestFeatureBits(t *testing.T) {
 
 	fundNode(t, "1.0", l2, btc)
 	waitToSync(l2)
-	amount := glightning.NewAmount(10000000)
+	amount := glightning.NewSat(10000000)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	_, err := l2.rpc.FundChannelExt(l1Info.Id, amount, feerate, true, nil)
 	check(t, err)
