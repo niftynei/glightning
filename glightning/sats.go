@@ -5,12 +5,12 @@ import (
 )
 
 type Sat struct {
-	Value  uint64
+	Value   uint64
 	SendAll bool
 }
 
 type MSat struct {
-	 Value uint64
+	Value uint64
 }
 
 func NewMsat(val uint64) *MSat {
@@ -20,10 +20,10 @@ func NewMsat(val uint64) *MSat {
 // Always rounds up to nearest satoshi
 func (m *MSat) ConvertSat() *Sat {
 	a := m.Value / 1000
-	if m.Value % 1000 > 0 {
+	if m.Value%1000 > 0 {
 		a += 1
 	}
-	return &Sat{a,false}
+	return &Sat{a, false}
 }
 
 func (s *Sat) ConvertMsat() *MSat {

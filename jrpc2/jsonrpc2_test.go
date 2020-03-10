@@ -611,7 +611,7 @@ func TestByteFields(t *testing.T) {
 	err := s.Unmarshal([]byte(objParams), &req)
 	assert.Nil(t, err)
 
-	var assertBytes = []byte {222, 173, 190, 239}
+	var assertBytes = []byte{222, 173, 190, 239}
 	bytes := req.Method.(*ByteMethod)
 	assert.Equal(t, json.RawMessage(`["more","raw","things"]`), bytes.RawBytes)
 	assert.Equal(t, assertBytes, bytes.Bytes)

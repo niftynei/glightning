@@ -507,7 +507,7 @@ func (b *Bitcoin) FundRawWithOptions(txstring string, options *FundRawOptions, i
 
 type SendRawTransactionReq struct {
 	TxString      string `json:"hexstring"`
-	AllowHighFees *bool   `json:"allowhighfees,omitempty"`
+	AllowHighFees *bool  `json:"allowhighfees,omitempty"`
 }
 
 func (r *SendRawTransactionReq) Name() string {
@@ -517,7 +517,7 @@ func (r *SendRawTransactionReq) Name() string {
 func (b *Bitcoin) SendRawTx(txstring string) (string, error) {
 	var result string
 	err := b.request(&SendRawTransactionReq{
-		TxString:      txstring,
+		TxString: txstring,
 	}, &result)
 	return result, err
 }

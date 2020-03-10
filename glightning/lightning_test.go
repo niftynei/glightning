@@ -908,7 +908,7 @@ func TestInvoiceWithChannelExposure(t *testing.T) {
 
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	expose := []string{ "111x1x0","123x0x0"}
+	expose := []string{"111x1x0", "123x0x0"}
 	invoice, err := lightning.CreateInvoiceExposing(uint64(1), "uniq", "desc", uint32(200), nil, "", expose)
 	if err != nil {
 		t.Fatal(err)
@@ -1640,18 +1640,18 @@ func TestListNodes(t *testing.T) {
 	}
 	featureHex, _ := glightning.NewHex("88")
 	assert.Equal(t, &glightning.Node{
-			Id:            "02befaace6e8970aaca34eafe85f30f988e374628ec279d94e7eca8b574b738eb4",
-			Alias:         "LightningBerry [LND]",
-			Color:         "68f442",
-			LastTimestamp: uint(1542574678),
-			Features:      featureHex,
-			Addresses: []glightning.Address{
-				glightning.Address{
-					Type: "ipv4",
-					Addr: "84.219.199.67",
-					Port: 9735,
-				},
+		Id:            "02befaace6e8970aaca34eafe85f30f988e374628ec279d94e7eca8b574b738eb4",
+		Alias:         "LightningBerry [LND]",
+		Color:         "68f442",
+		LastTimestamp: uint(1542574678),
+		Features:      featureHex,
+		Addresses: []glightning.Address{
+			glightning.Address{
+				Type: "ipv4",
+				Addr: "84.219.199.67",
+				Port: 9735,
 			},
+		},
 	}, nodes)
 }
 
@@ -1935,7 +1935,7 @@ func TestDecodePayWithDescAndFallbacks(t *testing.T) {
 			glightning.Fallback{
 				Type:    "P2PKH",
 				Address: "1RustyRX2oai4EYYDpQGWvEL62BBGqN9T",
-				Hex:  hexbytes,
+				Hex:     hexbytes,
 			},
 		},
 		Routes: [][]glightning.BoltRoute{

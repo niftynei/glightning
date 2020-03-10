@@ -207,7 +207,7 @@ type Node struct {
 	Alias         string    `json:"alias"`
 	Color         string    `json:"color"`
 	LastTimestamp uint      `json:"last_timestamp"`
-	Features      *Hexed     `json:"features"`
+	Features      *Hexed    `json:"features"`
 	Addresses     []Address `json:"addresses"`
 }
 
@@ -452,15 +452,15 @@ func (l *Lightning) ListChannels() ([]*Channel, error) {
 }
 
 type InvoiceRequest struct {
-	MilliSatoshis      string   `json:"msatoshi"`
-	Label              string   `json:"label"`
-	Description        string   `json:"description"`
-	ExpirySeconds      uint32   `json:"expiry,omitempty"`
-	Fallbacks          []string `json:"fallbacks,omitempty"`
-	PreImage           string   `json:"preimage,omitempty"`
+	MilliSatoshis string   `json:"msatoshi"`
+	Label         string   `json:"label"`
+	Description   string   `json:"description"`
+	ExpirySeconds uint32   `json:"expiry,omitempty"`
+	Fallbacks     []string `json:"fallbacks,omitempty"`
+	PreImage      string   `json:"preimage,omitempty"`
 	// Note that these both have the same json key. we use checks
 	// to make sure that only one of them is filled in
-	ExposePrivChansFlag *bool     `json:"exposeprivatechannels,omitempty"`
+	ExposePrivChansFlag *bool    `json:"exposeprivatechannels,omitempty"`
 	ExposeTheseChannels []string `json:"exposeprivatechannels,omitempty"`
 }
 
@@ -562,12 +562,12 @@ func createInvoice(l *Lightning, msat, label, description string, expirySeconds 
 
 	var result Invoice
 	err := l.client.Request(&InvoiceRequest{
-		MilliSatoshis:      msat,
-		Label:              label,
-		Description:        description,
-		ExpirySeconds:      expirySeconds,
-		Fallbacks:          fallbacks,
-		PreImage:           preimage,
+		MilliSatoshis:       msat,
+		Label:               label,
+		Description:         description,
+		ExpirySeconds:       expirySeconds,
+		Fallbacks:           fallbacks,
+		PreImage:            preimage,
 		ExposePrivChansFlag: exposePrivFlag,
 		ExposeTheseChannels: exposeShortChannelIds,
 	}, &result)
@@ -624,8 +624,8 @@ func (l *Lightning) DeleteInvoice(label, status string) (*Invoice, error) {
 }
 
 type WaitAnyInvoiceRequest struct {
-	LastPayIndex uint `json:"lastpay_index,omitempty"`
-	Timeout *uint  `json:"timeout,omitempty"`
+	LastPayIndex uint  `json:"lastpay_index,omitempty"`
+	Timeout      *uint `json:"timeout,omitempty"`
 }
 
 func (r WaitAnyInvoiceRequest) Name() string {
@@ -643,8 +643,8 @@ func (r WaitAnyInvoiceRequest) Name() string {
 func (l *Lightning) WaitAnyInvoice(lastPayIndex uint) (*Invoice, error) {
 	var result Invoice
 	req := &WaitAnyInvoiceRequest{
-		LastPayIndex:lastPayIndex,
-		Timeout: nil,
+		LastPayIndex: lastPayIndex,
+		Timeout:      nil,
 	}
 	err := l.client.RequestNoTimeout(req, &result)
 	return &result, err
@@ -655,8 +655,8 @@ func (l *Lightning) WaitAnyInvoice(lastPayIndex uint) (*Invoice, error) {
 func (l *Lightning) WaitAnyInvoiceTimeout(lastPayIndex uint, timeout uint) (*Invoice, error) {
 	var result Invoice
 	req := &WaitAnyInvoiceRequest{
-		LastPayIndex:lastPayIndex,
-		Timeout: &timeout,
+		LastPayIndex: lastPayIndex,
+		Timeout:      &timeout,
 	}
 	err := l.client.RequestNoTimeout(req, &result)
 	return &result, err
@@ -743,7 +743,7 @@ type DecodedBolt11 struct {
 	Extra              []BoltExtra   `json:"extra"`
 	PaymentHash        string        `json:"payment_hash"`
 	Signature          string        `json:"signature"`
-	Features           Hexed	 `json:"features"`
+	Features           Hexed         `json:"features"`
 }
 
 type Fallback struct {
@@ -1483,12 +1483,12 @@ func (l *Lightning) Connect(peerId, host string, port uint) (string, error) {
 }
 
 type FundChannelRequest struct {
-	Id       string `json:"id"`
-	Amount   string `json:"amount"`
-	FeeRate  string `json:"feerate,omitempty"`
-	Announce bool   `json:"announce"`
+	Id       string  `json:"id"`
+	Amount   string  `json:"amount"`
+	FeeRate  string  `json:"feerate,omitempty"`
+	Announce bool    `json:"announce"`
 	MinConf  *uint16 `json:"minconf,omitempty"`
-	PushMsat string `json:"push_msat,omitempty"`
+	PushMsat string  `json:"push_msat,omitempty"`
 }
 
 func (r FundChannelRequest) Name() string {

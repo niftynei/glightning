@@ -35,7 +35,7 @@ func (h *Hexed) UnmarshalJSON(b []byte) error {
 		return fmt.Errorf("%s is not a string", string(b))
 	}
 	// trim string markers
-	b = b[1:len(b)-1]
+	b = b[1 : len(b)-1]
 
 	// b - bytes of string of hex
 	h.Raw = make([]byte, hex.DecodedLen(len(b)))
@@ -47,8 +47,7 @@ func (h *Hexed) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-
-func NewHex(hexstring string) (*Hexed, error)  {
+func NewHex(hexstring string) (*Hexed, error) {
 	raw, err := hex.DecodeString(hexstring)
 	if err != nil {
 		return nil, err
@@ -65,4 +64,3 @@ func (h *Hexed) IsSet(bitpos int) bool {
 	bg.SetBytes(h.Raw)
 	return bg.Bit(bitpos) == 1
 }
-
