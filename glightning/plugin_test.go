@@ -54,8 +54,8 @@ func OnPeerConnect(event *glightning.PeerConnectedEvent) (*glightning.PeerConnec
 	return nil, nil
 }
 
-func OnDbWrite(event *glightning.DbWriteEvent) (bool, error) {
-	return false, nil
+func OnDbWrite(event *glightning.DbWriteEvent) (*glightning.DbWriteResponse, error) {
+	return event.Fail(), nil
 }
 
 func OnInvoicePayment(event *glightning.InvoicePaymentEvent) (*glightning.InvoicePaymentResponse, error) {
@@ -192,7 +192,7 @@ func TestHook_DbWriteOk(t *testing.T) {
 	})
 	plugin := glightning.NewPlugin(initFn)
 	plugin.RegisterHooks(&glightning.Hooks{
-		DbWrite: func(event *glightning.DbWriteEvent) (bool, error) {
+		DbWrite: func(event *glightning.DbWriteEvent) (*glightning.DbWriteResponse, error) {
 			assert.Equal(t, 3, len(event.Writes))
 			writesExp := []string{
 				"BEGIN TRANSACTION;",
@@ -200,12 +200,12 @@ func TestHook_DbWriteOk(t *testing.T) {
 				"COMMIT;",
 			}
 			assert.Equal(t, writesExp, event.Writes)
-			return true, nil
+			return event.Continue(), nil
 		},
 	})
 
 	msg := `{"jsonrpc":"2.0","id":"aloha","method":"db_write","params":{"writes":["BEGIN TRANSACTION;","UPDATE vars SET val='2' WHERE name='bip32_max_index';","COMMIT;"]}}`
-	resp := `{"jsonrpc":"2.0","result":true,"id":"aloha"}`
+	resp := `{"jsonrpc":"2.0","result":{"result":"continue"},"id":"aloha"}`
 	runTest(t, plugin, msg+"\n\n", resp)
 }
 
@@ -215,7 +215,7 @@ func TestHook_DbWriteFail(t *testing.T) {
 	})
 	plugin := glightning.NewPlugin(initFn)
 	plugin.RegisterHooks(&glightning.Hooks{
-		DbWrite: func(event *glightning.DbWriteEvent) (bool, error) {
+		DbWrite: func(event *glightning.DbWriteEvent) (*glightning.DbWriteResponse, error) {
 			assert.Equal(t, 3, len(event.Writes))
 			writesExp := []string{
 				"BEGIN TRANSACTION;",
@@ -223,12 +223,12 @@ func TestHook_DbWriteFail(t *testing.T) {
 				"COMMIT;",
 			}
 			assert.Equal(t, writesExp, event.Writes)
-			return false, nil
+			return event.Fail(), nil
 		},
 	})
 
 	msg := `{"jsonrpc":"2.0","id":"aloha","method":"db_write","params":{"writes":["BEGIN TRANSACTION;","UPDATE vars SET val='2' WHERE name='bip32_max_index';","COMMIT;"]}}`
-	resp := `{"jsonrpc":"2.0","result":false,"id":"aloha"}`
+	resp := `{"jsonrpc":"2.0","result":{"result":"fail"},"id":"aloha"}`
 	runTest(t, plugin, msg+"\n\n", resp)
 }
 
@@ -409,7 +409,7 @@ func TestHook_InvoicePayment(t *testing.T) {
 		},
 	})
 	msg := `{"jsonrpc":"2.0","id":"aloha","method":"invoice_payment","params":{"payment":{"label":"test_4","preimage":"09d686f01fbbc6d36996f6c68b09d62600b9da32bd249892904350e31bc51c6e","msat":"50000msat"}}}`
-	resp := `{"jsonrpc":"2.0","result":{},"id":"aloha"}`
+	resp := `{"jsonrpc":"2.0","result":{"result":"continue"},"id":"aloha"}`
 	runTest(t, plugin, msg+"\n\n", resp)
 }
 

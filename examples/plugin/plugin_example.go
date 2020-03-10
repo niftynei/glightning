@@ -159,10 +159,10 @@ func OnPeerConnect(event *glightning.PeerConnectedEvent) (*glightning.PeerConnec
 	return event.Continue(), nil
 }
 
-func OnDbWrite(event *glightning.DbWriteEvent) (bool, error) {
+func OnDbWrite(event *glightning.DbWriteEvent) (*glightning.DbWriteResponse, error) {
 	log.Printf("dbwrite called\n")
-	// You can also return false
-	return true, nil
+	// can also call 'Fail'
+	return event.Continue(), nil
 }
 
 func OnInvoicePayment(event *glightning.InvoicePaymentEvent) (*glightning.InvoicePaymentResponse, error) {

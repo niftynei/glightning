@@ -95,7 +95,15 @@ func (pc *PeerConnectedEvent) Disconnect(errMsg string) *PeerConnectedResponse {
 // to the database.
 type DbWriteEvent struct {
 	Writes []string `json:"writes"`
-	hook   func(*DbWriteEvent) (bool, error)
+	hook   func(*DbWriteEvent) (*DbWriteResponse, error)
+}
+
+type _DbWrite_Result string
+const _DbW_Continue _DbWrite_Result = "continue"
+const _DbW_Fail _DbWrite_Result = "fail"
+
+type DbWriteResponse struct {
+	Result _DbWrite_Result `json:"result,omitempty"`
 }
 
 func (dbw *DbWriteEvent) New() interface{} {
@@ -112,13 +120,30 @@ func (dbw *DbWriteEvent) Call() (jrpc2.Result, error) {
 	return dbw.hook(dbw)
 }
 
+func (dbw *DbWriteEvent) Continue() *DbWriteResponse {
+	return &DbWriteResponse{
+		Result: _DbW_Continue,
+	}
+}
+
+func (dbw *DbWriteEvent) Fail() *DbWriteResponse {
+	return &DbWriteResponse{
+		Result: _DbW_Fail,
+	}
+}
+
 type Payment struct {
 	Label         string `json:"label"`
 	PreImage      string `json:"preimage"`
 	MilliSatoshis string `json:"msat"`
 }
 
+type _InvoicePaymentResult string
+
+const _InvResult_Continue _InvoicePaymentResult = "continue"
+
 type InvoicePaymentResponse struct {
+	Result _InvoicePaymentResult`json:"result,omitempty"`
 	FailureCode *uint16 `json:"failure_code,omitempty"`
 }
 
@@ -142,7 +167,9 @@ func (ip *InvoicePaymentEvent) Call() (jrpc2.Result, error) {
 }
 
 func (ip *InvoicePaymentEvent) Continue() *InvoicePaymentResponse {
-	return &InvoicePaymentResponse{}
+	return &InvoicePaymentResponse{
+		Result: _InvResult_Continue,
+	}
 }
 
 func (ip *InvoicePaymentEvent) Fail(failureCode uint16) *InvoicePaymentResponse {
@@ -312,25 +339,23 @@ func (r *RpcCmd) Get() (jrpc2.Method, error) {
 // one's behavior is undefined. the API around this should protect you
 // from that, however
 type RpcCommandResponse struct {
+	// deprecated in v0.8.1
 	Continue *bool `json:"continue,omitempty"`
-	//Result     RpcCommandResult `json:"result,omitempty"`
+	Result     _RpcCommand_Result `json:"result,omitempty"`
 	ReplaceObj *jrpc2.Request  `json:"replace,omitempty"`
 	ReturnObj  json.RawMessage `json:"return,omitempty"`
 }
 
 type RpcCommand_Return interface{}
-type RpcCommandResult string
+type _RpcCommand_Result string
 
-/* for 0.8.1 ?
 const (
-	RpcCommand_Continue RpcCommandResult = "continue"
+	_RpcCommand_Continue _RpcCommand_Result = "continue"
 )
-*/
 
 func (rc *RpcCommandEvent) Continue() *RpcCommandResponse {
-	t := true
 	return &RpcCommandResponse{
-		Continue: &t,
+		Result: _RpcCommand_Continue,
 	}
 }
 
@@ -931,7 +956,7 @@ func (p *Plugin) Log(message string, level LogLevel) {
 //   it'll do for now.
 type Hooks struct {
 	PeerConnected  func(*PeerConnectedEvent) (*PeerConnectedResponse, error)
-	DbWrite        func(*DbWriteEvent) (bool, error)
+	DbWrite        func(*DbWriteEvent) (*DbWriteResponse, error)
 	InvoicePayment func(*InvoicePaymentEvent) (*InvoicePaymentResponse, error)
 	OpenChannel    func(*OpenChannelEvent) (*OpenChannelResponse, error)
 	HtlcAccepted   func(*HtlcAcceptedEvent) (*HtlcAcceptedResponse, error)
