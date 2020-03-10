@@ -601,6 +601,7 @@ func (l *Lightning) DeleteInvoice(label, status string) (*Invoice, error) {
 
 type WaitAnyInvoiceRequest struct {
 	LastPayIndex uint `json:"lastpay_index,omitempty"`
+	Timeout *uint  `json:"timeout,omitempty"`
 }
 
 func (r WaitAnyInvoiceRequest) Name() string {
@@ -617,7 +618,23 @@ func (r WaitAnyInvoiceRequest) Name() string {
 // This blocks until it receives a response.
 func (l *Lightning) WaitAnyInvoice(lastPayIndex uint) (*Invoice, error) {
 	var result Invoice
-	err := l.client.RequestNoTimeout(&WaitAnyInvoiceRequest{lastPayIndex}, &result)
+	req := &WaitAnyInvoiceRequest{
+		LastPayIndex:lastPayIndex,
+		Timeout: nil,
+	}
+	err := l.client.RequestNoTimeout(req, &result)
+	return &result, err
+}
+
+// Note that if timeout is zero, it won't be sent. which is fine, a zero timeout doesn't really
+// make a lot of sense
+func (l *Lightning) WaitAnyInvoiceTimeout(lastPayIndex uint, timeout uint) (*Invoice, error) {
+	var result Invoice
+	req := &WaitAnyInvoiceRequest{
+		LastPayIndex:lastPayIndex,
+		Timeout: &timeout,
+	}
+	err := l.client.RequestNoTimeout(req, &result)
 	return &result, err
 }
 
