@@ -861,6 +861,19 @@ func TestHooks(t *testing.T) {
 	l1.waitForLog(t, "disconnect called for", 1)
 }
 
+func TestDbWrites(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, _ := Init(t)
+	defer CleanUp(testDir)
+
+	exPlugin := pluginPath(t, "plugin_dbwrites")
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", exPlugin)
+	waitToSync(l1)
+
+	l1.waitForLog(t, "dbwrite called 1", 1)
+}
+
 func TestRpcCmd(t *testing.T) {
 	short(t)
 
