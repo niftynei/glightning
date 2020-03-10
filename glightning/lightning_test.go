@@ -2141,15 +2141,16 @@ func TestPlugins(t *testing.T) {
 	// test "stop"
 	go runServerSide(t,
 		fmt.Sprintf(reqTemplate, "\"plugin\":\"name\",", "stop", 4),
-		wrapResult(4, pluginList),
+		wrapResult(4, `{"result":"Successfully stopped fundchannel."}`),
 		replyQ, requestQ)
-	plugins, err = lightning.StopPlugin("name")
+	stopPlugin, err := lightning.StopPlugin("name")
 	if err != nil {
 		t.Fatal(err)
 	}
+	expectedStop := "Successfully stopped fundchannel."
+	assert.Equal(t, expectedStop, stopPlugin)
 
 	// test plugin start-dir
-	assert.Equal(t, expected, plugins)
 	go runServerSide(t,
 		fmt.Sprintf(reqTemplate, "\"directory\":\"dir\",", "start-dir", 5),
 		wrapResult(5, pluginList),
