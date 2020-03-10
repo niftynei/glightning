@@ -2283,6 +2283,10 @@ type pluginResponse struct {
 	Plugins []PluginInfo `json:"plugins"`
 }
 
+type stopPluginResponse struct {
+	Result string `json:"result"`
+}
+
 func (r *PluginRequest) Name() string {
 	return "plugin"
 }
@@ -2329,10 +2333,10 @@ func (l *Lightning) StartPlugin(pluginName string) ([]PluginInfo, error) {
 	return result.Plugins, err
 }
 
-func (l *Lightning) StopPlugin(pluginName string) ([]PluginInfo, error) {
-	var result pluginResponse
+func (l *Lightning) StopPlugin(pluginName string) (string, error) {
+	var result stopPluginResponse
 	err := l.client.Request(&PluginRequestPlugin{"stop", pluginName}, &result)
-	return result.Plugins, err
+	return result.Result, err
 }
 
 // List of all non-dev RPC methods
