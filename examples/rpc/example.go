@@ -13,7 +13,7 @@ func main() {
 	sats := glightning.NewSat(600000)
 	feerate := glightning.NewFeeRateByDirective(glightning.PerKw, glightning.Urgent)
 	minConf := uint16(1)
-	result, err := lone.FundChannelExt(id, sats, feerate, true, &minConf)
+	result, err := lone.FundChannelExt(id, sats, feerate, true, &minConf, nil)
 	if err != nil {
 		panic(err)
 	}
