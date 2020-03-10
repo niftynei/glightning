@@ -686,7 +686,7 @@ func TestSendPay(t *testing.T) {
 }
 
 func TestWaitAnyInvoice(t *testing.T) {
-	req := `{"jsonrpc":"2.0","method":"waitanyinvoice","params":{"lastpay_index":1},"id":1}`
+	req := `{"jsonrpc":"2.0","method":"waitanyinvoice","params":{"lastpay_index":1,"timeout":0},"id":1}`
 	resp := wrapResult(1, `{    
   "label": "bagatab",                                                            
   "bolt11": "lnbcrt100n1pwz6a8wpp5249mj72sysuemctra4gsmexjec066g2ra7qkkp2rwvuzxuyhhesqdq8v3jhxccxqp9cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqc9ua2tv4kqglsgxnt7l2lcrdajc4juwhtl3jkqqvdnzqfyth5lefx25n0ef8emstfxm4v6dcx8s5ae8ef0ug64nquwdxv9zduggxr8lgpg9m473",
@@ -704,7 +704,7 @@ func TestWaitAnyInvoice(t *testing.T) {
 
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	invoice, err := lightning.WaitAnyInvoice(1)
+	invoice, err := lightning.WaitAnyInvoiceTimeout(1, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
