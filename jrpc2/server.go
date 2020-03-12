@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 )
 
 const (
@@ -27,14 +28,13 @@ type ServerMethod interface {
 // bonus round:
 //   - respond to batched requests
 type Server struct {
-	registry map[string]ServerMethod
+	registry sync.Map // map[string]ServerMethod
 	outQueue chan interface{}
 	shutdown bool
 }
 
 func NewServer() *Server {
 	server := &Server{}
-	server.registry = make(map[string]ServerMethod)
 	server.outQueue = make(chan interface{})
 	server.shutdown = false
 	return server
@@ -208,29 +208,26 @@ func (s *Server) Notify(m Method) error {
 
 func (s *Server) Register(method ServerMethod) error {
 	name := method.Name()
-	if _, exists := s.registry[name]; exists {
+	if _, exists := s.registry.LoadOrStore(name, method); exists {
 		return errors.New("Method already registered")
 	}
-
-	s.registry[name] = method
 	return nil
 }
 
 func (s *Server) GetMethodMap() []ServerMethod {
-	list := make([]ServerMethod, len(s.registry))
-	i := 0
-	for _, v := range s.registry {
-		list[i] = v
-		i++
-	}
+	list := make([]ServerMethod, 0)
+	s.registry.Range(func(key, value interface{}) bool {
+		list = append(list, value.(ServerMethod))
+		return true
+	})
 	return list
 }
 
 func (s *Server) UnregisterByName(name string) error {
-	if _, exists := s.registry[name]; !exists {
+	if _, exists := s.registry.Load(name); !exists {
 		return errors.New("Method not registered")
 	}
-	delete(s.registry, name)
+	s.registry.Delete(name)
 	return nil
 }
 
@@ -267,13 +264,13 @@ func (s *Server) Unmarshal(data []byte, r *Request) *CodedError {
 		return NewError(raw.Id, InvalidRequest, "`method` cannot be empty")
 	}
 
-	stashedMethod, ok := s.registry[raw.Name]
+	stashedMethod, ok := s.registry.Load(raw.Name)
 	if !ok {
 		return NewError(raw.Id, MethodNotFound, fmt.Sprintf("Method not found"))
 	}
 
 	// New method of the given type
-	method := stashedMethod.New()
+	method := stashedMethod.(ServerMethod).New()
 	r.Method = method.(Method)
 
 	// figure out what kind of params we've got: named, an array, or empty
