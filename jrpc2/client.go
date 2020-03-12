@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 	"sync/atomic"
 	"time"
 )
@@ -28,7 +29,7 @@ func logDebug() bool {
 
 type Client struct {
 	requestQueue   chan *Request
-	pendingReq     map[string]chan *RawResponse
+	pending        sync.Map // map[string]chan *RawResponse
 	requestCounter int64
 	shutdown       bool
 	timeout        time.Duration
@@ -37,7 +38,6 @@ type Client struct {
 func NewClient() *Client {
 	client := &Client{}
 	client.requestQueue = make(chan *Request)
-	client.pendingReq = make(map[string]chan *RawResponse)
 	client.timeout = time.Duration(20)
 	return client
 }
@@ -75,10 +75,15 @@ func (c *Client) SocketStart(socket string, up chan bool) error {
 func (c *Client) Shutdown() {
 	c.shutdown = true
 	close(c.requestQueue)
-	for _, v := range c.pendingReq {
-		close(v)
-	}
-	c.pendingReq = make(map[string]chan *RawResponse)
+	c.pending.Range(func(key, value interface{}) bool {
+		v_chan, ok := value.(chan *RawResponse)
+		if !ok {
+			panic("value not chan *RawResponse")
+		}
+		close(v_chan)
+		c.pending.Delete(key)
+		return true
+	})
 	c.requestQueue = make(chan *Request)
 }
 
@@ -135,13 +140,13 @@ func processResponse(c *Client, resp *RawResponse) {
 	// look up 'reply channel' via the
 	// client (should have a registry of
 	// resonses that are waiting...)
-	respChan, exists := c.pendingReq[id]
+	respChan, exists := c.pending.Load(id)
 	if !exists {
 		log.Printf("No return channel found for response with id %s", id)
 		return
 	}
-	respChan <- resp
-	delete(c.pendingReq, id)
+	respChan.(chan *RawResponse) <- resp
+	c.pending.Delete(id)
 }
 
 // Sends a notification to the server. No response is expected,
@@ -164,7 +169,7 @@ func (c *Client) Request(m Method, resp interface{}) error {
 	id := c.NextId()
 	// set up to get a response back
 	replyChan := make(chan *RawResponse, 1)
-	c.pendingReq[id.Val()] = replyChan
+	c.pending.Store(id.Val(), replyChan)
 
 	// send the request out
 	req := &Request{id, m}
@@ -174,7 +179,7 @@ func (c *Client) Request(m Method, resp interface{}) error {
 	case rawResp := <-replyChan:
 		return handleReply(rawResp, resp)
 	case <-time.After(c.timeout * time.Second):
-		delete(c.pendingReq, id.Val())
+		c.pending.Delete(id.Val())
 		return fmt.Errorf("Request timed out")
 	}
 }
@@ -188,7 +193,7 @@ func (c *Client) RequestNoTimeout(m Method, resp interface{}) error {
 	id := c.NextId()
 	// set up to get a response back
 	replyChan := make(chan *RawResponse, 1)
-	c.pendingReq[id.Val()] = replyChan
+	c.pending.Store(id.Val(), replyChan)
 
 	// send the request out
 	req := &Request{id, m}
