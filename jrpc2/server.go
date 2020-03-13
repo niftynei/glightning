@@ -85,6 +85,16 @@ func scanDoubleNewline(data []byte, atEOF bool) (advance int, token []byte, err 
 	return 0, nil, nil
 }
 
+func debugIO(isIn bool) bool {
+	_, ok := os.LookupEnv("GOLIGHT_DEBUG_IO")
+	if ok || !isIn {
+		return ok
+	}
+
+	_, ok = os.LookupEnv("GOLIGHT_DEBUG_IO_IN")
+	return ok
+}
+
 func (s *Server) listen(in io.Reader) error {
 	// use a scanner to read in messages.
 	// since we're mapping this pretty 'strongly'
@@ -97,7 +107,7 @@ func (s *Server) listen(in io.Reader) error {
 	scanner.Split(scanDoubleNewline)
 	for scanner.Scan() && !s.shutdown {
 		msg := scanner.Bytes()
-		if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
+		if debugIO(true) {
 			log.Println(string(msg))
 		}
 		// todo: send this over a channel
@@ -122,7 +132,7 @@ func (s *Server) setupWriteQueue(outWriter io.Writer) {
 			log.Println(err.Error())
 			continue
 		}
-		if _, ok := os.LookupEnv("GOLIGHT_DEBUG_IO"); ok {
+		if debugIO(false) {
 			log.Println(string(data))
 		}
 		// append two newlines to the outgoing message
