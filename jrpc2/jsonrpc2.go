@@ -41,6 +41,9 @@ func (id Id) MarshalJSON() ([]byte, error) {
 
 func (id *Id) UnmarshalJSON(data []byte) error {
 	// check first character...
+	if len(data) == 0 {
+		return NewError(nil, ParseError, "no data provided")
+	}
 	switch rune(data[0]) {
 	case '"':
 		if data[len(data)-1] != '"' {
