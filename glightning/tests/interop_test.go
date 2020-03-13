@@ -226,7 +226,7 @@ func LnNode(t *testing.T, testDir, dataDir string, btcPort int, name string, plu
 		fmt.Sprintf("--addr=localhost:%d", port),
 		fmt.Sprintf("--bitcoin-rpcport=%d", btcPort),
 		"--log-file=log",
-		"--log-level=io",
+		"--log-level=debug",
 		"--bitcoin-rpcuser=btcuser",
 		"--bitcoin-rpcpassword=btcpass",
 		"--dev-fast-gossip",
