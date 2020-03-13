@@ -13,13 +13,6 @@ import (
 	"time"
 )
 
-func logDebug() bool {
-	_, debug_in := os.LookupEnv("GOLIGHT_DEBUG_IO_IN")
-	_, debug_io := os.LookupEnv("GOLIGHT_DEBUG_IO")
-
-	return debug_in || debug_io
-}
-
 // a client needs to be able to ...
 // - 'call' a method which is really...
 // - fire off a request
@@ -102,6 +95,10 @@ func (c *Client) setupWriteQueue(outW io.Writer) {
 			// iff it's got an id associated with it
 			log.Println(err.Error())
 			continue
+		}
+
+		if debugIO(false) {
+			log.Println(string(data))
 		}
 		data = append(data, twoNewlines...)
 		out.Write(data)
@@ -211,14 +208,14 @@ func handleReply(rawResp *RawResponse, resp interface{}) error {
 	// when the response comes back, it will either have an error,
 	// that we should parse into an 'error' (depending on the code?)
 	if rawResp.Error != nil {
-		if logDebug() {
+		if debugIO(true) {
 			log.Printf("%d:%s", rawResp.Error.Code, rawResp.Error.Message)
 			log.Println(string(rawResp.Error.Data))
 		}
 		return rawResp.Error
 	}
 
-	if logDebug() {
+	if debugIO(true) {
 		log.Println(string(rawResp.Raw))
 	}
 
