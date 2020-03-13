@@ -45,6 +45,8 @@ All additions from the clightning CHANGELOG also apply, this just documents
 - glightning: new method Plugin.AddInvoiceFeatures
 - glightning: new method Plugin.RegisterNewOption
 - glightning: new type MSat, for representing millisatoshi amounts. rpc results will begin to natively
+- glightning: GetNode now returns a pointer to Node (Node -> \*Node)
+- glightning: ListNodes now reutrns a slice of pointers ([]Node-> []\*Node)
   parse results as this type in a future release.
 - fixed::glightning: allowhigh fees parses correctly
 - jrpc2: actually parses hexstrings correctly into []bytes (a hexstring is assumed if 

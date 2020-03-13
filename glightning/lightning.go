@@ -222,20 +222,20 @@ type Address struct {
 // if provided
 func (l *Lightning) GetNode(nodeId string) (*Node, error) {
 	nodes, err := l.getNodes(nodeId)
-	if len(nodes) == 0 {
+	if len(nodes) == 0 || nodes[0] == nil {
 		return nil, fmt.Errorf("Node %s not found", nodeId)
 	}
-	return &nodes[0], err
+	return nodes[0], err
 }
 
 // List all nodes in our local network view
-func (l *Lightning) ListNodes() ([]Node, error) {
+func (l *Lightning) ListNodes() ([]*Node, error) {
 	return l.getNodes("")
 }
 
-func (l *Lightning) getNodes(nodeId string) ([]Node, error) {
+func (l *Lightning) getNodes(nodeId string) ([]*Node, error) {
 	var result struct {
-		Nodes []Node `json:"nodes"`
+		Nodes []*Node `json:"nodes"`
 	}
 	err := l.client.Request(&ListNodeRequest{nodeId}, &result)
 	return result.Nodes, err
