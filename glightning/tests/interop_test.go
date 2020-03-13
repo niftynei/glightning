@@ -886,7 +886,6 @@ func TestRpcCmd(t *testing.T) {
 	loadPlugin(t, l1, exPlugin)
 
 	peerId := connectNode(t, l1, l2)
-	//l1.waitForLog(t, "command connect called id 2", 1)
 
 	addr, err := l1.rpc.NewAddress(glightning.P2SHSegwit)
 	check(t, err)
@@ -966,8 +965,12 @@ func TestFeatureBits(t *testing.T) {
 	check(t, err)
 	mineBlocks(t, 6, btc)
 	waitForChannelReady(t, l2, l1)
+	waitForChannelReady(t, l1, l2)
 	scid21 := getShortChannelId(t, l2, l1)
-	waitForChannelActive(l1, scid21)
+	err = waitForChannelActive(l2, scid21)
+	check(t, err)
+	err = waitForChannelActive(l1, scid21)
+	check(t, err)
 
 	// check for init message bits (1 << 101)
 	peer, _ := l2.rpc.GetPeer(l1Info.Id)
@@ -979,8 +982,11 @@ func TestFeatureBits(t *testing.T) {
 	decoded, err := l1.rpc.DecodeBolt11(inv.Bolt11)
 	assert.True(t, decoded.Features.IsSet(105))
 
-	node, err := l2.rpc.GetNode(l1Info.Id)
+	time.Sleep(1 * time.Second)
+
+	node, err := l1.rpc.GetNode(l1Info.Id)
 	check(t, err)
+	assert.NotNil(t, node.Features)
 	assert.True(t, node.Features.IsSet(103))
 }
 
@@ -1013,8 +1019,10 @@ func TestHtlcAcceptedHook(t *testing.T) {
 	l2.waitForLog(t, fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid23), 20)
 	scid21 := getShortChannelId(t, l1, l2)
 	l2.waitForLog(t, fmt.Sprintf(`Received channel_update for channel %s/. now ACTIVE`, scid21), 20)
-	waitForChannelActive(l1, scid23)
-	waitForChannelActive(l3, scid21)
+	err := waitForChannelActive(l1, scid23)
+	check(t, err)
+	err = waitForChannelActive(l3, scid21)
+	check(t, err)
 
 	invAmt := uint64(100000)
 	inv, err := l3.rpc.CreateInvoice(invAmt, "push pay", "money", 100, nil, "", false)
