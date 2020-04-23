@@ -123,6 +123,8 @@ type PeerChannel struct {
 	OurReserveMsat                   string            `json:"our_reserve_msat"`
 	SpendableMilliSatoshi            uint64            `json:"spendable_msatoshi"`
 	SpendableMsat                    string            `json:"spendable_msat"`
+	ReceivableMilliSatoshi           uint64            `json:"receivable_msatoshi"`
+	ReceivableMsat                   string            `json:"receivable_msat"`
 	HtlcMinMilliSatoshi              uint64            `json:"htlc_minimum_msat"`
 	MinimumHtlcInMsat                string            `json:"minimum_htlc_in_msat"`
 	TheirToSelfDelay                 uint              `json:"their_to_self_delay"`
@@ -1473,12 +1475,22 @@ type ConnectSuccess struct {
 	PeerId string `json:"id"`
 }
 
-// Connect to {peerId} at {host}:{port}. Returns peer id on success
-func (l *Lightning) Connect(peerId, host string, port uint) (string, error) {
-	var result struct {
-		Id string `json:"id"`
-	}
+type ConnectResult struct {
+	Id       string `json:"id"`
+	Features string `json:"features"`
+}
+
+// Connect to {peerId} at {host}:{port}. Returns result with peer id and peer's features
+func (l *Lightning) ConnectPeer(peerId, host string, port uint) (*ConnectResult, error) {
+	var result ConnectResult
 	err := l.client.Request(&ConnectRequest{peerId, host, port}, &result)
+	return &result, err
+}
+
+// Connect to {peerId} at {host}:{port}. Returns peer id on success
+// Sort of deprecated, use ConnectPeer, as it gives you back the peer's init features as well
+func (l *Lightning) Connect(peerId, host string, port uint) (string, error) {
+	result, err := l.ConnectPeer(peerId, host, port)
 	return result.Id, err
 }
 
@@ -1619,9 +1631,10 @@ func (l *Lightning) CancelFundChannel(peerId string) (bool, error) {
 }
 
 type CloseRequest struct {
-	PeerId      string `json:"id"`
-	Timeout     uint   `json:"timeout,omitempty"`
-	Destination string `json:"destination,omitempty"`
+	PeerId             string `json:"id"`
+	Timeout            uint   `json:"unilateraltimeout,omitempty"`
+	Destination        string `json:"destination,omitempty"`
+	FeeNegotiationStep string `json:"fee_negotiation_step,omitempty"`
 }
 
 func (r CloseRequest) Name() string {
@@ -1643,6 +1656,18 @@ func (l *Lightning) CloseTo(id, destination string) (*CloseResult, error) {
 	return l.Close(id, 0, destination)
 }
 
+func (l *Lightning) CloseWithStep(id, step string) (*CloseResult, error) {
+	return l.close_internal(id, 0, "", step)
+}
+
+func (l *Lightning) CloseToWithStep(id, destination, step string) (*CloseResult, error) {
+	return l.close_internal(id, 0, destination, step)
+}
+
+func (l *Lightning) CloseToTimeoutWithStep(id string, timeout uint, destination, step string) (*CloseResult, error) {
+	return l.close_internal(id, timeout, destination, step)
+}
+
 // Close the channel with peer {id}, timing out with {timeout} seconds, at whence a
 // unilateral close is initiated.
 //
@@ -1652,8 +1677,12 @@ func (l *Lightning) CloseTo(id, destination string) (*CloseResult, error) {
 //
 // Note that a successful result *may* be null.
 func (l *Lightning) Close(id string, timeout uint, destination string) (*CloseResult, error) {
+	return l.close_internal(id, timeout, destination, "")
+}
+
+func (l *Lightning) close_internal(id string, timeout uint, destination string, step string) (*CloseResult, error) {
 	var result CloseResult
-	err := l.client.Request(&CloseRequest{id, timeout, destination}, &result)
+	err := l.client.Request(&CloseRequest{id, timeout, destination, step}, &result)
 	return &result, err
 }
 
@@ -2201,14 +2230,22 @@ type OnchainEstimate struct {
 	OpeningChannelSatoshis  uint64 `json:"opening_channel_satoshis"`
 	MutualCloseSatoshis     uint64 `json:"mutual_close_satoshis"`
 	UnilateralCloseSatoshis uint64 `json:"unilateral_close_satoshis"`
+	HtlcTimeoutSatoshis     uint64 `json:"htlc_timeout_satoshis"`
+	HtlcSuccessSatoshis     uint64 `json:"htlc_success_satoshis"`
 }
 
 type FeeRateDetails struct {
-	Urgent        int `json:"urgent"`
-	Normal        int `json:"normal"`
-	Slow          int `json:"slow"`
-	MinAcceptable int `json:"min_acceptable"`
-	MaxAcceptable int `json:"max_acceptable"`
+	Urgent          int  `json:"urgent"`
+	Normal          int  `json:"normal"`
+	Slow            int  `json:"slow"`
+	MinAcceptable   int  `json:"min_acceptable"`
+	MaxAcceptable   int  `json:"max_acceptable"`
+	Opening         uint `json:"opening"`
+	MutualClose     uint `json:"mutual_close"`
+	UnilateralClose uint `json:"unilateral_close"`
+	DelayedToUs     uint `json:"delayed_to_us"`
+	HtlcResolution  uint `json:"htlc_resolution"`
+	Penalty         uint `json:"penalty"`
 }
 
 // Return feerate estimates, either satoshi-per-kw or satoshi-per-kb {style}
@@ -2339,6 +2376,28 @@ func (l *Lightning) StopPlugin(pluginName string) (string, error) {
 	return result.Result, err
 }
 
+type SharedSecretRequest struct {
+	Point string `json:"point"`
+}
+
+func (r *SharedSecretRequest) Name() string {
+	return "getsharedsecret"
+}
+
+type SharedSecretResp struct {
+	SharedSecret string `json:"shared_secret"`
+}
+
+/* Returns the shared secret, a hexadecimal string of the 256-bit SHA-2 of the
+   compressed public key DER-encoding of the  SECP256K1  point  that  is  the
+   shared secret generated using the Elliptic Curve Diffie-Hellman algorithm.
+   This field is 32 bytes (64 hexadecimal characters in a string). */
+func (l *Lightning) GetSharedSecret(point string) (string, error) {
+	var result SharedSecretResp
+	err := l.client.Request(&SharedSecretRequest{point}, &result)
+	return result.SharedSecret, err
+}
+
 // List of all non-dev RPC methods
 var Lightning_RpcMethods map[string](func() jrpc2.Method)
 
@@ -2398,4 +2457,5 @@ func init() {
 	Lightning_RpcMethods[(&FeeRatesRequest{}).Name()] = func() jrpc2.Method { return new(FeeRatesRequest) }
 	Lightning_RpcMethods[(&SetChannelFeeRequest{}).Name()] = func() jrpc2.Method { return new(SetChannelFeeRequest) }
 	Lightning_RpcMethods[(&PluginRequest{}).Name()] = func() jrpc2.Method { return new(PluginRequest) }
+	Lightning_RpcMethods[(&SharedSecretRequest{}).Name()] = func() jrpc2.Method { return new(SharedSecretRequest) }
 }

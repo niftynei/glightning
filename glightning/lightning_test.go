@@ -262,7 +262,7 @@ func TestListPeers(t *testing.T) {
 					OutPaymentsFulfilled:     123,
 					OutMilliSatoshiFulfilled: 123,
 					OutgoingFulfilledMsat:    "123msat",
-					Htlcs:                    htlcs,
+					Htlcs: htlcs,
 				},
 			},
 		},
@@ -367,10 +367,10 @@ func TestListPays(t *testing.T) {
 	}
 	assert.Equal(t, []glightning.PaymentFields{
 		glightning.PaymentFields{
-			Bolt11:                 "lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
-			PaymentPreImage:        "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
-			Status:                 "complete",
-			Label:                  "optional",
+			Bolt11:          "lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
+			PaymentPreImage: "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
+			Status:          "complete",
+			Label:           "optional",
 			AmountSentMilliSatoshi: "10000msat",
 		},
 	}, forwards)
@@ -2041,7 +2041,28 @@ func TestFeeRate(t *testing.T) {
 	// what i expect the lightning rpc to generate
 	expectedRequest := "{\"jsonrpc\":\"2.0\",\"method\":\"feerates\",\"params\":{\"style\":\"perkb\"},\"id\":1}"
 	// json the server will respond with
-	reply := "{\"jsonrpc\":\"2.0\",\"id\":1,\"result\":{ \"perkb\": { \"urgent\": 3328, \"normal\": 1012, \"slow\": 1012, \"min_acceptable\": 1012, \"max_acceptable\": 33280 }, \"onchain_fee_estimates\": { \"opening_channel_satoshis\": 177, \"mutual_close_satoshis\": 170, \"unilateral_close_satoshis\": 497 }}}"
+	reply := wrapResult(1, `{
+	   "perkb": {
+	      "opening": 1012,
+	      "mutual_close": 1012,
+	      "unilateral_close": 1012,
+	      "delayed_to_us": 1012,
+	      "htlc_resolution": 1012,
+	      "penalty": 1012,
+	      "min_acceptable": 1012,
+	      "max_acceptable": 10000,
+	      "urgent": 1012,
+	      "normal": 1012,
+	      "slow": 2024
+	   },
+	   "onchain_fee_estimates": {
+	      "opening_channel_satoshis": 177,
+	      "mutual_close_satoshis": 170,
+	      "unilateral_close_satoshis": 151,
+	      "htlc_timeout_satoshis": 167,
+	      "htlc_success_satoshis": 177
+	   }
+	}`)
 
 	// queue request & response
 	go runServerSide(t, expectedRequest, reply, replyQ, requestQ)
@@ -2052,16 +2073,24 @@ func TestFeeRate(t *testing.T) {
 	assert.Equal(t, &glightning.FeeRateEstimate{
 		Style: glightning.PerKb,
 		Details: &glightning.FeeRateDetails{
-			Urgent:        3328,
-			Normal:        1012,
-			Slow:          1012,
-			MinAcceptable: 1012,
-			MaxAcceptable: 33280,
+			Urgent:          1012,
+			Normal:          1012,
+			Slow:            2024,
+			MinAcceptable:   1012,
+			MaxAcceptable:   10000,
+			Opening:         1012,
+			MutualClose:     1012,
+			UnilateralClose: 1012,
+			DelayedToUs:     1012,
+			HtlcResolution:  1012,
+			Penalty:         1012,
 		},
 		OnchainEstimate: &glightning.OnchainEstimate{
 			OpeningChannelSatoshis:  177,
 			MutualCloseSatoshis:     170,
-			UnilateralCloseSatoshis: 497,
+			UnilateralCloseSatoshis: 151,
+			HtlcTimeoutSatoshis:     167,
+			HtlcSuccessSatoshis:     177,
 		},
 		Warning: "",
 	}, rates)
@@ -2374,6 +2403,18 @@ func TestLimitedFeeRates(t *testing.T) {
 		},
 		Warning: "Some fee estimates unavailable: bitcoind startup?",
 	}, rates)
+}
+
+func TestGetSharedSecret(t *testing.T) {
+	request := `{"jsonrpc":"2.0","method":"getsharedsecret","params":{"point":"028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7"},"id":1}`
+	reply := wrapResult(1, `{"shared_secret":"b6bd6a8327b5437fb64f202bdc388490841b6cf96057f6b74a0c6a61408aa88d"}`)
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, request, reply, replyQ, requestQ)
+	ss, err := lightning.GetSharedSecret("028d7500dd4c12685d1f568b4c2b5048e8534b873319f3a8daa612b469132ec7f7")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "b6bd6a8327b5437fb64f202bdc388490841b6cf96057f6b74a0c6a61408aa88d", ss)
 }
 
 func runServerSide(t *testing.T, expectedRequest, reply string, replyQ, requestQ chan []byte) {
