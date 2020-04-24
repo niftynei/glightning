@@ -5,7 +5,6 @@ import (
 	"github.com/niftynei/glightning/glightning"
 	"log"
 	"os"
-	"strconv"
 )
 
 const MaxFeeMultiple uint64 = 10
@@ -37,17 +36,14 @@ func main() {
 	}
 }
 
-func onInit(plugin *glightning.Plugin, options map[string]string, config *glightning.Config) {
+func onInit(plugin *glightning.Plugin, options map[string]glightning.Option, config *glightning.Config) {
 	log.Printf("successfully init'd! %s\n", config.RpcFile)
 
 	// btc info is set via plugin 'options'
-	btcDir := options["bitcoin-datadir"]
-	btcUser := options["bitcoin-rpcuser"]
-	btcPass := options["bitcoin-rpcpassword"]
-	btcPort, err := strconv.ParseUint(options["bitcoin-rpcport"], 10, 32)
-	if err != nil {
-		log.Fatal(err)
-	}
+	btcDir := options["bitcoin-datadir"].GetStrValue()
+	btcUser := options["bitcoin-rpcuser"].GetStrValue()
+	btcPass := options["bitcoin-rpcpassword"].GetStrValue()
+	btcPort := options["bitcoin-rpcport"].(*glightning.IntOption).Val
 
 	// default startup
 	btc = gbitcoin.NewBitcoin(btcUser, btcPass)

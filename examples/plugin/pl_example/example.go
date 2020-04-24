@@ -19,7 +19,7 @@ func (h *Hello) Name() string {
 }
 
 func (h *Hello) Call() (jrpc2.Result, error) {
-	name, err := plugin.GetOptionValue("name")
+	name, err := plugin.GetOptionValueAsStr("name")
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (h *PrettyHello) Name() string {
 }
 
 func (h *PrettyHello) Call() (jrpc2.Result, error) {
-	name, err := plugin.GetOptionValue("name")
+	name, err := plugin.GetOptionValueAsStr("name")
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +79,7 @@ func main() {
 }
 
 // This is called after the plugin starts up successfully
-func onInit(plugin *glightning.Plugin, options map[string]string, config *glightning.Config) {
+func onInit(plugin *glightning.Plugin, options map[string]glightning.Option, config *glightning.Config) {
 	log.Printf("successfully init'd! %s\n", config.RpcFile)
 
 	// Here's how you'd use the config's lightning-dir to
