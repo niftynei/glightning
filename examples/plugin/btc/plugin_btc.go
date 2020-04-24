@@ -8,6 +8,7 @@ import (
 	"strconv"
 )
 
+const MaxFeeMultiple uint64 = 10
 var btc *gbitcoin.Bitcoin
 
 func main() {
@@ -20,6 +21,7 @@ func main() {
 	bb.RegisterGetFeeRate(GetFeeRate)
 	bb.RegisterSendRawTransaction(SendRawTx)
 	bb.RegisterGetRawBlockByHeight(BlockByHeight)
+	bb.RegisterEstimateFees(EstimateFees)
 
 	// register options for bitcoind auth, port + directory
 	// matches existing options so we can swap this out with
@@ -99,6 +101,40 @@ func GetFeeRate(blocks uint32, mode string) (uint64, error) {
 
 	// feerate's response must be denominated in satoshi per kilo-vbyte
 	return fees.SatPerKb(), nil
+}
+
+func EstimateFees() (*glightning.Btc_EstimatedFees, error) {
+	log.Printf("called estimatefees")
+
+	/* We need to calculate a *bunch* of feerates. For now, we
+	   just copy what bcli is doing */
+	veryUrgent, err := btc.EstimateFee(2, "CONSERVATIVE")
+	if err != nil {
+		return nil, err
+	}
+	urgent, err := btc.EstimateFee(3, "CONSERVATIVE")
+	if err != nil {
+		return nil, err
+	}
+	normal, err := btc.EstimateFee(4, "ECONOMICAL")
+	if err != nil {
+		return nil, err
+	}
+	slow, err := btc.EstimateFee(100, "ECONOMICAL")
+	if err != nil {
+		return nil, err
+	}
+
+	return &glightning.Btc_EstimatedFees{
+		Opening: normal.SatPerKb(),
+		MutualClose: normal.SatPerKb(),
+		UnilateralClose: veryUrgent.SatPerKb(),
+		DelayedToUs: normal.SatPerKb(),
+		HtlcResolution: urgent.SatPerKb(),
+		Penalty: urgent.SatPerKb(),
+		MinAcceptable: slow.SatPerKb(),
+		MaxAcceptable: veryUrgent.SatPerKb() * MaxFeeMultiple,
+	}, nil
 }
 
 func SendRawTx(tx string) error {

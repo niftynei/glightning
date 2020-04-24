@@ -144,6 +144,8 @@ const _InvResult_Continue _InvoicePaymentResult = "continue"
 type InvoicePaymentResponse struct {
 	Result      _InvoicePaymentResult `json:"result,omitempty"`
 	FailureCode *uint16               `json:"failure_code,omitempty"`
+	// Replaces failure code!
+	FailureMessage string `json:"failure_message,omitempty"`
 }
 
 type InvoicePaymentEvent struct {
@@ -245,14 +247,8 @@ func (oc *OpenChannelEvent) ContinueWithCloseTo(address string) *OpenChannelResp
 }
 
 type RpcCommandEvent struct {
-	X    CmdLayer `json:"rpc_command"`
+	Cmd  RpcCmd `json:"rpc_command"`
 	hook func(*RpcCommandEvent) (*RpcCommandResponse, error)
-}
-
-// nesting for the rpc command is too deep :/
-// { "rpc_command": { "rpc_command" : { obj } }
-type CmdLayer struct {
-	Cmd RpcCmd `json:"rpc_command"`
 }
 
 type RpcCmd struct {
@@ -363,7 +359,7 @@ func (rc *RpcCommandEvent) Continue() *RpcCommandResponse {
 func (rc *RpcCommandEvent) ReplaceWith(m jrpc2.Method) *RpcCommandResponse {
 	// the marshalling call on this also includes a version field
 	// which shouldn't affect parsing
-	id, _ := rc.X.Cmd.Id()
+	id, _ := rc.Cmd.Id()
 	req := &jrpc2.Request{id, m}
 
 	return &RpcCommandResponse{
@@ -458,10 +454,13 @@ const (
 
 type HtlcAcceptedResponse struct {
 	Result HtlcAcceptedResult `json:"result"`
-	// Only allowed if result is 'fail'
+	// Only allowed if result is 'fail', deprecated! check
+	// FailureMessage
 	FailureCode *uint16 `json:"failure_code,omitempty"`
 	// Only allowed if result is 'resolve'
 	PaymentKey string `json:"payment_key,omitempty"`
+	// Replaces the onion's payload
+	Payload string `json:"payload,omitempty"`
 }
 
 func (ha *HtlcAcceptedEvent) New() interface{} {
@@ -481,6 +480,13 @@ func (ha *HtlcAcceptedEvent) Call() (jrpc2.Result, error) {
 func (ha *HtlcAcceptedEvent) Continue() *HtlcAcceptedResponse {
 	return &HtlcAcceptedResponse{
 		Result: _HcContinue,
+	}
+}
+
+func (ha *HtlcAcceptedEvent) ContinueWithPayload(payload string) *HtlcAcceptedResponse {
+	return &HtlcAcceptedResponse{
+		Result: _HcContinue,
+		Payload: payload,
 	}
 }
 
@@ -819,10 +825,11 @@ type FeatureBits struct {
 	Node    *Hexed `json:"node,omitempty"`
 	Init    *Hexed `json:"init,omitempty"`
 	Invoice *Hexed `json:"invoice,omitempty"`
+	Channel *Hexed `json:"channel,omitempty"`
 }
 
 func (fb *FeatureBits) AreSet() bool {
-	return fb.Node != nil || fb.Init != nil || fb.Invoice != nil
+	return fb.Node != nil || fb.Init != nil || fb.Invoice != nil || fb.Channel != nil
 }
 
 type Manifest struct {
@@ -884,10 +891,11 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 }
 
 type Config struct {
-	LightningDir string `json:"lightning-dir"`
-	RpcFile      string `json:"rpc-file"`
-	Startup      bool   `json:"startup,omitempty"`
-	Network      string `json:"network,omitempty"`
+	LightningDir string      `json:"lightning-dir"`
+	RpcFile      string      `json:"rpc-file"`
+	Startup      bool        `json:"startup,omitempty"`
+	Network      string      `json:"network,omitempty"`
+	Features     *FeatureBits `json:"feature_set,omitempty"`
 }
 
 type InitMethod struct {
@@ -1105,6 +1113,10 @@ func (p *Plugin) AddInitFeatures(bits []byte) {
 
 func (p *Plugin) AddInvoiceFeatures(bits []byte) {
 	p.features.Invoice = NewHexx(bits)
+}
+
+func (p *Plugin) AddChannelFeatures(bits []byte) {
+	p.features.Channel = NewHexx(bits)
 }
 
 func (p *Plugin) RegisterMethod(m *RpcMethod) error {
