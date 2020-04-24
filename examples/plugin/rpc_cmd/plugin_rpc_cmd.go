@@ -23,7 +23,7 @@ func onInit(plugin *glightning.Plugin, options map[string]string, config *glight
 }
 
 func OnRpcCommand(event *glightning.RpcCommandEvent) (*glightning.RpcCommandResponse, error) {
-	cmd := event.X.Cmd
+	cmd := event.Cmd
 	id, _ := cmd.Id()
 	log.Printf("command %s called id %s", cmd.MethodName, id)
 

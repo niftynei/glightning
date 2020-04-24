@@ -23,6 +23,7 @@ const (
 	_GetFeeRate          BtcBackend_MethodName = "getfeerate"
 	_SendRawTransaction  BtcBackend_MethodName = "sendrawtransaction"
 	_GetRawBlockByHeight BtcBackend_MethodName = "getrawblockbyheight"
+	_EstimateFees        BtcBackend_MethodName = "estimatefees"
 )
 
 type BitcoinBackend struct {
@@ -31,6 +32,7 @@ type BitcoinBackend struct {
 	getFeeRate          func(uint32, string) (uint64, error)
 	sendRawTransaction  func(string) error
 	getRawBlockByHeight func(uint32) (string, string, error)
+	estimateFees        func() (*Btc_EstimatedFees, error)
 
 	plugin *Plugin
 }
@@ -65,6 +67,15 @@ func (bb *BitcoinBackend) RegisterGetFeeRate(fn func(uint32, string) (uint64, er
 	m := new(Method_GetFeeRate)
 	m.bb = bb
 	rpcM := NewRpcMethod(m, "bitcoin getfeerate method")
+	rpcM.Category = "bitcoin"
+	bb.plugin.RegisterMethod(rpcM)
+}
+
+func (bb *BitcoinBackend) RegisterEstimateFees(fn func() (*Btc_EstimatedFees, error)) {
+	bb.estimateFees = fn
+	m := new(Method_EstimateFees)
+	m.bb = bb
+	rpcM := NewRpcMethod(m, "bitcoin estimatefees method")
 	rpcM.Category = "bitcoin"
 	bb.plugin.RegisterMethod(rpcM)
 }
@@ -156,6 +167,39 @@ func (m Method_GetChainInfo) New() interface{} {
 
 func (m Method_GetChainInfo) Call() (jrpc2.Result, error) {
 	return m.bb.getChainInfo()
+}
+
+type Method_EstimateFees struct {
+	bb *BitcoinBackend
+}
+
+type Btc_EstimatedFees struct {
+	Opening uint64 `json:"opening"`
+	MutualClose uint64 `json:"mutual_close"`
+	UnilateralClose uint64 `json:"unilateral_close"`
+	DelayedToUs uint64 `json:"delayed_to_us"`
+	HtlcResolution uint64 `json:"htlc_resolution"`
+	Penalty uint64 `json:"penalty"`
+	MinAcceptable uint64 `json:"min_acceptable"`
+	MaxAcceptable uint64 `json:"max_acceptable"`
+}
+
+func (m Method_EstimateFees) Name() string {
+	return string(_EstimateFees)
+}
+
+func (m Method_EstimateFees) New() interface{} {
+	n := new(Method_EstimateFees)
+	n.bb = m.bb
+	return n
+}
+
+func (m Method_EstimateFees) Call() (jrpc2.Result, error) {
+	fees, err := m.bb.estimateFees()
+	if err != nil {
+		return nil, err
+	}
+	return fees, nil
 }
 
 type Method_GetFeeRate struct {
