@@ -268,7 +268,7 @@ func (s *Server) Unmarshal(data []byte, r *Request) *CodedError {
 	}
 	err := json.Unmarshal(data, &raw)
 	if err != nil {
-		return NewError(nil, ParseError, "Parse error:"+err.Error())
+		return NewError(nil, ParseError, fmt.Sprintf("Parse error:%s [%s]",err.Error(), data))
 	}
 	if raw.Version != specVersion {
 		return NewError(raw.Id, InvalidRequest, fmt.Sprintf(`Invalid version, expected "%s" got "%s"`, specVersion, raw.Version))
@@ -293,7 +293,7 @@ func (s *Server) Unmarshal(data []byte, r *Request) *CodedError {
 	var obj interface{}
 	err = json.Unmarshal(raw.Params, &obj)
 	if err != nil {
-		return NewError(raw.Id, ParseError, "Parse error:"+err.Error())
+		return NewError(raw.Id, ParseError, fmt.Sprintf("Parse error:%s. %s",err.Error(), raw.Params))
 	}
 	switch obj.(type) {
 	case []interface{}:
