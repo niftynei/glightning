@@ -489,6 +489,36 @@ func getShortChannelId(t *testing.T, node1, node2 *Node) string {
 	return peer.Channels[0].ShortChannelId
 }
 
+func TestPluginOptions(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, _ := Init(t)
+	defer CleanUp(testDir)
+
+	// try with the defaults
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", nil)
+
+	exPlugin := pluginPath(t, "plugin_example")
+	_, err := l1.rpc.StartPlugin(exPlugin)
+	check(t, err)
+	l1.waitForLog(t, `Is this initial node startup\? false`, 1)
+	l1.waitForLog(t, `the bool option is set to true`, 1)
+	l1.waitForLog(t, `the int option is set to 11`, 1)
+	l1.waitForLog(t, `the flag option is set\? false`, 1)
+
+	// now try with some different values!
+	optsMap := make(map[string]string)
+	optsMap["plugin"] = exPlugin
+	optsMap["int_opt"] = "-55"
+	optsMap["bool_opt"] = "false"
+	optsMap["flag_opt"] = ""
+	l2 := LnNode(t, testDir, dataDir, btcPid, "two", optsMap)
+	l2.waitForLog(t, `Is this initial node startup\? true`, 1)
+	l2.waitForLog(t, `the bool option is set to false`, 1)
+	l2.waitForLog(t, `the int option is set to -55`, 1)
+	l2.waitForLog(t, `the flag option is set\? true`, 1)
+}
+
 // ok, now let's check the plugin subs+hooks etc
 func TestPlugins(t *testing.T) {
 	short(t)

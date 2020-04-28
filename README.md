@@ -113,7 +113,7 @@ You need to supply the `NewPlugin` method with a callback function that will tri
 The init function has the following signature:
 
 ```
-func onInit(plugin *glightning.Plugin, options map[string]string, config *glightning.Config)
+func onInit(plugin *glightning.Plugin, options map[string]glightning.Option, config *glightning.Config)
 ```
 
 ### Wiring into Lightning's RPC
