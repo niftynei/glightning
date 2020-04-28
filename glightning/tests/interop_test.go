@@ -1043,15 +1043,15 @@ func TestHtlcAcceptedHook(t *testing.T) {
 
 	// l2 should have gotten an htlc_accept hook call
 	l2.waitForLog(t, "htlc_accepted called", 1)
+	l2.waitForLog(t, `has perhop\? false`, 1)
 	l2.waitForLog(t, `type is tlv`, 1)
-	l2.waitForLog(t, `has perhop? false`, 1)
 	l2.waitForLog(t, `payment secret is empty`, 1)
 	l2.waitForLog(t, `amount is empty`, 1)
 
 	// l3 should have gotten an htlc_accept hook call, with different info
 	l3.waitForLog(t, "htlc_accepted called", 1)
 	l3.waitForLog(t, `type is tlv`, 1)
-	l3.waitForLog(t, `has perhop? false`, 1)
+	l3.waitForLog(t, `has perhop\? false`, 1)
 	l3.waitForLog(t, `payment secret is not empty`, 1)
-	l3.waitForLog(t, `amount is 10000000msat`, 1)
+	l3.waitForLog(t, `amount is 10000\dmsat`, 1)
 }
