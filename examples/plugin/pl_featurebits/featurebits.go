@@ -11,7 +11,7 @@ func main() {
 	plugin := glightning.NewPlugin(onInit)
 
 	// we use big-int because they're .. very big ints
-	var a, b, c big.Int
+	var a, b, c, d  big.Int
 	a.Exp(big.NewInt(2), big.NewInt(101), nil)
 	plugin.AddInitFeatures(a.Bytes())
 
@@ -20,6 +20,9 @@ func main() {
 
 	c.Exp(big.NewInt(2), big.NewInt(105), nil)
 	plugin.AddInvoiceFeatures(c.Bytes())
+
+	d.Exp(big.NewInt(2), big.NewInt(107), nil)
+	plugin.AddChannelFeatures(d.Bytes())
 
 	err := plugin.Start(os.Stdin, os.Stdout)
 	if err != nil {
