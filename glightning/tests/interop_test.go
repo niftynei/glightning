@@ -236,7 +236,11 @@ func LnNode(t *testing.T, testDir, dataDir string, btcPort int, name string, ext
 
 	if extraOps != nil {
 		for arg, val := range extraOps {
-			args = append(args, fmt.Sprintf("--%s=%s", arg, val))
+			if val == "" {
+				args = append(args, fmt.Sprintf("--%s", arg))
+			} else {
+				args = append(args, fmt.Sprintf("--%s=%s", arg, val))
+			}
 		}
 	}
 
