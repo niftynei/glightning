@@ -790,7 +790,6 @@ func TestBtcBackend(t *testing.T) {
 	l1.waitForLog(t, "All Bitcoin plugin commands registered", 1)
 
 	l1.waitForLog(t, "called getchaininfo", 1)
-	l1.waitForLog(t, "called getfeerate", 1)
 	l1.waitForLog(t, "called blockbyheight", 1)
 
 	fundNode(t, "1.0", l1, btc)
@@ -835,6 +834,7 @@ func TestBtcBackend(t *testing.T) {
 	check(t, err)
 	assert.True(t, canceled)
 	l1.waitForLog(t, "called getutxo", 1)
+	l1.waitForLog(t, "called estimatefees", 1)
 }
 
 // let's try out some hooks!
