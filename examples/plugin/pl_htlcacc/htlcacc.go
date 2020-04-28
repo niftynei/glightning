@@ -40,7 +40,7 @@ func OnHtlcAccepted(event *glightning.HtlcAcceptedEvent) (*glightning.HtlcAccept
 	if onion.TotalMilliSatoshi == "" {
 		on = "empty"
 	} else {
-		on = ""
+		on = onion.TotalMilliSatoshi
 	}
 	log.Printf("amount is %s", on)
 
