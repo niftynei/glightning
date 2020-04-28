@@ -1477,7 +1477,7 @@ type ConnectSuccess struct {
 
 type ConnectResult struct {
 	Id       string `json:"id"`
-	Features string `json:"features"`
+	Features *Hexed `json:"features"`
 }
 
 // Connect to {peerId} at {host}:{port}. Returns result with peer id and peer's features
