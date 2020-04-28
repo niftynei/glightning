@@ -110,11 +110,14 @@ func (s *Server) listen(in io.Reader) error {
 		if debugIO(true) {
 			log.Println(string(msg))
 		}
+		// pass down a copy so things stay sane
+		msg_buf := make([]byte, len(msg))
+		copy(msg_buf, msg)
 		// todo: send this over a channel
 		// for processing, so the number
 		// of things we process at once
 		// is more easy to control
-		go processMsg(s, msg)
+		go processMsg(s, msg_buf)
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
