@@ -392,12 +392,6 @@ func TestListTransactions(t *testing.T) {
 	assert.Equal(t, len(trans), 2)
 }
 
-func connect(l1, l2 *Node) error {
-	l2Info, _ := l2.rpc.GetInfo()
-	_, err := l1.rpc.Connect(l2Info.Id, l2Info.Binding[0].Addr, uint(l2Info.Binding[0].Port))
-	return err
-}
-
 func fundNode(t *testing.T, amount string, n *Node, b *gbitcoin.Bitcoin) {
 	addr, err := n.rpc.NewAddr()
 	check(t, err)
@@ -813,9 +807,9 @@ func TestBtcBackend(t *testing.T) {
 	mineBlocks(t, 1, btc)
 
 	// try to open a channel and then cancel it, so getutxo gets called
-	peerId := connectNode(t, l1, l2)
+	connectInfo := connectNode(t, l1, l2)
 	channelfunds := uint64(100000)
-	starter, err := l1.rpc.StartFundChannel(peerId, channelfunds, true, rate, "")
+	starter, err := l1.rpc.StartFundChannel(connectInfo.Id, channelfunds, true, rate, "")
 	check(t, err)
 
 	// build a transaction
@@ -833,11 +827,11 @@ func TestBtcBackend(t *testing.T) {
 	check(t, err)
 	txout, err := tx.FindOutputIndex(starter.Address)
 	check(t, err)
-	_, err = l1.rpc.CompleteFundChannel(peerId, tx.TxId, txout)
+	_, err = l1.rpc.CompleteFundChannel(connectInfo.Id, tx.TxId, txout)
 	check(t, err)
 
 	// ok this will call a check for the utxo...
-	canceled, err := l1.rpc.CancelFundChannel(peerId)
+	canceled, err := l1.rpc.CancelFundChannel(connectInfo.Id)
 	check(t, err)
 	assert.True(t, canceled)
 	l1.waitForLog(t, "called getutxo", 1)
@@ -857,8 +851,8 @@ func TestHooks(t *testing.T) {
 
 	l1Info, _ := l1.rpc.GetInfo()
 	l2Info, _ := l2.rpc.GetInfo()
-	peerId := connectNode(t, l1, l2)
-	assert.Equal(t, peerId, l2Info.Id)
+	peer := connectNode(t, l1, l2)
+	assert.Equal(t, peer.Id, l2Info.Id)
 
 	l1.waitForLog(t, "peer connected called", 1)
 
@@ -892,7 +886,7 @@ func TestRpcCmd(t *testing.T) {
 	exPlugin := pluginPath(t, "plugin_rpccmd")
 	loadPlugin(t, l1, exPlugin)
 
-	peerId := connectNode(t, l1, l2)
+	connectInfo := connectNode(t, l1, l2)
 
 	addr, err := l1.rpc.NewAddress(glightning.P2SHSegwit)
 	check(t, err)
@@ -910,7 +904,7 @@ func TestRpcCmd(t *testing.T) {
 	assert.Equal(t, &glightning.WithdrawResult{}, res)
 
 	// this fails because we can't handle random responses
-	_, err = l1.rpc.Ping(peerId)
+	_, err = l1.rpc.Ping(connectInfo.Id)
 	assert.NotNil(t, err)
 }
 
@@ -926,21 +920,21 @@ func pluginPath(t *testing.T, pluginName string) string {
 func loadPlugin(t *testing.T, n *Node, exPlugin string) {
 	_, err := n.rpc.StartPlugin(exPlugin)
 	check(t, err)
-	n.waitForLog(t, `successfully init'd`, 5)
+	//n.waitForLog(t, `successfully init'd`, 5)
 }
 
-func connectNode(t *testing.T, from, to *Node) string {
+func connectNode(t *testing.T, from, to *Node) *glightning.ConnectResult {
 	info, _ := to.rpc.GetInfo()
-	peerId, err := from.rpc.Connect(info.Id, "localhost", uint(info.Binding[0].Port))
+	conn, err := from.rpc.ConnectPeer(info.Id, info.Binding[0].Addr, uint(info.Binding[0].Port))
 	check(t, err)
-	return peerId
+	return conn
 }
 
 func openChannel(t *testing.T, btc *gbitcoin.Bitcoin, from, to *Node, amt uint64, waitTilReady bool) {
-	peerId := connectNode(t, from, to)
+	connectInfo := connectNode(t, from, to)
 	amount := glightning.NewSat64(amt)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
-	_, err := from.rpc.FundChannelAtFee(peerId, amount, feerate)
+	_, err := from.rpc.FundChannelAtFee(connectInfo.Id, amount, feerate)
 	check(t, err)
 
 	mineBlocks(t, 6, btc)
@@ -961,7 +955,11 @@ func TestFeatureBits(t *testing.T) {
 	optsMap["plugin"] = pp
 	l1 := LnNode(t, testDir, dataDir, btcPid, "one", optsMap)
 	l2 := LnNode(t, testDir, dataDir, btcPid, "two", nil)
-	connect(l1, l2)
+	info := connectNode(t, l2, l1)
+
+	// check for init feature bits in connect response (1 << 101)
+	assert.NotNil(t, info.Features)
+	assert.True(t, info.Features.IsSet(101))
 
 	// open a channel + wait til active
 	l1Info, _ := l1.rpc.GetInfo()
