@@ -174,14 +174,14 @@ type Method_EstimateFees struct {
 }
 
 type Btc_EstimatedFees struct {
-	Opening uint64 `json:"opening"`
-	MutualClose uint64 `json:"mutual_close"`
+	Opening         uint64 `json:"opening"`
+	MutualClose     uint64 `json:"mutual_close"`
 	UnilateralClose uint64 `json:"unilateral_close"`
-	DelayedToUs uint64 `json:"delayed_to_us"`
-	HtlcResolution uint64 `json:"htlc_resolution"`
-	Penalty uint64 `json:"penalty"`
-	MinAcceptable uint64 `json:"min_acceptable"`
-	MaxAcceptable uint64 `json:"max_acceptable"`
+	DelayedToUs     uint64 `json:"delayed_to_us"`
+	HtlcResolution  uint64 `json:"htlc_resolution"`
+	Penalty         uint64 `json:"penalty"`
+	MinAcceptable   uint64 `json:"min_acceptable"`
+	MaxAcceptable   uint64 `json:"max_acceptable"`
 }
 
 func (m Method_EstimateFees) Name() string {

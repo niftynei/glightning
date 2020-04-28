@@ -425,7 +425,7 @@ type Onion struct {
 	Type string `json:"type"`
 	// Only included if there's a next hop/'forward channel'
 	ShortChannelId string `json:"short_channel_id"`
-	OutgoingCltv uint `json:"outgoing_cltv_value"`
+	OutgoingCltv   uint   `json:"outgoing_cltv_value"`
 	ForwardAmount  string `json:"forward_amount"`
 	PaymentSecret  string `json:"payment_secret"`
 	// Only included if has payment secret
@@ -487,7 +487,7 @@ func (ha *HtlcAcceptedEvent) Continue() *HtlcAcceptedResponse {
 
 func (ha *HtlcAcceptedEvent) ContinueWithPayload(payload string) *HtlcAcceptedResponse {
 	return &HtlcAcceptedResponse{
-		Result: _HcContinue,
+		Result:  _HcContinue,
 		Payload: payload,
 	}
 }
@@ -893,10 +893,10 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 }
 
 type Config struct {
-	LightningDir string      `json:"lightning-dir"`
-	RpcFile      string      `json:"rpc-file"`
-	Startup      bool        `json:"startup,omitempty"`
-	Network      string      `json:"network,omitempty"`
+	LightningDir string       `json:"lightning-dir"`
+	RpcFile      string       `json:"rpc-file"`
+	Startup      bool         `json:"startup,omitempty"`
+	Network      string       `json:"network,omitempty"`
 	Features     *FeatureBits `json:"feature_set,omitempty"`
 }
 

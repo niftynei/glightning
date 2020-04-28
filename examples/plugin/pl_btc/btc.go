@@ -8,6 +8,7 @@ import (
 )
 
 const MaxFeeMultiple uint64 = 10
+
 var btc *gbitcoin.Bitcoin
 
 func main() {
@@ -122,14 +123,14 @@ func EstimateFees() (*glightning.Btc_EstimatedFees, error) {
 	}
 
 	return &glightning.Btc_EstimatedFees{
-		Opening: normal.SatPerKb(),
-		MutualClose: normal.SatPerKb(),
+		Opening:         normal.SatPerKb(),
+		MutualClose:     normal.SatPerKb(),
 		UnilateralClose: veryUrgent.SatPerKb(),
-		DelayedToUs: normal.SatPerKb(),
-		HtlcResolution: urgent.SatPerKb(),
-		Penalty: urgent.SatPerKb(),
-		MinAcceptable: slow.SatPerKb(),
-		MaxAcceptable: veryUrgent.SatPerKb() * MaxFeeMultiple,
+		DelayedToUs:     normal.SatPerKb(),
+		HtlcResolution:  urgent.SatPerKb(),
+		Penalty:         urgent.SatPerKb(),
+		MinAcceptable:   slow.SatPerKb(),
+		MaxAcceptable:   veryUrgent.SatPerKb() * MaxFeeMultiple,
 	}, nil
 }
 
