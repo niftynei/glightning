@@ -505,7 +505,7 @@ func TestPlugins(t *testing.T) {
 	var val string
 	var ok bool
 	if val, ok = os.LookupEnv("PLUGINS_PATH"); !ok {
-		t.Skip("No plugin example path (PLUGINS_PATH) passed in")
+		t.Fatal("No plugin example path (PLUGINS_PATH) passed in")
 	}
 
 	exPlugin := filepath.Join(val, "plugin_example")
@@ -629,7 +629,7 @@ func TestAcceptWithClose(t *testing.T) {
 
 	val, ok := os.LookupEnv("PLUGINS_PATH")
 	if !ok {
-		t.Skip("No plugin example path (PLUGINS_PATH) passed in")
+		t.Fatal("No plugin example path (PLUGINS_PATH) passed in")
 	}
 
 	exPlugin := filepath.Join(val, "plugin_openchan")
@@ -912,7 +912,7 @@ func pluginPath(t *testing.T, pluginName string) string {
 	// Get the path to our current test binary
 	val, ok := os.LookupEnv("PLUGINS_PATH")
 	if !ok {
-		t.Skip("No plugin example path (PLUGINS_PATH) passed in")
+		t.Fatal("No plugin example path (PLUGINS_PATH) passed in")
 	}
 	return filepath.Join(val, pluginName)
 }
