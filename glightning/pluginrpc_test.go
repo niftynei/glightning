@@ -25,7 +25,7 @@ func (p *ParamMethod) Call() (jrpc2.Result, error) {
 }
 
 func TestManifestWithUsage(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)

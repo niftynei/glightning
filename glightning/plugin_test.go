@@ -33,20 +33,20 @@ func (hi *HiMethod) New() interface{} {
 }
 
 func (hi *HiMethod) Call() (jrpc2.Result, error) {
-	gOpt, err := hi.plugin.GetOption("greeting")
+	greeting, err := hi.plugin.GetOption("greeting")
 	if err != nil {
 		return nil, err
 	}
-	return fmt.Sprintf("Hello, %s", gOpt.Value()), nil
+	return fmt.Sprintf("Hello, %s", greeting), nil
 }
 
-func getInitFunc(t *testing.T, testFn func(t *testing.T, opt map[string]string, config *glightning.Config)) func(*glightning.Plugin, map[string]string, *glightning.Config) {
-	return func(plugin *glightning.Plugin, options map[string]string, config *glightning.Config) {
+func getInitFunc(t *testing.T, testFn func(t *testing.T, opt map[string]glightning.Option, config *glightning.Config)) func(*glightning.Plugin, map[string]glightning.Option, *glightning.Config) {
+	return func(plugin *glightning.Plugin, options map[string]glightning.Option, config *glightning.Config) {
 		testFn(t, options, config)
 	}
 }
 
-func nullInitFunc(plugin *glightning.Plugin, options map[string]string, config *glightning.Config) {
+func nullInitFunc(plugin *glightning.Plugin, options map[string]glightning.Option, config *glightning.Config) {
 	// does nothing
 }
 
@@ -120,15 +120,18 @@ func TestLogsGeneralInfra(t *testing.T) {
 // test the plugin's handling of init
 func TestInit(t *testing.T) {
 
-	initTestFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
-		assert.Equal(t, "Jenny", options["greeting"])
+	option := glightning.NewOption("greeting", "How you'd like to be called", "Mary")
+
+	initTestFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
+		option.Val = "Jenny"
+		assert.Equal(t, option, options["greeting"])
 		assert.Equal(t, "rpc.file", config.RpcFile)
 		assert.Equal(t, "dirforlightning", config.LightningDir)
 		assert.Equal(t, true, config.Startup)
 		assert.Equal(t, "testnet", config.Network)
 	})
 	plugin := glightning.NewPlugin(initTestFn)
-	plugin.RegisterOption(glightning.NewOption("greeting", "How you'd like to be called", "Mary"))
+	plugin.RegisterOption(option)
 	plugin.RegisterMethod(glightning.NewRpcMethod(NewHiMethod(plugin), "Send a greeting."))
 
 	initJson := "{\"jsonrpc\":\"2.0\",\"method\":\"init\",\"params\":{\"options\":{\"greeting\":\"Jenny\"},\"configuration\":{\"rpc-file\":\"rpc.file\",\"startup\":true,\"network\":\"testnet\",\"lightning-dir\":\"dirforlightning\"}},\"id\":1}\n\n"
@@ -138,7 +141,7 @@ func TestInit(t *testing.T) {
 }
 
 func TestMissingOptionRpcCall(t *testing.T) {
-	initTestFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initTestFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initTestFn)
@@ -155,7 +158,7 @@ func HandleConnect(event *glightning.ConnectEvent) {
 }
 
 func TestGetManifest(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -170,7 +173,7 @@ func TestGetManifest(t *testing.T) {
 }
 
 func TestManifestWithHooks(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -188,7 +191,7 @@ func TestManifestWithHooks(t *testing.T) {
 }
 
 func TestHook_DbWriteOk(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -211,7 +214,7 @@ func TestHook_DbWriteOk(t *testing.T) {
 }
 
 func TestHook_DbWriteFail(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -234,7 +237,7 @@ func TestHook_DbWriteFail(t *testing.T) {
 }
 
 func TestHook_PeerConnectedOk(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -257,7 +260,7 @@ func TestHook_PeerConnectedOk(t *testing.T) {
 }
 
 func TestHook_PeerConnectedDisconnect(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -279,7 +282,7 @@ func TestHook_PeerConnectedDisconnect(t *testing.T) {
 }
 
 func TestHook_OpenChannelOk(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -309,7 +312,7 @@ func TestHook_OpenChannelOk(t *testing.T) {
 }
 
 func TestHook_OpenChannelReject(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -325,7 +328,7 @@ func TestHook_OpenChannelReject(t *testing.T) {
 }
 
 func TestHook_AddHtlc(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -362,7 +365,7 @@ func TestHook_AddHtlc(t *testing.T) {
 }
 
 func TestHook_HtlcAcceptTlvHop(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -397,7 +400,7 @@ func TestHook_HtlcAcceptTlvHop(t *testing.T) {
 }
 
 func TestHook_HtlcAcceptTlvEndpoint(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -433,7 +436,7 @@ func TestHook_HtlcAcceptTlvEndpoint(t *testing.T) {
 }
 
 func TestHook_HtlcAcceptResolve(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -449,7 +452,7 @@ func TestHook_HtlcAcceptResolve(t *testing.T) {
 }
 
 func TestHook_HtlcAcceptedFail(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -465,7 +468,7 @@ func TestHook_HtlcAcceptedFail(t *testing.T) {
 }
 
 func TestHook_InvoicePayment(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -486,7 +489,7 @@ func TestHook_InvoicePayment(t *testing.T) {
 }
 
 func TestHook_InvoicePaymentFail(t *testing.T) {
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -505,7 +508,7 @@ func TestSubscription_SendPaySuccess(t *testing.T) {
 	defer await(t, &wg)
 
 	wg.Add(1)
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -536,7 +539,7 @@ func TestSubscription_SendPayFailure(t *testing.T) {
 	defer await(t, &wg)
 
 	wg.Add(1)
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -594,7 +597,7 @@ func TestSubscription_Warning(t *testing.T) {
 	defer await(t, &wg)
 
 	wg.Add(1)
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -619,7 +622,7 @@ func TestSubscription_Forwarding(t *testing.T) {
 	defer await(t, &wg)
 
 	wg.Add(1)
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -652,7 +655,7 @@ func TestSubscription_ChannelOpened(t *testing.T) {
 	defer await(t, &wg)
 
 	wg.Add(1)
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -677,7 +680,7 @@ func TestSubscription_Connected(t *testing.T) {
 	defer await(t, &wg)
 
 	wg.Add(1)
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)
@@ -705,7 +708,7 @@ func TestSubscription_Disconnected(t *testing.T) {
 	defer await(t, &wg)
 
 	wg.Add(1)
-	initFn := getInitFunc(t, func(t *testing.T, options map[string]string, config *glightning.Config) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
 		t.Error("Should not have called init when calling get manifest")
 	})
 	plugin := glightning.NewPlugin(initFn)

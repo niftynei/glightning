@@ -19,7 +19,7 @@ func (h *Hello) Name() string {
 }
 
 func (h *Hello) Call() (jrpc2.Result, error) {
-	name, err := plugin.GetOptionValueAsStr("name")
+	name, err := plugin.GetOption("name")
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (h *PrettyHello) Name() string {
 }
 
 func (h *PrettyHello) Call() (jrpc2.Result, error) {
-	name, err := plugin.GetOptionValueAsStr("name")
+	name, err := plugin.GetOption("name")
 	if err != nil {
 		return nil, err
 	}
@@ -93,10 +93,20 @@ func onInit(plugin *glightning.Plugin, options map[string]glightning.Option, con
 	//   initialized by the 'dynamic' plugin command.
 	//   Note that you have to opt-into dynamic startup.
 	log.Printf("Is this initial node startup? %v\n", config.Startup)
+
+	bopt, _ := plugin.GetBoolOption("bool_opt")
+	iopt, _ := plugin.GetIntOption("int_opt")
+	fopt, _ := plugin.IsOptionFlagged("flag_opt")
+	log.Printf("the bool option is set to %t", bopt)
+	log.Printf("the int option is set to %d", iopt)
+	log.Printf("the flag option is set? %t", fopt)
 }
 
 func registerOptions(p *glightning.Plugin) {
 	p.RegisterNewOption("name", "How you'd like to be called", "Mary")
+	p.RegisterNewIntOption("int_opt", "An example integer option", 11)
+	p.RegisterNewBoolOption("bool_opt", "An example bool option", true)
+	p.RegisterNewFlagOption("flag_opt", "An example flag option")
 }
 
 func registerMethods(p *glightning.Plugin) {

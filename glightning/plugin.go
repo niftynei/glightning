@@ -718,49 +718,216 @@ func (e *WarnEvent) Call() (jrpc2.Result, error) {
 	return nil, nil
 }
 
-type Option struct {
+type OptionType string
+
+const _String OptionType = "string"
+const _Flag OptionType = "flag"
+const _Bool OptionType = "bool"
+const _Int OptionType = "int"
+
+const _defaultDesc string = "A g-lightning plugin option"
+
+type Option interface {
+	GetName() string
+	GetDesc() string
+	GetDefault() interface{}
+	GetValue() interface{}
+	Set(interface{}) error
+	Type() string
+}
+
+type StringOption struct {
 	Name        string
-	Default     string
 	description string
+	Default     string
 	Val         string
 }
 
-func NewOption(name, description, defaultValue string) *Option {
-	return &Option{
+type IntOption struct {
+	Name        string
+	description string
+	Default     int
+	Val         int
+}
+
+type BoolOption struct {
+	Name        string
+	description string
+	Default     bool
+	Val         bool
+	isFlag      bool
+}
+
+func (o *StringOption) Type() string {
+	return string(_String)
+}
+
+func (o *StringOption) GetDefault() interface{} {
+	return o.Default
+}
+
+func (o *StringOption) GetDesc() string {
+	if o.description != "" {
+		return o.description
+	}
+	return _defaultDesc
+}
+
+func (o *StringOption) Set(value interface{}) error {
+	val, ok := value.(string)
+	if !ok {
+		return fmt.Errorf("Got value %v for option %s, not a string", value, o.Name)
+	}
+	o.Val = val
+	return nil
+}
+
+func (o *StringOption) GetName() string {
+	return o.Name
+}
+
+func (o *StringOption) GetValue() interface{} {
+	return o.Val
+}
+
+func (o *BoolOption) Type() string {
+	if o.isFlag {
+		return string(_Flag)
+	}
+	return string(_Bool)
+}
+
+func (o *BoolOption) GetDefault() interface{} {
+	return o.Default
+}
+
+func (o *BoolOption) GetDesc() string {
+	if o.description != "" {
+		return o.description
+	}
+	return _defaultDesc
+}
+
+func (o *BoolOption) Set(value interface{}) error {
+	val, ok := value.(bool)
+	if !ok {
+		return fmt.Errorf("Got value %v for option %s, not a boolean", value, o.Name)
+	}
+	o.Val = val
+	return nil
+}
+
+func (o *BoolOption) GetName() string {
+	return o.Name
+}
+
+func (o *BoolOption) GetValue() interface{} {
+	return o.Val
+}
+
+func (o *IntOption) Type() string {
+	return string(_Int)
+}
+
+func (o *IntOption) Set(value interface{}) error {
+	// all incoming json numbers are parsed as floats
+	val, ok := value.(float64)
+	if !ok {
+		return fmt.Errorf("Got value %v for option %s, not an int", value, o.Name)
+	}
+	o.Val = int(val)
+	return nil
+}
+
+func (o *IntOption) GetValue() interface{} {
+	return o.Val
+}
+
+func (o *IntOption) GetDefault() interface{} {
+	return o.Default
+}
+
+func (o *IntOption) GetDesc() string {
+	if o.description != "" {
+		return o.description
+	}
+	return _defaultDesc
+}
+
+func (o *IntOption) GetName() string {
+	return o.Name
+}
+
+func NewOption(name, desc, defaultValue string) *StringOption {
+	return NewStringOption(name, desc, defaultValue)
+}
+
+func NewStringOption(name, description, defaultValue string) *StringOption {
+	return &StringOption{
 		Name:        name,
 		Default:     defaultValue,
 		description: description,
 	}
 }
 
-func (o *Option) Description() string {
-	if o.description != "" {
-		return o.description
+func NewBoolOption(name, description string, defaultValue bool) *BoolOption {
+	return &BoolOption{
+		Name:        name,
+		Default:     defaultValue,
+		description: description,
 	}
-
-	return "A g-lightning plugin option"
 }
 
-func (o *Option) Set(value string) {
-	o.Val = value
+func NewIntOption(name, description string, defaultValue int) *IntOption {
+	return &IntOption{
+		Name:        name,
+		Default:     defaultValue,
+		description: description,
+	}
 }
 
-func (o *Option) Value() string {
-	return o.Val
-}
-
-func (o *Option) MarshalJSON() ([]byte, error) {
+func (o *StringOption) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
-		Name        string `json:"name"`
-		Type        string `json:"type"`
-		Default     string `json:"default"`
-		Description string `json:"description"`
-		Category    string `json:"category,omitempty"`
+		Name        string      `json:"name"`
+		Type        string      `json:"type"`
+		Default     interface{} `json:"default"`
+		Description string      `json:"description"`
+		Category    string      `json:"category,omitempty"`
 	}{
-		Name:        o.Name,
-		Type:        "string", // all options are type string atm
-		Default:     o.Default,
-		Description: o.Description(),
+		Name:        o.GetName(),
+		Type:        o.Type(),
+		Default:     o.GetDefault(),
+		Description: o.GetDesc(),
+	})
+}
+
+func (o *BoolOption) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Name        string      `json:"name"`
+		Type        string      `json:"type"`
+		Default     interface{} `json:"default"`
+		Description string      `json:"description"`
+		Category    string      `json:"category,omitempty"`
+	}{
+		Name:        o.GetName(),
+		Type:        o.Type(),
+		Default:     o.GetDefault(),
+		Description: o.GetDesc(),
+	})
+}
+
+func (o *IntOption) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		Name        string      `json:"name"`
+		Type        string      `json:"type"`
+		Default     interface{} `json:"default"`
+		Description string      `json:"description"`
+		Category    string      `json:"category,omitempty"`
+	}{
+		Name:        o.GetName(),
+		Type:        o.Type(),
+		Default:     o.GetDefault(),
+		Description: o.GetDesc(),
 	})
 }
 
@@ -835,7 +1002,7 @@ func (fb *FeatureBits) AreSet() bool {
 }
 
 type Manifest struct {
-	Options       []*Option    `json:"options"`
+	Options       []Option     `json:"options"`
 	RpcMethods    []*RpcMethod `json:"rpcmethods"`
 	Dynamic       bool         `json:"dynamic"`
 	Subscriptions []string     `json:"subscriptions,omitempty"`
@@ -864,7 +1031,7 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 		}
 	}
 
-	m.Options = make([]*Option, len(gm.plugin.options))
+	m.Options = make([]Option, len(gm.plugin.options))
 	i := 0
 	for _, option := range gm.plugin.options {
 		m.Options[i] = option
@@ -901,8 +1068,8 @@ type Config struct {
 }
 
 type InitMethod struct {
-	Options       map[string]string `json:"options"`
-	Configuration *Config           `json:"configuration"`
+	Options       json.RawMessage `json:"options"`
+	Configuration *Config         `json:"configuration"`
 	plugin        *Plugin
 }
 
@@ -925,15 +1092,23 @@ func (im InitMethod) Name() string {
 }
 
 func (im InitMethod) Call() (jrpc2.Result, error) {
-	// fill in options
-	for name, value := range im.Options {
+	var opts map[string]interface{}
+	err := json.Unmarshal(im.Options, &opts)
+	if err != nil {
+		return nil, err
+	}
+	// flesh out the options!
+	for name, value := range opts {
 		option, exists := im.plugin.options[name]
 		if !exists {
 			log.Printf("No option %s registered on this plugin", name)
 			continue
 		}
 		opt := option
-		opt.Set(value)
+		err := opt.Set(value)
+		if err != nil {
+			return nil, err
+		}
 	}
 	// stash the config...
 	im.plugin.Config = im.Configuration
@@ -942,7 +1117,7 @@ func (im InitMethod) Call() (jrpc2.Result, error) {
 	// call init hook
 	im.plugin.initFn(im.plugin, im.plugin.getOptionSet(), im.Configuration)
 
-	// Result of `init` is currently discarded by c-light
+	// Result of `init` is currently discarded by c-lightning
 	return "ok", nil
 }
 
@@ -1032,22 +1207,22 @@ func (p *Plugin) RegisterHooks(hooks *Hooks) error {
 
 type Plugin struct {
 	server        *jrpc2.Server
-	options       map[string]*Option
+	options       map[string]Option
 	methods       map[string]*RpcMethod
 	hooks         []Hook
 	subscriptions []string
 	initialized   bool
-	initFn        func(plugin *Plugin, options map[string]string, c *Config)
+	initFn        func(plugin *Plugin, options map[string]Option, c *Config)
 	Config        *Config
 	stopped       bool
 	dynamic       bool
 	features      *FeatureBits
 }
 
-func NewPlugin(initHandler func(p *Plugin, o map[string]string, c *Config)) *Plugin {
+func NewPlugin(initHandler func(p *Plugin, o map[string]Option, c *Config)) *Plugin {
 	plugin := new(Plugin)
 	plugin.server = jrpc2.NewServer()
-	plugin.options = make(map[string]*Option)
+	plugin.options = make(map[string]Option)
 	plugin.methods = make(map[string]*RpcMethod)
 	plugin.initFn = initHandler
 	plugin.dynamic = true
@@ -1169,54 +1344,114 @@ func (p *Plugin) unregisterMethod(rpc *RpcMethod) error {
 }
 
 func (p *Plugin) RegisterNewOption(optionName, description, defaultVal string) error {
-	return p.RegisterOption(&Option{
+	return p.RegisterOption(&StringOption{
 		Name:        optionName,
 		description: description,
 		Default:     defaultVal})
 }
 
-func (p *Plugin) RegisterOption(o *Option) error {
+func (p *Plugin) RegisterNewIntOption(optionName, description string, defaultVal int) error {
+	return p.RegisterOption(&IntOption{
+		Name:        optionName,
+		description: description,
+		Default:     defaultVal,
+	})
+}
+
+func (p *Plugin) RegisterNewBoolOption(optionName, description string, defaultVal bool) error {
+	return p.RegisterOption(&BoolOption{
+		Name:        optionName,
+		description: description,
+		Default:     defaultVal,
+		isFlag:      false,
+	})
+}
+
+func (p *Plugin) RegisterNewFlagOption(optionName, description string) error {
+	return p.RegisterOption(&BoolOption{
+		Name:        optionName,
+		description: description,
+		Default:     false,
+		isFlag:      true,
+	})
+}
+
+func (p *Plugin) RegisterOption(o Option) error {
 	if o == nil {
 		return fmt.Errorf("Can't register an empty option")
 	}
-	if _, exists := p.options[o.Name]; exists {
-		return fmt.Errorf("Option `%s` already registered", o.Name)
+	if _, exists := p.options[o.GetName()]; exists {
+		return fmt.Errorf("Option `%s` already registered", o.GetName())
 	}
-	p.options[o.Name] = o
+	p.options[o.GetName()] = o
 	return nil
 }
 
-func (p *Plugin) UnregisterOption(o *Option) error {
+func (p *Plugin) UnregisterOption(o Option) error {
 	if o == nil {
 		return fmt.Errorf("Can't remove an empty option")
 	}
-	if _, exists := p.options[o.Name]; !exists {
-		return fmt.Errorf("No %s option registered", o.Name)
+	if _, exists := p.options[o.GetName()]; !exists {
+		return fmt.Errorf("No %s option registered", o.GetName())
 	}
-	delete(p.options, o.Name)
+	delete(p.options, o.GetName())
 	return nil
 }
 
-func (p *Plugin) GetOption(name string) (*Option, error) {
+// this always returns a string option. left as is for legacy reasons
+func (p *Plugin) GetOption(name string) (string, error) {
 	opt := p.options[name]
 	if opt == nil {
-		return nil, errors.New(fmt.Sprintf("Option '%s' not found", name))
+		return "", errors.New(fmt.Sprintf("Option '%s' not found", name))
 	}
-	return opt, nil
+	sopt, ok := opt.(*StringOption)
+	if !ok {
+		return "", errors.New(fmt.Sprintf("%s is not a string option", name))
+	}
+	return sopt.Val, nil
 }
 
-func (p *Plugin) GetOptionValue(name string) (string, error) {
-	opt, err := p.GetOption(name)
-	if err != nil {
-		return "", err
+func (p *Plugin) GetIntOption(name string) (int, error) {
+	opt := p.options[name]
+	if opt == nil {
+		return -1, errors.New(fmt.Sprintf("Option '%s' not found", name))
 	}
-	return opt.Val, nil
+	iopt, ok := opt.(*IntOption)
+	if !ok {
+		return -1, errors.New(fmt.Sprintf("%s is not an int option", name))
+	}
+	return iopt.Val, nil
 }
 
-func (p *Plugin) getOptionSet() map[string]string {
-	options := make(map[string]string, len(p.options))
+func (p *Plugin) GetBoolOption(name string) (bool, error) {
+	opt := p.options[name]
+	if opt == nil {
+		return false, errors.New(fmt.Sprintf("Option '%s' not found", name))
+	}
+	bopt, ok := opt.(*BoolOption)
+	if !ok {
+		return false, errors.New(fmt.Sprintf("%s is not a bool option", name))
+	}
+	return bopt.Val, nil
+}
+
+func (p *Plugin) IsOptionFlagged(name string) (bool, error) {
+	opt := p.options[name]
+	// Flag options aren't passed down if not present
+	if opt == nil {
+		return false, nil
+	}
+	bopt, ok := opt.(*BoolOption)
+	if !ok {
+		return false, errors.New(fmt.Sprintf("%s is not a flag option", name))
+	}
+	return bopt.Val, nil
+}
+
+func (p *Plugin) getOptionSet() map[string]Option {
+	options := make(map[string]Option, len(p.options))
 	for key, option := range p.options {
-		options[key] = option.Value()
+		options[key] = option
 	}
 	return options
 }

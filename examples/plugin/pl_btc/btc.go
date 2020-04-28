@@ -27,7 +27,7 @@ func main() {
 	// matches existing options so we can swap this out with
 	// bcli seamlessly
 	plugin.RegisterNewOption("bitcoin-datadir", "Bitcoind data directory", "~/.bitcoin")
-	plugin.RegisterNewOption("bitcoin-rpcport", "RPC port number for bitcoind", "8332")
+	plugin.RegisterNewIntOption("bitcoin-rpcport", "RPC port number for bitcoind", 8332)
 	plugin.RegisterNewOption("bitcoin-rpcuser", "Username for RPC auth", "btcuser")
 	plugin.RegisterNewOption("bitcoin-rpcpassword", "Authentication for RPC", "btcpass")
 
@@ -41,10 +41,10 @@ func onInit(plugin *glightning.Plugin, options map[string]glightning.Option, con
 	log.Printf("successfully init'd! %s\n", config.RpcFile)
 
 	// btc info is set via plugin 'options'
-	btcDir := options["bitcoin-datadir"].GetStrValue()
-	btcUser := options["bitcoin-rpcuser"].GetStrValue()
-	btcPass := options["bitcoin-rpcpassword"].GetStrValue()
-	btcPort := options["bitcoin-rpcport"].(*glightning.IntOption).Val
+	btcDir, _ := plugin.GetOption("bitcoin-datadir")
+	btcUser, _ := plugin.GetOption("bitcoin-rpcuser")
+	btcPass, _ := plugin.GetOption("bitcoin-rpcpassword")
+	btcPort, _ := plugin.GetIntOption("bitcoin-rpcport")
 
 	// default startup
 	btc = gbitcoin.NewBitcoin(btcUser, btcPass)
