@@ -424,8 +424,10 @@ type Onion struct {
 	// The two type options are: 'legacy' and 'tlv'
 	Type string `json:"type"`
 	// Only included if there's a next hop/'forward channel'
-	ShortChannelId string `json:"short_channel_id,omitempty"`
-	PaymentSecret  string `json:"payment_secret,omitempty"`
+	ShortChannelId string `json:"short_channel_id"`
+	OutgoingCltv uint `json:"outgoing_cltv_value"`
+	ForwardAmount  string `json:"forward_amount"`
+	PaymentSecret  string `json:"payment_secret"`
 	// Only included if has payment secret
 	TotalMilliSatoshi string `json:"total_msat"`
 }
