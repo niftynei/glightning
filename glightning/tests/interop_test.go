@@ -535,14 +535,7 @@ func TestPlugins(t *testing.T) {
 	check(t, err)
 	pluginCount := len(plugins)
 
-	// Get the path to our current test binary
-	var val string
-	var ok bool
-	if val, ok = os.LookupEnv("PLUGINS_PATH"); !ok {
-		t.Fatal("No plugin example path (PLUGINS_PATH) passed in")
-	}
-
-	exPlugin := filepath.Join(val, "plugin_example")
+	exPlugin := pluginPath(t, "plugin_example")
 	plugins, err = l1.rpc.StartPlugin(exPlugin)
 	check(t, err)
 	assert.Equal(t, pluginCount+1, len(plugins))
@@ -661,12 +654,7 @@ func TestAcceptWithClose(t *testing.T) {
 	defer CleanUp(testDir)
 	l1 := LnNode(t, testDir, dataDir, btcPid, "one", nil)
 
-	val, ok := os.LookupEnv("PLUGINS_PATH")
-	if !ok {
-		t.Fatal("No plugin example path (PLUGINS_PATH) passed in")
-	}
-
-	exPlugin := filepath.Join(val, "plugin_openchan")
+	exPlugin := pluginPath(t, "plugin_openchan")
 	_, err := l1.rpc.StartPlugin(exPlugin)
 	l1.waitForLog(t, "successfully init'd!", 1)
 	l1Info, _ := l1.rpc.GetInfo()
