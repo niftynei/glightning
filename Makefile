@@ -18,14 +18,13 @@ build:
 test-build: $(PLUGINS)
 	@rm -rf $(TEST_PLUGINS_BUILD_DIR)
 	@mkdir -p $(TEST_PLUGINS_BUILD_DIR)
-	@$(foreach p,$(TEST_PLUGIN_DIRS), cd $p && go build -o ../../../$(TEST_PLUGINS_BUILD_DIR)/$(p:$(PLUGINS_DIR)/pl_%=plugin_%) && cd -;)
+	@$(foreach p,$(TEST_PLUGIN_DIRS), cd $p && go build -o $(CURDIR)/$(TEST_PLUGINS_BUILD_DIR)/$(p:$(PLUGINS_DIR)/pl_%=plugin_%) && cd -;)
 
 
-check: test-build
-	export PLUGINS_PATH=$(TEST_PLUGINS_BUILD_DIR)
-	export LIGHTNINGD_PATH=$(LN_PATH)
-	go test -v ./...
+check: check-all
 
+check-all: test-build
+	LIGHTNINGD_PATH=$(LN_PATH) PLUGINS_PATH=$(CURDIR)/$(TEST_PLUGINS_BUILD_DIR) go test -v ./...
 
-check-lite:
+check-units:
 	go test -v -short ./...
