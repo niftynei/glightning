@@ -10,6 +10,34 @@ for 0.8.0 will be noted as 0.8.0.1, etc
 
 All additions from the clightning CHANGELOG also apply, this just documents 
 
+## [0.8.2]
+- build: there's now a Makefile which will build all of the plugin examples as well as packages
+- glightning: Plugins onInit method signature has been changed, reflecting an update to
+              how plugin options now have types
+- glightning: Plugin option types have been expanded to include 'int', 'bool' and 'flag' in
+              addition to the existing  'string' type. Use plugin.GetBoolOption/plugin.GetIntOption
+              etc as the easiest way to access them
+- glightning: Bitcoin Backend -- added new 'estimatefees' method hook. this replaces 'getfeerate'.
+             Note that implementations that want to work with 0.8.1 will need to implement 'getfeerate'
+- glightning: Can now set 'channel' feature flags via the manifest
+- glightning: RPC PeerChannel now includes ReceivableMsat/ReceivableMilliSatoshi values
+- glightning: New method `ConnectPeer` will return a ConnectResult object, which includes
+              the peer Id as well as their 'init' Features
+- glightning: New methods `CloseWithStep`, `CloseToWithStep`, and `CloseToTimeoutWithStep`
+              which allow for specifying a 'step' for mutual close fee negotations
+- glightning: FeeRateDetails now include expanded fee rate schedule (includes MutualClose,
+              UnilateralClose, DelayedToUs, HtlcResolution, and Penalty rates)
+- glightning: NEW RPC call: `GetSharedSecret`. See documentation for "getsharedsecret" in
+              c-lightning docs
+- glightning: Plugins: the RpcCommandEvent has 'lost' a level of nesting. i.e. rc.X.Cmd is now
+              rc.Cmd
+- glightning: `Onion` fields in the `htlc_accepted` hook have been expanded and fixed (used to
+              return empty result in PaymentSecret)
+- glightning: new option for returning a new payload for `htlc_accepted` hook, see the
+              `ContinueWithPayload` method
+- glightning: Plugin - the Config startup object now includes the nodes' feature set
+
+
 ## [0.8.1]
 - glightning: includes a 'bitcoin backend' helper for writing swappable bitcoin sources for 
   clightning. note that the API on this is currently in flux. there's a complete
