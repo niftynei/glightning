@@ -262,7 +262,7 @@ func TestListPeers(t *testing.T) {
 					OutPaymentsFulfilled:     123,
 					OutMilliSatoshiFulfilled: 123,
 					OutgoingFulfilledMsat:    "123msat",
-					Htlcs: htlcs,
+					Htlcs:                    htlcs,
 				},
 			},
 		},
@@ -367,10 +367,10 @@ func TestListPays(t *testing.T) {
 	}
 	assert.Equal(t, []glightning.PaymentFields{
 		glightning.PaymentFields{
-			Bolt11:          "lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
-			PaymentPreImage: "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
-			Status:          "complete",
-			Label:           "optional",
+			Bolt11:                 "lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
+			PaymentPreImage:        "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
+			Status:                 "complete",
+			Label:                  "optional",
 			AmountSentMilliSatoshi: "10000msat",
 		},
 	}, forwards)
@@ -2415,6 +2415,23 @@ func TestGetSharedSecret(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, "b6bd6a8327b5437fb64f202bdc388490841b6cf96057f6b74a0c6a61408aa88d", ss)
+}
+
+func TestDevSendCustomMessage(t *testing.T) {
+	peer := "02e3cd7849f177a46f137ae3bfc1a08fc6a90bf4026c74f83c1ecc8430c282fe96"
+	msg := "aaffff"
+	req := fmt.Sprintf(`{"jsonrpc":"2.0","method":"dev-sendcustommsg","params":{"msg":"%s","node_id":"%s"},"id":1}`, msg, peer)
+	resp := wrapResult(1, `{
+   "status": "Message sent to subdaemon channeld for delivery"
+	}`)
+	lightning, requestQ, replyQ := startupServer(t)
+	go runServerSide(t, req, resp, replyQ, requestQ)
+	result, err := lightning.SendCustomMessage(peer, msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expect := &glightning.CustomMessageResult{Status: "Message sent to subdaemon channeld for delivery"}
+	assert.Equal(t, expect, result)
 }
 
 func runServerSide(t *testing.T, expectedRequest, reply string, replyQ, requestQ chan []byte) {

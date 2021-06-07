@@ -2194,6 +2194,27 @@ func (l *Lightning) DevForgetChannel(peerId string, force bool) (*ForgetChannelR
 	return &result, err
 }
 
+type CustomMessageRequest struct {
+	NodeId  string `json:"node_id"`
+	Message string `json:"msg"`
+}
+
+func (r *CustomMessageRequest) Name() string {
+	return "dev-sendcustommsg"
+}
+
+type CustomMessageResult struct {
+	Code    uint32 `json:"code"`
+	Message string `json:"message"`
+	Status  string `json:"Status"`
+}
+
+func (l *Lightning) SendCustomMessage(nodeId, message string) (*CustomMessageResult, error) {
+	var result *CustomMessageResult
+	err := l.client.Request(&CustomMessageRequest{NodeId: nodeId, Message: message}, &result)
+	return result, err
+}
+
 type DisconnectRequest struct {
 	PeerId string `json:"id"`
 	Force  bool   `json:"force"`
@@ -2458,4 +2479,5 @@ func init() {
 	Lightning_RpcMethods[(&SetChannelFeeRequest{}).Name()] = func() jrpc2.Method { return new(SetChannelFeeRequest) }
 	Lightning_RpcMethods[(&PluginRequest{}).Name()] = func() jrpc2.Method { return new(PluginRequest) }
 	Lightning_RpcMethods[(&SharedSecretRequest{}).Name()] = func() jrpc2.Method { return new(SharedSecretRequest) }
+	Lightning_RpcMethods[(&CustomMessageRequest{}).Name()] = func() jrpc2.Method { return new(CustomMessageRequest) }
 }
