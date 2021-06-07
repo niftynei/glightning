@@ -503,6 +503,36 @@ func TestHook_InvoicePaymentFail(t *testing.T) {
 	runTest(t, plugin, msg+"\n\n", resp)
 }
 
+func TestHook_Message(t *testing.T) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.RegisterHooks(&glightning.Hooks{
+		CustomMsgReceived: func(event *glightning.CustomMsgReceivedEvent) (*glightning.CustomMsgReceivedResponse, error) {
+			return event.Continue(), nil
+		},
+	})
+	msg := `{"jsonrpc":"2.0", "id":"aloha", "method":"custommsg"}`
+	resp := `{"jsonrpc":"2.0","result":{"result":"continue"},"id":"aloha"}`
+	runTest(t, plugin, msg+"\n\n", resp)
+}
+
+func TestHook_MessageFail(t *testing.T) {
+	initFn := getInitFunc(t, func(t *testing.T, options map[string]glightning.Option, config *glightning.Config) {
+		t.Error("Should not have called init when calling get manifest")
+	})
+	plugin := glightning.NewPlugin(initFn)
+	plugin.RegisterHooks(&glightning.Hooks{
+		CustomMsgReceived: func(event *glightning.CustomMsgReceivedEvent) (*glightning.CustomMsgReceivedResponse, error) {
+			return event.Fail(), nil
+		},
+	})
+	msg := `{"jsonrpc":"2.0", "id":"aloha", "method":"custommsg"}`
+	resp := `{"jsonrpc":"2.0","result":{"result":"fail"},"id":"aloha"}`
+	runTest(t, plugin, msg+"\n\n", resp)
+}
+
 func TestSubscription_SendPaySuccess(t *testing.T) {
 	var wg sync.WaitGroup
 	defer await(t, &wg)
