@@ -396,6 +396,22 @@ func TestListTransactions(t *testing.T) {
 	assert.Equal(t, len(trans), 2)
 }
 
+func TestListFunds(t *testing.T) {
+	short(t)
+
+	testDir, dataDir, btcPid, btc := Init(t)
+	defer CleanUp(testDir)
+	l1 := LnNode(t, testDir, dataDir, btcPid, "one", nil)
+
+	fundNode(t, "1.0", l1, btc)
+	fundNode(t, "1.0", l1, btc)
+	waitToSync(l1)
+	funds, err := l1.rpc.ListFunds()
+	check(t, err)
+	assert.Equal(t, len(funds.Channels), 0)
+}
+
+
 func fundNode(t *testing.T, amount string, n *Node, b *gbitcoin.Bitcoin) {
 	addr, err := n.rpc.NewAddr()
 	check(t, err)
