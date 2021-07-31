@@ -262,7 +262,7 @@ func TestListPeers(t *testing.T) {
 					OutPaymentsFulfilled:     123,
 					OutMilliSatoshiFulfilled: 123,
 					OutgoingFulfilledMsat:    "123msat",
-					Htlcs: htlcs,
+					Htlcs:                    htlcs,
 				},
 			},
 		},
@@ -367,10 +367,10 @@ func TestListPays(t *testing.T) {
 	}
 	assert.Equal(t, []glightning.PaymentFields{
 		glightning.PaymentFields{
-			Bolt11:          "lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
-			PaymentPreImage: "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
-			Status:          "complete",
-			Label:           "optional",
+			Bolt11:                 "lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
+			PaymentPreImage:        "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
+			Status:                 "complete",
+			Label:                  "optional",
 			AmountSentMilliSatoshi: "10000msat",
 		},
 	}, forwards)
