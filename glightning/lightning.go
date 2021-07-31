@@ -2141,9 +2141,9 @@ type Forwarding struct {
 }
 
 // List all forwarded payments and their information
-func (l *Lightning) ListForwards() ([]Forwarding, error) {
+func (l *Lightning) ListForwards() ([]*Forwarding, error) {
 	var result struct {
-		Forwards []Forwarding `json:"forwards"`
+		Forwards []*Forwarding `json:"forwards"`
 	}
 	err := l.client.Request(&ListForwardsRequest{}, &result)
 	return result.Forwards, err
