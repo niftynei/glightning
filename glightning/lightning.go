@@ -332,7 +332,6 @@ type SendOnionRequest struct {
 
 type FirstHop struct {
 	ShortChannelId string `json:"channel"`
-	Direction      uint8  `json:"direction"`
 	AmountMsat     string `json:"amount_msat"`
 	Delay          uint   `json:"delay"`
 }
@@ -374,6 +373,7 @@ type CreateOnionRequest struct {
 	AssociatedData string `json:"assocdata"`
 	// Optional, can be used to generate shared secrets
 	SessionKey string `json:"session_key,omitempty"`
+	OnionSize  uint64 `json:"onion_size,omitempty"`
 }
 
 func (r CreateOnionRequest) Name() string {
@@ -402,9 +402,10 @@ func (l *Lightning) CreateOnion(hops []Hop, paymentHash, sessionKey string) (*Cr
 	return &response, err
 }
 
-type ListChannelRequest struct {
+type ListChannelsRequest struct {
 	ShortChannelId string `json:"short_channel_id,omitempty"`
 	Source         string `json:"source,omitempty"`
+	Destination    string `json:"destination,omitempty"`
 }
 
 func (lc ListChannelRequest) Name() string {
@@ -457,9 +458,9 @@ type InvoiceRequest struct {
 	MilliSatoshis string   `json:"msatoshi"`
 	Label         string   `json:"label"`
 	Description   string   `json:"description"`
+	PreImage      string   `json:"preimage"`
 	ExpirySeconds uint32   `json:"expiry,omitempty"`
 	Fallbacks     []string `json:"fallbacks,omitempty"`
-	PreImage      string   `json:"preimage,omitempty"`
 	// Note that these both have the same json key. we use checks
 	// to make sure that only one of them is filled in
 	ExposePrivChansFlag *bool    `json:"exposeprivatechannels,omitempty"`
@@ -484,6 +485,7 @@ type Invoice struct {
 	PaymentPreImage         string `json:"payment_preimage,omitempty"`
 	WarningOffline          string `json:"warning_offline,omitempty"`
 	WarningCapacity         string `json:"warning_capacity,omitempty"`
+	warningPrivateUnused    string `json:"warning_private_unused,omitempty"`
 	Description             string `json:"description"`
 	ExpiresAt               uint64 `json:"expires_at"`
 }
@@ -703,7 +705,11 @@ type AutoCleanInvoiceRequest struct {
 	ExpiredBySeconds uint32 `json:"expired_by,omitempty"`
 }
 
-type AutoCleanResult struct{}
+type AutoCleanInvoiceResult struct {
+	Enabled      bool   `json:"enabled"`
+	ExpiredBy    uint64 `json:"expired_by,omitempty"`
+	CycleSeconds uint64 `json:"cycle_seconds,omitempty"`
+}
 
 func (r AutoCleanInvoiceRequest) Name() string {
 	return "autocleaninvoice"
@@ -715,10 +721,18 @@ func (l *Lightning) DisableInvoiceAutoclean() error {
 
 // Perform cleanup every {cycle_seconds} (default 3600), or disable autoclean if 0.
 // Clean up expired invoices that have expired for {expired_by} seconds (default 86400).
+// FIXME: Deprecated in favor of AutoCleanInvoice and it is mantained for the moment for compatibility reason
+// with older version of the library
 func (l *Lightning) SetInvoiceAutoclean(intervalSeconds, expiredBySeconds uint32) error {
-	var result string
+	var result AutoCleanInvoiceResult
 	err := l.client.Request(&AutoCleanInvoiceRequest{intervalSeconds, expiredBySeconds}, &result)
 	return err
+}
+
+func (l *Lightning) AutoCleanInvoice(intervalSeconds, expiredBySeconds uint32) (*AutoCleanInvoiceResult, error) {
+	var result AutoCleanInvoiceResult
+	err := l.client.Request(&AutoCleanInvoiceRequest{intervalSeconds, expiredBySeconds}, &result)
+	return &result, err
 }
 
 type DecodePayRequest struct {
@@ -2094,6 +2108,7 @@ type FundOutput struct {
 	AmountMilliSatoshi string `json:"amount_msat"`
 	Address            string `json:"address"`
 	Status             string `json:"status"`
+	ReservedToBlock    uint64 `json:"reserved_to_block,omitempty"`
 	Blockheight        int    `json:"blockheight,omitempty"`
 }
 
