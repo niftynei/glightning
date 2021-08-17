@@ -109,11 +109,11 @@ func EstimateFees() (*glightning.Btc_EstimatedFees, error) {
 	if err != nil {
 		return nil, err
 	}
-	urgent, err := btc.EstimateFee(3, "CONSERVATIVE")
+	urgent, err := btc.EstimateFee(6, "ECONOMICAL")
 	if err != nil {
 		return nil, err
 	}
-	normal, err := btc.EstimateFee(4, "ECONOMICAL")
+	normal, err := btc.EstimateFee(12, "ECONOMICAL")
 	if err != nil {
 		return nil, err
 	}
@@ -124,12 +124,12 @@ func EstimateFees() (*glightning.Btc_EstimatedFees, error) {
 
 	return &glightning.Btc_EstimatedFees{
 		Opening:         normal.SatPerKb(),
-		MutualClose:     normal.SatPerKb(),
-		UnilateralClose: veryUrgent.SatPerKb(),
+		MutualClose:     slow.SatPerKb(),
+		UnilateralClose: urgent.SatPerKb(),
 		DelayedToUs:     normal.SatPerKb(),
 		HtlcResolution:  urgent.SatPerKb(),
-		Penalty:         urgent.SatPerKb(),
-		MinAcceptable:   slow.SatPerKb(),
+		Penalty:         normal.SatPerKb(),
+		MinAcceptable:   slow.SatPerKb() / 2,
 		MaxAcceptable:   veryUrgent.SatPerKb() * MaxFeeMultiple,
 	}, nil
 }
