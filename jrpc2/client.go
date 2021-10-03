@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"sync"
+	"math"
 	"sync/atomic"
 	"time"
 )
@@ -23,7 +24,7 @@ import (
 type Client struct {
 	requestQueue   chan *Request
 	pending        sync.Map // map[string]chan *RawResponse
-	requestCounter int64
+	requestCounter uint32
 	shutdown       bool
 	timeout        time.Duration
 }
@@ -226,6 +227,9 @@ func handleReply(rawResp *RawResponse, resp interface{}) error {
 
 // for now, use a counter as the id for requests
 func (c *Client) NextId() *Id {
-	val := atomic.AddInt64(&c.requestCounter, 1)
+	if c.requestCounter == math.MaxUint32 {
+		atomic.StoreUint32(&c.requestCounter, 0)
+	}
+	val := atomic.AddUint32(&c.requestCounter, 1)
 	return NewIdAsInt(val)
 }
