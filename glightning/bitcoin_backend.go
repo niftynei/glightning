@@ -11,7 +11,7 @@ package glightning
 // see https://github.com/ElementsProject/lightning/pull/3488
 // for all the implementation details, to date.
 import (
-	"github.com/niftynei/glightning/jrpc2"
+	"github.com/vincenzopalazzo/glightning/jrpc2"
 	"strings"
 )
 

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/niftynei/glightning/jrpc2"
+	"github.com/vincenzopalazzo/glightning/jrpc2"
 	"io"
 	"log"
 	"os"
