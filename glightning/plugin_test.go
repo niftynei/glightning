@@ -3,9 +3,9 @@ package glightning_test
 import (
 	"bufio"
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"github.com/niftynei/glightning/glightning"
 	"github.com/niftynei/glightning/jrpc2"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
 	"os"
