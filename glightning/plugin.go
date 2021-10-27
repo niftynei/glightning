@@ -1059,12 +1059,21 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 	return m, nil
 }
 
+type ProxyConf struct {
+	Type string `json:"type"`
+	Address string `json:"address"`
+	port uint64 `json:"port"`
+}
+
 type Config struct {
 	LightningDir string       `json:"lightning-dir"`
 	RpcFile      string       `json:"rpc-file"`
 	Startup      bool         `json:"startup,omitempty"`
 	Network      string       `json:"network,omitempty"`
 	Features     *FeatureBits `json:"feature_set,omitempty"`
+	Proxy        *proxyConf   `json:"proxy,omitempty"`
+	TorV3Enabled bool         `json:"torv3-enabled,omitempty"`
+	AlwaysProxy bool          `json:"always_use_proxy,omitempty"`
 }
 
 type InitMethod struct {
