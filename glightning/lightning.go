@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/niftynei/glightning/jrpc2"
 	"log"
 	"path/filepath"
+
+	"github.com/niftynei/glightning/jrpc2"
 )
 
 // This file's the one that holds all the objects for the
@@ -1500,6 +1501,7 @@ type FundChannelRequest struct {
 	FeeRate  string  `json:"feerate,omitempty"`
 	Announce bool    `json:"announce"`
 	MinConf  *uint16 `json:"minconf,omitempty"`
+	MinDepth *uint16 `json:"mindepth,omitempty"`
 	PushMsat string  `json:"push_msat,omitempty"`
 }
 
