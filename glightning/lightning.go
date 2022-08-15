@@ -1517,19 +1517,19 @@ type FundChannelResult struct {
 
 // Fund channel, defaults to public channel and default feerate.
 func (l *Lightning) FundChannel(id string, amount *Sat) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, nil, true, nil, nil)
+	return l.FundChannelExt(id, amount, nil, true, nil, nil, nil)
 }
 
 func (l *Lightning) FundPrivateChannel(id string, amount *Sat) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, nil, false, nil, nil)
+	return l.FundChannelExt(id, amount, nil, false, nil, nil, nil)
 }
 
 func (l *Lightning) FundChannelAtFee(id string, amount *Sat, feerate *FeeRate) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, feerate, true, nil, nil)
+	return l.FundChannelExt(id, amount, feerate, true, nil, nil, nil)
 }
 
 func (l *Lightning) FundPrivateChannelAtFee(id string, amount *Sat, feerate *FeeRate) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, feerate, false, nil, nil)
+	return l.FundChannelExt(id, amount, feerate, false, nil, nil, nil)
 }
 
 // Fund channel with node {id} using {satoshi} satoshis, with feerate of {feerate}. Uses
@@ -1537,7 +1537,7 @@ func (l *Lightning) FundPrivateChannelAtFee(id string, amount *Sat, feerate *Fee
 // If announce is false, channel announcements will not be sent.
 // can send an optional 'pushMsat', of millisatoshis to push to peer (from your funding amount)
 // Any pushed msats are irrevocably gifted to the peer. (use only if you enjoy being a sats santa!)
-func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, announce bool, minConf *uint16, pushMSat *MSat) (*FundChannelResult, error) {
+func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, announce bool, minConf *uint16, pushMSat *MSat, minDepth *uint16) (*FundChannelResult, error) {
 	if amount == nil || (amount.Value == 0 && !amount.SendAll) {
 		return nil, fmt.Errorf("Must set satoshi amount to send")
 	}
@@ -1546,6 +1546,8 @@ func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, ann
 		Id:       id,
 		Amount:   amount.RawString(),
 		Announce: announce,
+		MinDepth: minDepth,
+		MinConf:  minConf,
 	}
 	if feerate != nil {
 		req.FeeRate = feerate.String()
@@ -1553,7 +1555,6 @@ func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, ann
 	if pushMSat != nil {
 		req.PushMsat = pushMSat.String()
 	}
-	req.MinConf = minConf
 
 	var result FundChannelResult
 	err := l.client.Request(req, &result)

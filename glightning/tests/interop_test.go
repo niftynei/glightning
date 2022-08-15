@@ -4,9 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/niftynei/glightning/gbitcoin"
-	"github.com/niftynei/glightning/glightning"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"log"
@@ -19,6 +16,10 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/niftynei/glightning/gbitcoin"
+	"github.com/niftynei/glightning/glightning"
+	"github.com/stretchr/testify/assert"
 )
 
 const defaultTimeout int = 10
@@ -569,7 +570,7 @@ func TestPlugins(t *testing.T) {
 	amount := glightning.NewSat(10000000)
 	feerate := glightning.NewFeeRate(glightning.PerKw, uint(253))
 	pushSats := glightning.NewMsat(10000)
-	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil, pushSats)
+	_, err = l2.rpc.FundChannelExt(peerId, amount, feerate, true, nil, pushSats, nil)
 	check(t, err)
 
 	// wait til the change is onchain

@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/niftynei/glightning/glightning"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"net"
 	"os"
 	"testing"
+
+	"github.com/niftynei/glightning/glightning"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestListTransactions(t *testing.T) {
@@ -58,7 +59,7 @@ func TestListTransactions(t *testing.T) {
 	}
 
 	expected := []glightning.Transaction{
-		glightning.Transaction{
+		{
 			Hash:        "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
 			RawTx:       "02000000017eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c880000000000ffffffff02400d0300000000002200203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed26d3f20500000000160014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a00000000",
 			Blockheight: 10,
@@ -69,7 +70,7 @@ func TestListTransactions(t *testing.T) {
 			},
 			Version: 2,
 			Inputs: []glightning.TxInput{
-				glightning.TxInput{
+				{
 					TxId:     "7eaa9fffc33115389e83816d94f7b14efc6a04c3b33672c3b347b815f8362c88",
 					Index:    1,
 					Sequence: 4294967295,
@@ -77,12 +78,12 @@ func TestListTransactions(t *testing.T) {
 				},
 			},
 			Outputs: []glightning.TxOutput{
-				glightning.TxOutput{
+				{
 					Index:        2,
 					Satoshis:     "200000000msat",
 					ScriptPubkey: "00203584b6bdca49ba1331232cd42d6c3d34921875e18c1ee4a8ae22684ff0be98ed",
 				},
-				glightning.TxOutput{
+				{
 					Index:        1,
 					Satoshis:     "99799846000msat",
 					ScriptPubkey: "0014b0b3d0e0f8b9522244b7ba6dcaecb5a5a328ab1a",
@@ -194,7 +195,7 @@ func TestListPeers(t *testing.T) {
 	fundingAllocMsat["03d3b9f07da45df23f61b3b28eaab84fa024d6d0d0a0c3bbbcca97c3e60e2114b4"] = "0msat"
 	fundingAllocMsat["028286c0714b0b390096e15615ecd9354ca19021c00ecc0e9dd800636346e04764"] = "1000000000msat"
 	htlcs := []*glightning.Htlc{
-		&glightning.Htlc{
+		{
 			Direction:    "out",
 			Id:           1,
 			MilliSatoshi: 1437433749,
@@ -207,13 +208,13 @@ func TestListPeers(t *testing.T) {
 	}
 	hex, _ := glightning.NewHex("8a")
 	expected := []*glightning.Peer{
-		&glightning.Peer{
+		{
 			Id:           "02e3cd7849f177a46f137ae3bfc1a08fc6a90bf4026c74f83c1ecc8430c282fe96",
 			Connected:    true,
 			NetAddresses: []string{"0.0.0.0:6677"},
 			Features:     hex,
 			Channels: []*glightning.PeerChannel{
-				&glightning.PeerChannel{
+				{
 					State:                            "CHANNELD_NORMAL",
 					ScratchTxId:                      "cd13ba846709958bfd073155283c3493f08f7db1bb4ef199c014559e5505d18d",
 					Owner:                            "lightning_channeld",
@@ -262,7 +263,7 @@ func TestListPeers(t *testing.T) {
 					OutPaymentsFulfilled:     123,
 					OutMilliSatoshiFulfilled: 123,
 					OutgoingFulfilledMsat:    "123msat",
-					Htlcs: htlcs,
+					Htlcs:                    htlcs,
 				},
 			},
 		},
@@ -312,7 +313,7 @@ func TestListForwards(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, []glightning.Forwarding{
-		glightning.Forwarding{
+		{
 			InChannel:       "1231x2x0",
 			OutChannel:      "1231x1x0",
 			MilliSatoshiIn:  10002,
@@ -326,7 +327,7 @@ func TestListForwards(t *testing.T) {
 			ResolvedTime:    1565810858.454,
 			PaymentHash:     "e04bccfb6d8cf6b910ee5d4ce23d9b91854784a10b231a83cfd2f0c9a44cd243",
 		},
-		glightning.Forwarding{
+		{
 			InChannel:       "103x2x1",
 			OutChannel:      "110x1x0",
 			MilliSatoshiIn:  100001001,
@@ -366,11 +367,11 @@ func TestListPays(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, []glightning.PaymentFields{
-		glightning.PaymentFields{
-			Bolt11:          "lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
-			PaymentPreImage: "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
-			Status:          "complete",
-			Label:           "optional",
+		{
+			Bolt11:                 "lnbcrt100n1pw5mktvpp53a20un076gq93swhnemdmyday8c88kj9yh7d3k66c49narluy0dsdq0vehhygrzd3hk7eqxqyjw5qcqp2zwqux7t9zyelgcuwc535ugs5sylwdh0fu03xrzugu2zzljwvtg3q4xy22u3mhvxx3ag09jyjpx5lxl7lwux5l2mge8r85havpspm09gpnfxxsw",
+			PaymentPreImage:        "c907587348984baf0ae031b286bf1c9427abfa492b254aca67b6809fd9b58d7c",
+			Status:                 "complete",
+			Label:                  "optional",
 			AmountSentMilliSatoshi: "10000msat",
 		},
 	}, forwards)
@@ -401,7 +402,7 @@ func TestListSendPays(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, []glightning.SendPayFields{
-		glightning.SendPayFields{
+		{
 			Id:                    1,
 			PaymentHash:           "3d8705ad509bb52ee01047a4ced0cd4099da92507674e5452d19271f29df2993",
 			Destination:           "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
@@ -501,14 +502,14 @@ func TestPay(t *testing.T) {
 		Bolt11:                "lnbcrt3u1pwz67h2pp5h694gdd2suutuv2cpscucarmcgmarjpla9rd5vuwu8rtlzkgtgfqdpzvehhygr8dahkgueqv9hxggrnv4e8v6trv5cqp2rzjq0ashz3etfsqsj2xatuce766s84qzrsrql40x696y8nad08sunwyzqqpquqqqqgqqqqqqqqpqqqqqzsqqcvwxa6a3uu2ue80wflztg9ed27vtwu9k6ymtl03yxswnej5qzdw99ndmhwueuckg2ua2g8hfqf0l3mxvn9azs2u6qx0ag3hxye9x6e9qqv29cq5",
 	}
 	route := []glightning.RouteHop{
-		glightning.RouteHop{
+		{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
 			MilliSatoshi:   301080,
 			AmountMsat:     "301080msat",
 			Delay:          16,
 		},
-		glightning.RouteHop{
+		{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
 			MilliSatoshi:   301076,
@@ -517,14 +518,14 @@ func TestPay(t *testing.T) {
 		},
 	}
 	failroute := []glightning.RouteHop{
-		glightning.RouteHop{
+		{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
 			MilliSatoshi:   300660,
 			AmountMsat:     "300660msat",
 			Delay:          16,
 		},
-		glightning.RouteHop{
+		{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
 			MilliSatoshi:   300656,
@@ -533,7 +534,7 @@ func TestPay(t *testing.T) {
 		},
 	}
 	failures := []glightning.PayFailure{
-		glightning.PayFailure{
+		{
 			Message:       "reply from remote",
 			Type:          "FAIL_PAYMENT_REPLY",
 			ErringIndex:   1,
@@ -645,13 +646,13 @@ func TestSendPay(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	route := []glightning.RouteHop{
-		glightning.RouteHop{
+		{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
 			MilliSatoshi:   uint64(10001),
 			Delay:          15,
 		},
-		glightning.RouteHop{
+		{
 			Id:             "023d0e0719af06baa4aac6a1fc8d291b66e00b0a79c6282ed584ce27742f542a82",
 			ShortChannelId: "263x1x0",
 			MilliSatoshi:   uint64(10000),
@@ -822,7 +823,7 @@ func TestListInvoices(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, []*glightning.Invoice{
-		&glightning.Invoice{
+		{
 			Label:       "label",
 			Bolt11:      "lnbcrt1pwz646mpp59plmhlzsnz0yu6twf2mtjmydt40zlle2fzlkkkdzlmxqgqeha2gsdq8v3jhxccxqzxgcqp2vj8dqhg6yyzrvcd7kfwu4svh6k44mv5uy6wetpwfyxav504rthkxhxll2d9e4dwcm7xzpsxy9l9aulpmskepqad2x8vz82krme8zevgq3utwgq",
 			PaymentHash: "287fbbfc50989e4e696e4ab6b96c8d5d5e2fff2a48bf6b59a2fecc040337ea91",
@@ -830,7 +831,7 @@ func TestListInvoices(t *testing.T) {
 			Description: "desc",
 			ExpiresAt:   1546475555,
 		},
-		&glightning.Invoice{
+		{
 			Label:                 "uniq",
 			Bolt11:                "lnbcrt10p1pwz6k92pp5qgfu5fzu5g77enmz5e9znz5c3wly94huwcsywyffx2xzl23uedaqdq8v3jhxccxqzxgcqp28685h6tlq0lnz3yueqxhtdhqqq7mrwr6mv9j94zdhxpxfg3cd6y4pum736hwve4wq2pmgswkj7apnxcnu8yn89ve0vrhmt6g0jsxfkcqa5uxfj",
 			PaymentHash:           "0213ca245ca23deccf62a64a298a988bbe42d6fc7620471129328c2faa3ccb7a",
@@ -964,7 +965,7 @@ func TestGetRouteSimple(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, []glightning.RouteHop{
-		glightning.RouteHop{
+		{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
 			MilliSatoshi:   300000,
@@ -996,7 +997,7 @@ func TestGetRoute(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, []glightning.RouteHop{
-		glightning.RouteHop{
+		{
 			Id:             "03fb0b8a395a60084946eaf98cfb5a81ea010e0307eaf368ba21e7d6bcf0e4dc41",
 			ShortChannelId: "233x1x0",
 			MilliSatoshi:   300000,
@@ -1029,7 +1030,7 @@ func TestWithdraw(t *testing.T) {
 func TestWithdrawUtxos(t *testing.T) {
 	addr := "bcrt1qx5yjs8y4vm929ykzpmm8r7yxwakyvjwmyc5mkm"
 	utxos := []*glightning.Utxo{
-		&glightning.Utxo{
+		{
 			TxId:  "642d8a28c9ef5fb0699c7c88237293ab79aa9bebbc7bdf897d3bb1c617fd622a",
 			Index: 0,
 		},
@@ -1086,7 +1087,7 @@ func TestTxPrepare(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	outs := []*glightning.Outputs{
-		&glightning.Outputs{
+		{
 			Address: destination,
 			Satoshi: uint64(amount),
 		},
@@ -1108,7 +1109,7 @@ func TestTxPrepareUtxos(t *testing.T) {
 	feerate := glightning.NewFeeRate(glightning.PerKw, 243)
 	minConf := uint16(1)
 	utxos := []*glightning.Utxo{
-		&glightning.Utxo{
+		{
 			TxId:  "45b639a11a7ae8f2df0821f6815465b98ccaff88ab71e0a2a539101e29280506",
 			Index: 0,
 		},
@@ -1122,7 +1123,7 @@ func TestTxPrepareUtxos(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
 	outs := []*glightning.Outputs{
-		&glightning.Outputs{
+		{
 			Address: destination,
 			Satoshi: uint64(amount),
 		},
@@ -1265,7 +1266,7 @@ func TestListFunds(t *testing.T) {
 	}
 	assert.Equal(t, &glightning.FundsResult{
 		Outputs: []*glightning.FundOutput{
-			&glightning.FundOutput{
+			{
 				TxId:               "7c158044dd655057ea344924e135f8c5e5cffa8f583ccd81650f2b82057f0b5c",
 				Output:             1,
 				Value:              uint64(1250000000),
@@ -1274,7 +1275,7 @@ func TestListFunds(t *testing.T) {
 				Status:             "confirmed",
 				Blockheight:        1085,
 			},
-			&glightning.FundOutput{
+			{
 				TxId:               "05a610ae21fff4f88c9cb97f384fdeb00ec0e21522011977d0cd056c7c0f4172",
 				Output:             1,
 				Value:              uint64(99799846),
@@ -1284,7 +1285,7 @@ func TestListFunds(t *testing.T) {
 			},
 		},
 		Channels: []*glightning.FundingChannel{
-			&glightning.FundingChannel{
+			{
 				Id:                    "020e31bda574c36fa78ba2664ccf47b3f632f157a7b3e139de9ed396455c0f14de",
 				ChannelSatoshi:        200000,
 				AmountMilliSatoshi:    "200000000msat",
@@ -1328,7 +1329,7 @@ func TestFundChannel(t *testing.T) {
 	feeRate := glightning.NewFeeRate(glightning.PerKw, 500)
 	lightning, requestQ, replyQ := startupServer(t)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	result, err := lightning.FundChannelExt(id, sats, feeRate, false, nil, nil)
+	result, err := lightning.FundChannelExt(id, sats, feeRate, false, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1381,7 +1382,7 @@ func TestFundChannel(t *testing.T) {
 	feeRate = glightning.NewFeeRateByDirective(glightning.PerKb, glightning.Urgent)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"all","announce":false,"feerate":"urgent","id":"%s"},"id":%d}`, id, 4)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	_, err = lightning.FundChannelExt(id, sats, feeRate, false, nil, nil)
+	_, err = lightning.FundChannelExt(id, sats, feeRate, false, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1398,7 +1399,7 @@ func TestFundChannel(t *testing.T) {
 	feeRate = glightning.NewFeeRateByDirective(glightning.PerKb, glightning.Urgent)
 	req = fmt.Sprintf(`{"jsonrpc":"2.0","method":"fundchannel","params":{"amount":"all","announce":false,"feerate":"urgent","id":"%s","push_msat":"10000msat"},"id":%d}`, id, 5)
 	go runServerSide(t, req, resp, replyQ, requestQ)
-	_, err = lightning.FundChannelExt(id, sats, feeRate, false, nil, msat)
+	_, err = lightning.FundChannelExt(id, sats, feeRate, false, nil, msat, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1575,7 +1576,7 @@ func TestListChannels(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, []*glightning.Channel{
-		&glightning.Channel{
+		{
 			Source:                   "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
 			Destination:              "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
 			ShortChannelId:           "556297x2967x0",
@@ -1592,7 +1593,7 @@ func TestListChannels(t *testing.T) {
 			HtlcMinimumMilliSatoshis: "0msat",
 			HtlcMaximumMilliSatoshis: "4294967295msat",
 		},
-		&glightning.Channel{
+		{
 			Source:                   "034143d1a45cb9bcb912eab97facf4a971098385c4701753d6bc40e52192d0c04f",
 			Destination:              "02308c54b63e2c1375a52ce6ca27b171188f99e7c274eaf14be396289d93fb6003",
 			ShortChannelId:           "556297x2967x0",
@@ -1646,7 +1647,7 @@ func TestListNodes(t *testing.T) {
 		LastTimestamp: uint(1542574678),
 		Features:      featureHex,
 		Addresses: []glightning.Address{
-			glightning.Address{
+			{
 				Type: "ipv4",
 				Addr: "84.219.199.67",
 				Port: 9735,
@@ -1694,12 +1695,12 @@ func TestGetInfo(t *testing.T) {
 		InactiveChannelCount: 8,
 		Addresses:            []glightning.Address{},
 		Binding: []glightning.AddressInternal{
-			glightning.AddressInternal{
+			{
 				Type: "ipv6",
 				Addr: "::",
 				Port: 9735,
 			},
-			glightning.AddressInternal{
+			{
 				Type: "ipv4",
 				Addr: "0.0.0.0",
 				Port: 9735,
@@ -1727,17 +1728,17 @@ func TestGetLog(t *testing.T) {
 		BytesUsed: uint64(6445039),
 		BytesMax:  uint64(20971520),
 		Logs: []glightning.Log{
-			glightning.Log{
+			{
 				Type:    "UNUSUAL",
 				Time:    "4709.811937439",
 				Source:  "lightningd(9383):",
 				Message: "bitcoin-cli: finished bitcoin-cli getblockhash 556283 (12250 ms)",
 			},
-			glightning.Log{
+			{
 				Type:       "SKIPPED",
 				NumSkipped: uint(89),
 			},
-			glightning.Log{
+			{
 				Type:    "INFO",
 				Time:    "5688.218267611",
 				Source:  "lightningd(9383):",
@@ -1814,13 +1815,13 @@ func TestHelp(t *testing.T) {
 		t.Fatal(err)
 	}
 	assert.Equal(t, []*glightning.Command{
-		&glightning.Command{
+		{
 			NameAndUsage: "feerates style",
 			Description:  "Return feerate estimates, either satoshi-per-kw ({style} perkw) or satoshi-per-kb ({style} perkb).",
 			Verbose:      "HELP! Please contribute a description for this json_command!",
 			Category:     "bitcoin",
 		},
-		&glightning.Command{
+		{
 			NameAndUsage: "connect id [host] [port]",
 			Description:  "Connect to {id} at {host} (which can end in ':port' if not default). {id} can also be of the form id@host",
 			Verbose:      "HELP! Please contribute a description for this json_command!",
@@ -1932,22 +1933,22 @@ func TestDecodePayWithDescAndFallbacks(t *testing.T) {
 		PaymentHash:        "0001020304050607080900010203040506070809000102030405060708090102",
 		Signature:          "304502210091675cb3fad8e9d915343883a49242e074474e26d42c7ed914655689a80745530220733e8e4ea5ce9b85f69e40d755a55014536b12323f8b220600c94ef2b9c51428",
 		Fallbacks: []glightning.Fallback{
-			glightning.Fallback{
+			{
 				Type:    "P2PKH",
 				Address: "1RustyRX2oai4EYYDpQGWvEL62BBGqN9T",
 				Hex:     hexbytes,
 			},
 		},
 		Routes: [][]glightning.BoltRoute{
-			[]glightning.BoltRoute{
-				glightning.BoltRoute{
+			{
+				{
 					Pubkey:                    "029e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255",
 					ShortChannelId:            "66051:263430:1800",
 					FeeBaseMilliSatoshis:      uint64(1),
 					FeeProportionalMillionths: uint64(20),
 					CltvExpiryDelta:           uint(3),
 				},
-				glightning.BoltRoute{
+				{
 					Pubkey:                    "039e03a901b85534ff1e92c43c74431f7ce72046060fcf7a95c37e148f78c77255",
 					ShortChannelId:            "197637:395016:2314",
 					FeeBaseMilliSatoshis:      uint64(2),
@@ -2129,9 +2130,9 @@ func TestPlugins(t *testing.T) {
 	pluginList := `{"plugins":[{"name":"autoclean","active":true},{"name":"pay","active":true},{"name":"plugin_example","active":true}]}`
 	reqTemplate := "{\"jsonrpc\":\"2.0\",\"method\":\"plugin\",\"params\":{%s\"subcommand\":\"%s\"},\"id\":%d}"
 	expected := []glightning.PluginInfo{
-		glightning.PluginInfo{"autoclean", true},
-		glightning.PluginInfo{"pay", true},
-		glightning.PluginInfo{"plugin_example", true},
+		{"autoclean", true},
+		{"pay", true},
+		{"plugin_example", true},
 	}
 
 	// test "list"
@@ -2265,21 +2266,21 @@ func TestPayStatus(t *testing.T) {
 		AmountMsat:   "10000msat",
 		Destination:  "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
 		Attempts: []glightning.PayAttempt{
-			glightning.PayAttempt{
+			{
 				Strategy:          "Initial attempt",
 				AgeInSeconds:      33,
 				DurationInSeconds: 1,
 				StartTime:         "2019-08-15T00:36:45.665Z",
 				EndTime:           "2019-08-15T00:36:47.390Z",
 				Route: []glightning.RouteHop{
-					glightning.RouteHop{
+					{
 						Id:             "02e61e51a6839bdb189e1e4be5d6ab0a89341c396a7c82ff1cdc7c0a035a5a205b",
 						ShortChannelId: "1442x1x0",
 						MilliSatoshi:   10001,
 						Direction:      0,
 						AmountMsat:     "10001msat",
 						Delay:          16,
-					}, glightning.RouteHop{
+					}, {
 						Id:             "02d463df71de29c897bdd2a2a802e75fbef8b0e27493b8b5cf809852c996341e08",
 						ShortChannelId: "1442x2x0",
 						MilliSatoshi:   10000,
@@ -2301,7 +2302,7 @@ func TestPayStatus(t *testing.T) {
 					},
 				},
 			},
-			glightning.PayAttempt{
+			{
 				Strategy:          "Excluded channel 1442x2x0/1",
 				AgeInSeconds:      31,
 				DurationInSeconds: 0,
@@ -2375,7 +2376,7 @@ func TestSetChannelFee(t *testing.T) {
 		Base:           uint64(1000),
 		PartPerMillion: uint64(400),
 		Channels: []glightning.ChannelInfo{
-			glightning.ChannelInfo{
+			{
 				PeerId:         "02502091854ba31bddef5be51584c4014c3edd7d65936b6841fa9a9f6366313a54",
 				ChannelId:      "04a59bdc9f8708ff5457726725c10d161d8b4ad1330b6d92d1d5196994a2478e",
 				ShortChannelId: "1442x1x0",
