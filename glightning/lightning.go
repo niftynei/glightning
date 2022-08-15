@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/niftynei/glightning/jrpc2"
 	"log"
 	"path/filepath"
+
+	"github.com/niftynei/glightning/jrpc2"
 )
 
 // This file's the one that holds all the objects for the
@@ -91,11 +92,17 @@ type Peer struct {
 	Logs         []*Log         `json:"log,omitempty"`
 }
 
+type ChannelAlias struct {
+	Remote string `json:"remote"`
+	Local  string `json:"local"`
+}
+
 type PeerChannel struct {
 	State                            string            `json:"state"`
 	ScratchTxId                      string            `json:"scratch_txid"`
 	Owner                            string            `json:"owner"`
 	ShortChannelId                   string            `json:"short_channel_id"`
+	Alias                            ChannelAlias      `json:"alias"`
 	ChannelDirection                 int               `json:"direction"`
 	ChannelId                        string            `json:"channel_id"`
 	FundingTxId                      string            `json:"funding_txid"`
@@ -106,42 +113,42 @@ type PeerChannel struct {
 	FundingAllocations               map[string]uint64 `json:"funding_allocation_msat"`
 	FundingMsat                      map[string]string `json:"funding_msat"`
 	MilliSatoshiToUs                 uint64            `json:"msatoshi_to_us"`
-	ToUsMsat                         string            `json:"to_us_msat"`
+	ToUsMsat                         uint64            `json:"to_us_msat"`
 	MilliSatoshiToUsMin              uint64            `json:"msatoshi_to_us_min"`
-	MinToUsMsat                      string            `json:"min_to_us_msat"`
+	MinToUsMsat                      uint64            `json:"min_to_us_msat"`
 	MilliSatoshiToUsMax              uint64            `json:"msatoshi_to_us_max"`
-	MaxToUsMsat                      string            `json:"max_to_us_msat"`
+	MaxToUsMsat                      uint64            `json:"max_to_us_msat"`
 	MilliSatoshiTotal                uint64            `json:"msatoshi_total"`
-	TotalMsat                        string            `json:"total_msat"`
+	TotalMsat                        uint64            `json:"total_msat"`
 	DustLimitSatoshi                 uint64            `json:"dust_limit_satoshis"`
-	DustLimitMsat                    string            `json:"dust_limit_msat"`
+	DustLimitMsat                    uint64            `json:"dust_limit_msat"`
 	MaxHtlcValueInFlightMilliSatoshi uint64            `json:"max_htlc_value_in_flight_msat"`
-	MaxHtlcValueInFlightMsat         string            `json:"max_total_htlc_in_msat"`
+	MaxHtlcValueInFlightMsat         uint64            `json:"max_total_htlc_in_msat"`
 	TheirChannelReserveSatoshi       uint64            `json:"their_channel_reserve_satoshis"`
-	TheirReserveMsat                 string            `json:"their_reserve_msat"`
+	TheirReserveMsat                 uint64            `json:"their_reserve_msat"`
 	OurChannelReserveSatoshi         uint64            `json:"our_channel_reserve_satoshis"`
-	OurReserveMsat                   string            `json:"our_reserve_msat"`
+	OurReserveMsat                   uint64            `json:"our_reserve_msat"`
 	SpendableMilliSatoshi            uint64            `json:"spendable_msatoshi"`
-	SpendableMsat                    string            `json:"spendable_msat"`
+	SpendableMsat                    uint64            `json:"spendable_msat"`
 	ReceivableMilliSatoshi           uint64            `json:"receivable_msatoshi"`
-	ReceivableMsat                   string            `json:"receivable_msat"`
+	ReceivableMsat                   uint64            `json:"receivable_msat"`
 	HtlcMinMilliSatoshi              uint64            `json:"htlc_minimum_msat"`
-	MinimumHtlcInMsat                string            `json:"minimum_htlc_in_msat"`
+	MinimumHtlcInMsat                uint64            `json:"minimum_htlc_in_msat"`
 	TheirToSelfDelay                 uint              `json:"their_to_self_delay"`
 	OurToSelfDelay                   uint              `json:"our_to_self_delay"`
 	MaxAcceptedHtlcs                 uint              `json:"max_accepted_htlcs"`
 	InPaymentsOffered                uint64            `json:"in_payments_offered"`
 	InMilliSatoshiOffered            uint64            `json:"in_msatoshi_offered"`
-	IncomingOfferedMsat              string            `json:"in_offered_msat"`
+	IncomingOfferedMsat              uint64            `json:"in_offered_msat"`
 	InPaymentsFulfilled              uint64            `json:"in_payments_fulfilled"`
 	InMilliSatoshiFulfilled          uint64            `json:"in_msatoshi_fulfilled"`
-	IncomingFulfilledMsat            string            `json:"in_fulfilled_msat"`
+	IncomingFulfilledMsat            uint64            `json:"in_fulfilled_msat"`
 	OutPaymentsOffered               uint64            `json:"out_payments_offered"`
 	OutMilliSatoshiOffered           uint64            `json:"out_msatoshi_offered"`
-	OutgoingOfferedMsat              string            `json:"out_offered_msat"`
+	OutgoingOfferedMsat              uint64            `json:"out_offered_msat"`
 	OutPaymentsFulfilled             uint64            `json:"out_payments_fulfilled"`
 	OutMilliSatoshiFulfilled         uint64            `json:"out_msatoshi_fulfilled"`
-	OutgoingFulfilledMsat            string            `json:"out_fulfilled_msat"`
+	OutgoingFulfilledMsat            uint64            `json:"out_fulfilled_msat"`
 	Htlcs                            []*Htlc           `json:"htlcs"`
 }
 
@@ -1500,6 +1507,7 @@ type FundChannelRequest struct {
 	FeeRate  string  `json:"feerate,omitempty"`
 	Announce bool    `json:"announce"`
 	MinConf  *uint16 `json:"minconf,omitempty"`
+	MinDepth *uint16 `json:"mindepth,omitempty"`
 	PushMsat string  `json:"push_msat,omitempty"`
 }
 
@@ -1508,26 +1516,28 @@ func (r FundChannelRequest) Name() string {
 }
 
 type FundChannelResult struct {
-	FundingTx   string `json:"tx"`
-	FundingTxId string `json:"txid"`
-	ChannelId   string `json:"channel_id"`
+	FundingTx          string `json:"tx"`
+	FundingTxId        string `json:"txid"`
+	FundingTxOutputNum uint16 `json:"outnum"`
+	MinDepth           uint16 `json:"mindepth"`
+	ChannelId          string `json:"channel_id"`
 }
 
 // Fund channel, defaults to public channel and default feerate.
 func (l *Lightning) FundChannel(id string, amount *Sat) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, nil, true, nil, nil)
+	return l.FundChannelExt(id, amount, nil, true, nil, nil, nil)
 }
 
 func (l *Lightning) FundPrivateChannel(id string, amount *Sat) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, nil, false, nil, nil)
+	return l.FundChannelExt(id, amount, nil, false, nil, nil, nil)
 }
 
 func (l *Lightning) FundChannelAtFee(id string, amount *Sat, feerate *FeeRate) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, feerate, true, nil, nil)
+	return l.FundChannelExt(id, amount, feerate, true, nil, nil, nil)
 }
 
 func (l *Lightning) FundPrivateChannelAtFee(id string, amount *Sat, feerate *FeeRate) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, feerate, false, nil, nil)
+	return l.FundChannelExt(id, amount, feerate, false, nil, nil, nil)
 }
 
 // Fund channel with node {id} using {satoshi} satoshis, with feerate of {feerate}. Uses
@@ -1535,7 +1545,7 @@ func (l *Lightning) FundPrivateChannelAtFee(id string, amount *Sat, feerate *Fee
 // If announce is false, channel announcements will not be sent.
 // can send an optional 'pushMsat', of millisatoshis to push to peer (from your funding amount)
 // Any pushed msats are irrevocably gifted to the peer. (use only if you enjoy being a sats santa!)
-func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, announce bool, minConf *uint16, pushMSat *MSat) (*FundChannelResult, error) {
+func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, announce bool, minConf *uint16, pushMSat *MSat, minDepth *uint16) (*FundChannelResult, error) {
 	if amount == nil || (amount.Value == 0 && !amount.SendAll) {
 		return nil, fmt.Errorf("Must set satoshi amount to send")
 	}
@@ -1544,6 +1554,8 @@ func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, ann
 		Id:       id,
 		Amount:   amount.RawString(),
 		Announce: announce,
+		MinDepth: minDepth,
+		MinConf:  minConf,
 	}
 	if feerate != nil {
 		req.FeeRate = feerate.String()
@@ -1551,7 +1563,6 @@ func (l *Lightning) FundChannelExt(id string, amount *Sat, feerate *FeeRate, ann
 	if pushMSat != nil {
 		req.PushMsat = pushMSat.String()
 	}
-	req.MinConf = minConf
 
 	var result FundChannelResult
 	err := l.client.Request(req, &result)
