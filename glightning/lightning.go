@@ -1510,9 +1510,11 @@ func (r FundChannelRequest) Name() string {
 }
 
 type FundChannelResult struct {
-	FundingTx   string `json:"tx"`
-	FundingTxId string `json:"txid"`
-	ChannelId   string `json:"channel_id"`
+	FundingTx          string `json:"tx"`
+	FundingTxId        string `json:"txid"`
+	FundingTxOutputNum string `json:"outnum"`
+	MinDepth           uint16 `json:"mindepth"`
+	ChannelId          string `json:"channel_id"`
 }
 
 // Fund channel, defaults to public channel and default feerate.
