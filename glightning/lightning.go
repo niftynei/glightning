@@ -92,11 +92,17 @@ type Peer struct {
 	Logs         []*Log         `json:"log,omitempty"`
 }
 
+type ChannelAlias struct {
+	Remote string `json:"remote"`
+	Local  string `json:"local"`
+}
+
 type PeerChannel struct {
 	State                            string            `json:"state"`
 	ScratchTxId                      string            `json:"scratch_txid"`
 	Owner                            string            `json:"owner"`
 	ShortChannelId                   string            `json:"short_channel_id"`
+	Alias                            ChannelAlias      `json:"alias"`
 	ChannelDirection                 int               `json:"direction"`
 	ChannelId                        string            `json:"channel_id"`
 	FundingTxId                      string            `json:"funding_txid"`
