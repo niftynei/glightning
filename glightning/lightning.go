@@ -1518,7 +1518,7 @@ func (r FundChannelRequest) Name() string {
 type FundChannelResult struct {
 	FundingTx          string `json:"tx"`
 	FundingTxId        string `json:"txid"`
-	FundingTxOutputNum string `json:"outnum"`
+	FundingTxOutputNum uint16 `json:"outnum"`
 	MinDepth           uint16 `json:"mindepth"`
 	ChannelId          string `json:"channel_id"`
 }
