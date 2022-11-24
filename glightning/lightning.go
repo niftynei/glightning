@@ -1039,7 +1039,7 @@ type NodeInfo struct {
 	Blockheight                uint              `json:"blockheight"`
 	Network                    string            `json:"network"`
 	FeesCollectedMilliSatoshis uint64            `json:"msatoshi_fees_collected"`
-	FeesCollected              string            `json:"fees_collected_msat"`
+	FeesCollected              uint64            `json:"fees_collected_msat"`
 	LightningDir               string            `json:"lightning-dir"`
 	WarningBitcoinSync         string            `json:"warning_bitcoind_sync,omitempty"`
 	WarningLightningSync       string            `json:"warning_lightningd_sync,omitempty"`
