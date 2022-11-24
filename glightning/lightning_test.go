@@ -1710,7 +1710,7 @@ func TestGetInfo(t *testing.T) {
 		Blockheight:                556302,
 		Network:                    "bitcoin",
 		FeesCollectedMilliSatoshis: 300,
-		FeesCollected:              "300msat",
+		FeesCollected:              300,
 	}, info)
 }
 
