@@ -1528,19 +1528,19 @@ type FundChannelResult struct {
 
 // Fund channel, defaults to public channel and default feerate.
 func (l *Lightning) FundChannel(id string, amount *Sat) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, nil, true, nil, nil, nil)
+	return l.FundChannelExt(id, amount, nil, true, nil, nil, nil, nil)
 }
 
 func (l *Lightning) FundPrivateChannel(id string, amount *Sat) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, nil, false, nil, nil, nil)
+	return l.FundChannelExt(id, amount, nil, false, nil, nil, nil, nil)
 }
 
 func (l *Lightning) FundChannelAtFee(id string, amount *Sat, feerate *FeeRate) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, feerate, true, nil, nil, nil)
+	return l.FundChannelExt(id, amount, feerate, true, nil, nil, nil, nil)
 }
 
 func (l *Lightning) FundPrivateChannelAtFee(id string, amount *Sat, feerate *FeeRate) (*FundChannelResult, error) {
-	return l.FundChannelExt(id, amount, feerate, false, nil, nil, nil)
+	return l.FundChannelExt(id, amount, feerate, false, nil, nil, nil, nil)
 }
 
 // Fund channel with node {id} using {satoshi} satoshis, with feerate of {feerate}. Uses
