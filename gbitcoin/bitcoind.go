@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/niftynei/glightning/jrpc2"
 	"io/ioutil"
 	"log"
 	"math"
@@ -14,6 +13,8 @@ import (
 	"strconv"
 	"sync/atomic"
 	"time"
+
+	"github.com/niftynei/glightning/jrpc2"
 )
 
 // taken from bitcoind
@@ -608,4 +609,30 @@ func ConvertBtc(btc float64) uint64 {
 		panic(fmt.Sprintf("overflowed converting %f to sat", btc))
 	}
 	return uint64(sat)
+}
+
+type CreateWalletRequest struct {
+	WalletName         string `json:"wallet_name"`
+	DisablePrivateKeys *bool  `json:"disable_private_keys,omitempty"`
+	Blank              *bool  `json:"blank,omitempty"`
+	Passphrase         string `json:"passphrase"`
+	AvoidReuse         *bool  `json:"avoid_reuse,omitempty"`
+	Descriptors        *bool  `json:"descriptors,omitempty"`
+	LoadOnStartup      *bool  `json:"load_on_startup,omitempty"`
+}
+
+func (r *CreateWalletRequest) Name() string {
+	return "createwallet"
+}
+
+type CreateWalletResponse struct {
+	Name    string `json:"name"`
+	Warning string `json:"warning"`
+}
+
+func (b *Bitcoin) CreateWallet(req *CreateWalletRequest) (*CreateWalletResponse, error) {
+	var resp CreateWalletResponse
+	err := b.request(req, &resp)
+
+	return &resp, err
 }
