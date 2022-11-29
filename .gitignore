@@ -1,3 +1,5 @@
 todos
 tags
 build/
+.DS_Store
+go.sum

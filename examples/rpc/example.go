@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"github.com/niftynei/glightning/glightning"
 	"sync"
+
+	"github.com/niftynei/glightning/glightning"
 )
 
 func main() {

@@ -3,15 +3,16 @@ package glightning_test
 import (
 	"bufio"
 	"fmt"
-	"github.com/niftynei/glightning/glightning"
-	"github.com/niftynei/glightning/jrpc2"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
 	"os"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/niftynei/glightning/glightning"
+	"github.com/niftynei/glightning/jrpc2"
+	"github.com/stretchr/testify/assert"
 )
 
 type HiMethod struct {

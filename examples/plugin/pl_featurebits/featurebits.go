@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/niftynei/glightning/glightning"
 	"log"
 	"math/big"
 	"os"
+
+	"github.com/niftynei/glightning/glightning"
 )
 
 func main() {

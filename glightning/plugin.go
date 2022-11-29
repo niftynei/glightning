@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/niftynei/glightning/jrpc2"
 	"io"
 	"log"
 	"os"
 	"reflect"
 	"strings"
+
+	"github.com/niftynei/glightning/jrpc2"
 )
 
 type Subscription string
@@ -36,8 +37,9 @@ const (
 var lightningMethodRegistry map[string]*jrpc2.Method
 
 // This hook is called whenever a peer has connected and successfully completed
-//   the cryptographic handshake. The parameters have the following structure if
-//   there is a channel with the peer:
+//
+//	the cryptographic handshake. The parameters have the following structure if
+//	there is a channel with the peer:
 type PeerConnectedEvent struct {
 	Peer PeerEvent `json:"peer"`
 	hook func(*PeerConnectedEvent) (*PeerConnectedResponse, error)
@@ -405,10 +407,11 @@ func (rc *RpcCommandEvent) ReturnError(errMsg string, errCode int) (*RpcCommandR
 // its result determines how `lightningd` should treat that HTLC.
 //
 // Warning: `lightningd` will replay the HTLCs for which it doesn't have a final
-//   verdict during startup. This means that, if the plugin response wasn't
-//   processed before the HTLC was forwarded, failed, or resolved, then the plugin
-//   may see the same HTLC again during startup. It is therefore paramount that the
-//   plugin is idempotent if it talks to an external system.
+//
+//	verdict during startup. This means that, if the plugin response wasn't
+//	processed before the HTLC was forwarded, failed, or resolved, then the plugin
+//	may see the same HTLC again during startup. It is therefore paramount that the
+//	plugin is idempotent if it talks to an external system.
 type HtlcAcceptedEvent struct {
 	Onion Onion     `json:"onion"`
 	Htlc  HtlcOffer `json:"htlc"`
@@ -1137,7 +1140,8 @@ func (p *Plugin) Log(message string, level LogLevel) {
 }
 
 // Map for registering hooks. Not the *most* elegant but
-//   it'll do for now.
+//
+//	it'll do for now.
 type Hooks struct {
 	PeerConnected  func(*PeerConnectedEvent) (*PeerConnectedResponse, error)
 	DbWrite        func(*DbWriteEvent) (*DbWriteResponse, error)

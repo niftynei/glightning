@@ -1,13 +1,14 @@
 package jrpc2_test
 
 import (
-	"github.com/niftynei/glightning/jrpc2"
-	"github.com/stretchr/testify/assert"
 	"net"
 	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/niftynei/glightning/jrpc2"
+	"github.com/stretchr/testify/assert"
 )
 
 // Test methods

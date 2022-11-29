@@ -2,9 +2,10 @@ package glightning_test
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/niftynei/glightning/glightning"
 	"github.com/niftynei/glightning/jrpc2"
-	"testing"
 )
 
 type ParamMethod struct {

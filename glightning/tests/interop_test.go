@@ -4,9 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"github.com/niftynei/glightning/gbitcoin"
-	"github.com/niftynei/glightning/glightning"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"io/ioutil"
 	"log"
@@ -19,6 +16,10 @@ import (
 	"syscall"
 	"testing"
 	"time"
+
+	"github.com/niftynei/glightning/gbitcoin"
+	"github.com/niftynei/glightning/glightning"
+	"github.com/stretchr/testify/assert"
 )
 
 const defaultTimeout int = 10
