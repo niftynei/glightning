@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/niftynei/glightning/gbitcoin"
-	"github.com/niftynei/glightning/glightning"
 	"log"
 	"os"
+
+	"github.com/niftynei/glightning/gbitcoin"
+	"github.com/niftynei/glightning/glightning"
 )
 
 const MaxFeeMultiple uint64 = 10

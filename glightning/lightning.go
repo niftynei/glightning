@@ -1163,7 +1163,9 @@ func (l *Lightning) SendPayLite(route []RouteHop, paymentHash string) (*SendPayR
 }
 
 // Send along {route} in return for preimage of {paymentHash}
-//  Description and msat are optional.
+//
+//	Description and msat are optional.
+//
 // Generally a client would call GetRoute to resolve a route, then
 // use SendPay to send it.  If it fails, it would call GetRoute again
 // to retry.
@@ -1682,7 +1684,7 @@ func (l *Lightning) CloseToTimeoutWithStep(id string, timeout uint, destination,
 // Close the channel with peer {id}, timing out with {timeout} seconds, at whence a
 // unilateral close is initiated.
 //
-// If unspecified, forces a close (timesout) in 48hours
+// # If unspecified, forces a close (timesout) in 48hours
 //
 // Can pass either peer id or channel id as {id} field.
 //
@@ -2399,10 +2401,13 @@ type SharedSecretResp struct {
 	SharedSecret string `json:"shared_secret"`
 }
 
-/* Returns the shared secret, a hexadecimal string of the 256-bit SHA-2 of the
-   compressed public key DER-encoding of the  SECP256K1  point  that  is  the
-   shared secret generated using the Elliptic Curve Diffie-Hellman algorithm.
-   This field is 32 bytes (64 hexadecimal characters in a string). */
+/*
+Returns the shared secret, a hexadecimal string of the 256-bit SHA-2 of the
+
+	compressed public key DER-encoding of the  SECP256K1  point  that  is  the
+	shared secret generated using the Elliptic Curve Diffie-Hellman algorithm.
+	This field is 32 bytes (64 hexadecimal characters in a string).
+*/
 func (l *Lightning) GetSharedSecret(point string) (string, error) {
 	var result SharedSecretResp
 	err := l.client.Request(&SharedSecretRequest{point}, &result)
@@ -2415,7 +2420,8 @@ var Lightning_RpcMethods map[string](func() jrpc2.Method)
 // we register all of the methods here, so the rpc command
 // hook in the plugin works as expected
 // FIXME: have this registry be generated dynamically
-//        at build
+//
+//	at build
 func init() {
 	Lightning_RpcMethods = make(map[string]func() jrpc2.Method)
 

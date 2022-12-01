@@ -3,13 +3,14 @@ package jrpc2_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/niftynei/glightning/jrpc2"
-	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
+
+	"github.com/niftynei/glightning/jrpc2"
+	"github.com/stretchr/testify/assert"
 )
 
-//// This section (below) is for method json marshalling,
+// // This section (below) is for method json marshalling,
 // with special emphasis on how the parameters get marshalled
 // and unmarshalled to/from 'Method' objects
 type HelloMethod struct {

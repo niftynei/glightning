@@ -2,14 +2,15 @@ package jrpc2_test
 
 import (
 	"bufio"
-	"github.com/niftynei/glightning/jrpc2"
-	"github.com/stretchr/testify/assert"
 	"io"
 	"log"
 	"os"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/niftynei/glightning/jrpc2"
+	"github.com/stretchr/testify/assert"
 )
 
 type ClientSubtract struct {
@@ -245,8 +246,8 @@ func TestClientShutdown(t *testing.T) {
 }
 
 // a notification should:
-//  - not have an id
-//  - return immediately
+//   - not have an id
+//   - return immediately
 func TestClientNotification(t *testing.T) {
 	in, out, serverIn, _ := setupWritePipes(t)
 
