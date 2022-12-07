@@ -465,7 +465,8 @@ type HtlcAcceptedResponse struct {
 	// Only allowed if result is 'resolve'
 	PaymentKey string `json:"payment_key,omitempty"`
 	// Replaces the onion's payload
-	Payload string `json:"payload,omitempty"`
+	Payload   string `json:"payload,omitempty"`
+	ForwardTo string `json:"forward_to,omitempty"`
 }
 
 func (ha *HtlcAcceptedEvent) New() interface{} {
@@ -485,6 +486,14 @@ func (ha *HtlcAcceptedEvent) Call() (jrpc2.Result, error) {
 func (ha *HtlcAcceptedEvent) Continue() *HtlcAcceptedResponse {
 	return &HtlcAcceptedResponse{
 		Result: _HcContinue,
+	}
+}
+
+func (ha *HtlcAcceptedEvent) ContinueWith(forward_to string, payload string) *HtlcAcceptedResponse {
+	return &HtlcAcceptedResponse{
+		Result:    _HcContinue,
+		ForwardTo: forward_to,
+		Payload:   payload,
 	}
 }
 
