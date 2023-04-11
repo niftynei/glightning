@@ -28,7 +28,7 @@ const InternalErr = -32603
 // 'actual' type of it so when we send it back over the
 // wire, we don't confuse the other side.
 type Id struct {
-	intVal int64
+	intVal uint32
 	strVal string
 }
 
@@ -52,11 +52,11 @@ func (id *Id) UnmarshalJSON(data []byte) error {
 		id.strVal = string(data[1 : len(data)-1])
 		return nil
 	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		val, err := strconv.ParseInt(string(data), 10, 64)
+		val, err := strconv.ParseUint(string(data), 10, 32)
 		if err != nil {
 			return NewError(nil, InvalidRequest, fmt.Sprintf("Invalid Id value: %s", string(data)))
 		}
-		id.intVal = val
+		id.intVal = uint32(val)
 		return nil
 	case '{': // objects not allowed!
 		fallthrough
@@ -75,7 +75,7 @@ func (id Id) String() string {
 	if id.strVal != "" {
 		return id.strVal
 	}
-	return strconv.FormatInt(id.intVal, 10)
+	return strconv.FormatInt(int64(id.intVal), 10)
 }
 
 func NewId(val string) *Id {
@@ -84,7 +84,7 @@ func NewId(val string) *Id {
 	}
 }
 
-func NewIdAsInt(val int64) *Id {
+func NewIdAsInt(val uint32) *Id {
 	return &Id{
 		intVal: val,
 	}
